@@ -2,7 +2,78 @@
 
 set -x
 
-apt-get update -y && apt-get install -y curl unzip
+apt-get update -y && apt-get install -y curl unzip jq collectd
+
+cat <<EOF > /etc/collectd/collectd.conf
+FQDNLookup true
+Interval 10
+LoadPlugin syslog
+<Plugin syslog>
+        LogLevel info
+</Plugin>
+#LoadPlugin aggregation
+LoadPlugin cpu
+LoadPlugin df
+LoadPlugin disk
+LoadPlugin entropy
+LoadPlugin interface
+#LoadPlugin irq
+LoadPlugin load
+LoadPlugin memory
+LoadPlugin processes
+LoadPlugin rrdtool
+#LoadPlugin statsd
+LoadPlugin swap
+
+<Plugin cpu>
+      ReportByCpu true
+      ReportByState true
+      ValuesPercentage false
+      ReportNumCpu false
+      ReportGuestState false
+      SubtractGuestState true
+</Plugin>
+
+<Plugin df>
+        FSType rootfs
+        FSType sysfs
+        FSType proc
+        FSType devtmpfs
+        FSType devpts
+        FSType tmpfs
+        FSType fusectl
+        FSType cgroup
+        IgnoreSelected true
+</Plugin>
+
+<Plugin rrdtool>
+        DataDir "/var/lib/collectd/rrd"
+</Plugin>
+
+# <Plugin statsd>
+#       Host "::"
+#       Port "8125"
+#       DeleteCounters false
+#       DeleteTimers   false
+#       DeleteGauges   false
+#       DeleteSets     false
+#       CounterSum     false
+#       TimerPercentile 90.0
+#       TimerPercentile 95.0
+#       TimerPercentile 99.0
+#       TimerLower     false
+#       TimerUpper     false
+#       TimerSum       false
+#       TimerCount     false
+# </Plugin>
+
+<Include "/etc/collectd/collectd.conf.d">
+        Filter "*.conf"
+</Include>
+EOF
+
+systemctl daemon-reload
+systemctl restart collectd
 
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip -q awscliv2.zip
@@ -12,105 +83,5 @@ if [ -n "${s3_bucket_name}" ]; then
     aws s3 cp s3://${s3_bucket_name}/authorized_keys ~/.ssh/authorized_keys
     chmod 600 ~/.ssh/authorized_keys
 fi
-
-curl -s 'https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb' -o /tmp/amazon-cloudwatch-agent.deb
-apt-get install -y /tmp/amazon-cloudwatch-agent.deb
-
-cat <<EOF > /opt/aws/amazon-cloudwatch-agent/bin/config.json
-{
-  "agent": {
-    "metrics_collection_interval": 60,
-    "run_as_user": "root"
-  },
-  "logs": {
-    "logs_collected": {
-      "files": {
-        "collect_list": [
-          {
-            "file_path": "/var/log/cloud-init-output.log",
-            "log_group_name": "cloud-init-output",
-            "log_stream_name": "emqx-performance-test-${timestamp}",
-            "retention_in_days": 1
-          },
-          {
-            "file_path": "/var/log/emqx/*.log*",
-            "log_group_name": "emqx",
-            "log_stream_name": "emqx-performance-test-${timestamp}",
-            "retention_in_days": 1
-          }
-        ]
-      }
-    }
-  },
-  "metrics": {
-    "aggregation_dimensions": [
-      ["InstanceId"]
-    ],
-    "append_dimensions": {
-      "Timestamp": "${timestamp}",
-      "InstanceId": "\$${aws:InstanceId}"
-    },
-    "metrics_collected": {
-      "cpu": {
-        "measurement": [
-          "cpu_usage_idle",
-          "cpu_usage_iowait",
-          "cpu_usage_user",
-          "cpu_usage_system"
-        ],
-        "metrics_collection_interval": 60,
-        "resources": [
-          "*"
-        ],
-        "totalcpu": false
-      },
-      "disk": {
-        "measurement": [
-          "used_percent",
-          "inodes_free"
-        ],
-        "metrics_collection_interval": 60,
-        "resources": ["*"]
-      },
-      "diskio": {
-        "measurement": [
-          "io_time",
-          "write_bytes",
-          "read_bytes",
-          "writes",
-          "reads"
-        ],
-        "metrics_collection_interval": 60,
-        "resources": [
-          "*"
-        ]
-      },
-      "mem": {
-        "measurement": ["mem_used_percent"],
-        "metrics_collection_interval": 60
-      },
-      "netstat": {
-        "measurement": [
-          "tcp_established",
-          "tcp_syn_sent",
-          "tcp_close"
-        ],
-        "metrics_collection_interval": 60
-      },
-      "processes": {
-        "measurement": [
-          "running",
-          "sleeping",
-          "dead"
-        ]
-      }
-    }
-  }
-}
-EOF
-
-/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json
-systemctl daemon-reload
-systemctl restart amazon-cloudwatch-agent.service
 
 ${extra}

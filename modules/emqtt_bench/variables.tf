@@ -18,16 +18,6 @@ variable "package_url" {
   type        = string
 }
 
-variable "route53_zone_id" {
-  description = "Route53 Zone ID"
-  type        = string
-}
-
-variable "route53_zone_name" {
-  description = "Route53 Zone Name"
-  type        = string
-}
-
 variable "instance_count" {
   description = "Instance count"
   type        = number
@@ -45,6 +35,11 @@ variable "sg_ids" {
   type        = list(string)
 }
 
+variable "emqx_lb_dns_name" {
+  description = "FQDN of EMQX Load Balancer"
+  type        = string
+}
+
 variable "iam_profile" {
   description = "IAM Instance Profile"
   type        = string
@@ -53,4 +48,22 @@ variable "iam_profile" {
 variable "bench_id" {
   description = "Benchmark ID"
   type        = string
+}
+
+variable "clients_count" {
+  description = "Clients count"
+  type        = number
+  default     = 64000
+}
+
+variable "payload_size" {
+  description = "Payload size"
+  type        = number
+  default     = 256
+}
+
+variable "max_message_count" {
+  description = "Max message count"
+  type        = number
+  default     = 1000000
 }

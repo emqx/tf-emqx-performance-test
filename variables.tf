@@ -28,16 +28,33 @@ variable "s3_bucket_name" {
   default     = "tf-emqx-performance-test"
 }
 
-variable "s3_prefix" {
-  description = "S3 prefix"
+variable "bench_id" {
+  description = "Benchmark ID"
   type        = string
-  default     = "packages"
+  default     = "test"
 }
 
 variable "package_file" {
   description = "Package file"
   type        = string
   default     = "emqx.deb"
+}
+
+variable "emqtt_bench_package_url" {
+  type    = string
+  default = "https://github.com/emqx/emqtt-bench/releases/download/0.4.11/emqtt-bench-0.4.11-ubuntu20.04-amd64.tar.gz"
+}
+
+variable "emqtt_bench_instance_count" {
+  description = "Instance count of emqtt_bench"
+  type        = number
+  default     = 1
+}
+
+variable "emqtt_bench_instance_type" {
+  description = "Instance type of emqtt_bench"
+  type        = string
+  default     = "c5.large"
 }
 
 variable "dns_zone_name" {

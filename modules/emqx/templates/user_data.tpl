@@ -52,3 +52,23 @@ EOF
 
 systemctl daemon-reload
 systemctl restart emqx
+
+cat << EOF > /post-run.sh
+# sleep 10 minutes and upload logs to s3
+sleep 600
+systemctl stop collectd
+TOKEN=\$(curl -sSf 'http://localhost:18083/api/v5/login' \
+    -H 'Authorization: Bearer undefined' \
+    -H 'Content-Type: application/json' \
+    --data-raw '{"username":"admin","password":"public"}' | jq -r .token)
+
+data_dir="emqx-$(hostname)"
+mkdir \$data_dir
+curl -sSf 'http://localhost:18083/api/v5/stats' -H "Authorization: Bearer \$TOKEN" > \$data_dir/stats.json
+curl -sSf 'http://localhost:18083/api/v5/metrics' -H "Authorization: Bearer \$TOKEN" > \$data_dir/metrics.json
+cp -r /var/lib/collectd/rrd \$data_dir/
+tar -czf \$data_dir.tar.gz \$data_dir
+aws s3 cp \$data_dir.tar.gz s3://${s3_bucket_name}/${bench_id}/\$data_dir.tar.gz
+EOF
+
+/bin/bash /post-run.sh > /var/log/post-run.log 2>&1 &

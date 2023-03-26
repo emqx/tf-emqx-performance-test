@@ -38,25 +38,32 @@ module "security_group" {
   cidr_blocks      = [aws_default_vpc.default.cidr_block]
 }
 
+module "ec2_profile" {
+  source         = "./modules/ec2_profile"
+  s3_bucket_name = var.s3_bucket_name
+}
+
 module "emqx_package" {
   source         = "./modules/emqx_package"
   region         = local.region
   s3_bucket_name = var.s3_bucket_name
-  s3_prefix      = var.s3_prefix
+  s3_prefix      = var.bench_id
   package_file   = var.package_file
 }
 
 module "emqx" {
-  source              = "./modules/emqx"
-  ami_filter          = local.ami_filter
-  s3_bucket_name      = var.s3_bucket_name
-  package_url         = module.emqx_package.package_url
-  emqx_namespace      = var.emqx_namespace
-  emqx_instance_count = var.emqx_instance_count
-  emqx_instance_type  = var.emqx_instance_type
-  route53_zone_id     = aws_route53_zone.int.zone_id
-  route53_zone_name   = var.dns_zone_name
-  sg_ids              = [module.security_group.sg_id]
+  source            = "./modules/emqx"
+  ami_filter        = local.ami_filter
+  s3_bucket_name    = var.s3_bucket_name
+  bench_id          = var.bench_id
+  package_url       = module.emqx_package.package_url
+  namespace         = var.emqx_namespace
+  instance_count    = var.emqx_instance_count
+  instance_type     = var.emqx_instance_type
+  route53_zone_id   = aws_route53_zone.int.zone_id
+  route53_zone_name = var.dns_zone_name
+  sg_ids            = [module.security_group.sg_id]
+  iam_profile       = module.ec2_profile.iam_profile
 }
 
 module "emqx_lb" {
@@ -72,3 +79,16 @@ module "emqx_lb" {
   route53_zone_name   = var.dns_zone_name
 }
 
+module "emqtt_bench" {
+  source            = "./modules/emqtt_bench"
+  ami_filter        = local.ami_filter
+  s3_bucket_name    = var.s3_bucket_name
+  bench_id          = var.bench_id
+  package_url       = var.emqtt_bench_package_url
+  namespace         = var.emqx_namespace
+  instance_count    = var.emqtt_bench_instance_count
+  instance_type     = var.emqtt_bench_instance_type
+  sg_ids            = [module.security_group.sg_id]
+  emqx_lb_dns_name  = module.emqx_lb.elb_dns_name
+  iam_profile       = module.ec2_profile.iam_profile
+}

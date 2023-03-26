@@ -25,3 +25,11 @@ variable "s3_bucket_name" {
 variable "extra_user_data" {
   type = string
 }
+
+variable "iam_profile" {
+  type = string
+}
+
+variable "instance_name" {
+  type = string
+}
