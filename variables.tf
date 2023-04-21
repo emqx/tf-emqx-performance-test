@@ -4,10 +4,10 @@ variable "region" {
   default     = "eu-north-1"
 }
 
-variable "emqx_namespace" {
-  description = "emqx namespace"
+variable "namespace" {
+  description = "namespace"
   type        = string
-  default     = "tf-emqx"
+  default     = "perf-test"
 }
 
 variable "emqx_instance_count" {
@@ -40,24 +40,24 @@ variable "package_file" {
   default     = "emqx.deb"
 }
 
-variable "emqtt_bench_package_url" {
+variable "emqttb_package_url" {
   type    = string
-  default = "https://github.com/emqx/emqtt-bench/releases/download/0.4.11/emqtt-bench-0.4.11-ubuntu20.04-amd64.tar.gz"
+  default = "https://github.com/emqx/emqttb/releases/download/v0.1.2/emqttb-0.1.2-ubuntu20.04-amd64.tar.gz"
 }
 
-variable "emqtt_bench_instance_count" {
-  description = "Instance count of emqtt_bench"
+variable "emqttb_instance_count" {
+  description = "Instance count of emqttb"
   type        = number
   default     = 1
 }
 
-variable "emqtt_bench_instance_type" {
-  description = "Instance type of emqtt_bench"
+variable "emqttb_instance_type" {
+  description = "Instance type of emqttb"
   type        = string
   default     = "c5.large"
 }
 
-variable "dns_zone_name" {
+variable "route53_zone_name" {
   description = "Hosted zone name"
   type        = string
   default     = "int.emqx.io"

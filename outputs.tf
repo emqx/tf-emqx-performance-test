@@ -3,9 +3,9 @@ output "emqx_public_ips" {
   value       = module.emqx.public_ips
 }
 
-output "emqtt_bench_public_ips" {
-  description = "public ip of emqtt_bench instances"
-  value       = module.emqtt_bench.public_ips
+output "emqttb_public_ips" {
+  description = "public ip of emqttb instances"
+  value       = module.emqttb.public_ips
 }
 
 output "emqx_elb_dns_name" {

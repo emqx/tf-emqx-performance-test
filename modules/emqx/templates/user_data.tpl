@@ -46,7 +46,7 @@ cat << EOF > /etc/systemd/system/emqx.service.d/override.conf
 Environment=EMQX_NODE__NAME=emqx@$private_ip
 Environment=EMQX_NODE__COOKIE=emqxperformancetest
 Environment=EMQX_CLUSTER__DISCOVERY_STRATEGY=dns
-Environment=EMQX_CLUSTER__DNS__NAME=${emqx_dns_name}
+Environment=EMQX_CLUSTER__DNS__NAME=${cluster_dns_name}
 Environment=EMQX_CLUSTER__DNS__RECORD_TYPE=a
 EOF
 

@@ -13,21 +13,15 @@ variable "s3_bucket_name" {
   type        = string
 }
 
-variable "package_url" {
-  description = "Package URL"
-  type        = string
-}
-
-variable "instance_count" {
-  description = "Instance count"
-  type        = number
-  default     = 1
-}
-
 variable "instance_type" {
   description = "Instance type"
   type        = string
   default     = "c5.large"
+}
+
+variable "package_url" {
+  description = "Package URL"
+  type        = string
 }
 
 variable "sg_ids" {
@@ -50,20 +44,12 @@ variable "bench_id" {
   type        = string
 }
 
-variable "clients_count" {
-  description = "Clients count"
-  type        = number
-  default     = 64000
+variable "route53_zone_name" {
+  description = "Route53 Zone Name"
+  type        = string
 }
 
-variable "payload_size" {
-  description = "Payload size"
-  type        = number
-  default     = 256
-}
-
-variable "max_message_count" {
-  description = "Max message count"
-  type        = number
-  default     = 1000000
+variable "route53_zone_id" {
+  description = "Route53 Zone ID"
+  type        = string
 }
