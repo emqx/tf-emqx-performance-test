@@ -53,3 +53,19 @@ variable "route53_zone_id" {
   description = "Route53 Zone ID"
   type        = string
 }
+
+variable "grafana_url" {
+  description = "Grafana URL"
+  type        = string
+}
+
+variable "grafana_api_key" {
+  description = "Grafana API KEY"
+  type        = string
+  sensitive   = true
+}
+
+variable "test_duration_seconds" {
+  description = "Performance test duration in seconds"
+  type        = number
+}

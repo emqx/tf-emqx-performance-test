@@ -42,7 +42,7 @@ variable "package_file" {
 
 variable "emqttb_package_url" {
   type    = string
-  default = "https://github.com/emqx/emqttb/releases/download/v0.1.2/emqttb-0.1.2-ubuntu20.04-amd64.tar.gz"
+  default = "https://github.com/emqx/emqttb/releases/download/v0.1.4/emqttb-0.1.4-ubuntu20.04-amd64.tar.gz"
 }
 
 variable "emqttb_instance_count" {
@@ -83,4 +83,22 @@ variable "forwarding_config" {
       description = "dashboard"
     }
   }
+}
+
+variable "grafana_url" {
+  description = "Grafana URL"
+  type        = string
+  default     = "https://perf-dashboard.emqx.works"
+}
+
+variable "grafana_api_key" {
+  description = "Grafana API KEY"
+  type        = string
+  sensitive   = true
+}
+
+variable "test_duration_seconds" {
+  description = "Performance test duration in seconds"
+  type        = number
+  default     = 60
 }

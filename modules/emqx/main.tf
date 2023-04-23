@@ -24,3 +24,11 @@ module "emqx_ec2" {
   })
 
 }
+
+resource "aws_route53_record" "emqx" {
+  zone_id = var.route53_zone_id
+  name    = local.cluster_dns_name
+  type    = "A"
+  ttl     = 30
+  records = module.emqx_ec2.private_ip
+}

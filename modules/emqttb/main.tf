@@ -13,5 +13,10 @@ module "emqttb_ec2" {
   extra_user_data   = templatefile("${path.module}/templates/user_data.tpl", {
     package_url      = var.package_url
     emqx_lb_dns_name = var.emqx_lb_dns_name
+    grafana_url      = var.grafana_url
+    grafana_api_key  = var.grafana_api_key
+    test_duration_seconds = var.test_duration_seconds
+    s3_bucket_name   = var.s3_bucket_name
+    bench_id         = var.bench_id
   })
 }

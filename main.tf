@@ -92,4 +92,7 @@ module "emqttb" {
   iam_profile       = module.ec2_profile.iam_profile
   route53_zone_id   = aws_route53_zone.int.zone_id
   route53_zone_name = var.route53_zone_name
+  grafana_url       = var.grafana_url
+  grafana_api_key   = var.grafana_api_key
+  test_duration_seconds = var.test_duration_seconds
 }

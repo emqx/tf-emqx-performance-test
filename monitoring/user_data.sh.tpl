@@ -47,6 +47,7 @@ cat > playbook.yml << EOF
             - "perf-test-emqx-3.int.emqx.io:18083"
       - job_name: "emqttb"
         scrape_interval: "5s"
+        honor_labels: true
         static_configs:
           - targets:
             - "perf-test-emqttb-1.int.emqx.io:8017"
