@@ -42,3 +42,11 @@ resource "aws_instance" "ec2" {
   }
 }
 
+resource "aws_route53_record" "dns" {
+  count    = var.instance_count
+  zone_id  = var.route53_zone_id
+  name     = "${aws_instance.ec2[count.index].tags_all["Name"]}.${var.route53_zone_name}"
+  type     = "A"
+  ttl      = 30
+  records  = [aws_instance.ec2[count.index].private_ip]
+}

@@ -18,13 +18,13 @@ variable "package_url" {
   type        = string
 }
 
-variable "route53_zone_id" {
-  description = "Route53 Zone ID"
+variable "route53_zone_name" {
+  description = "Route53 Zone Name"
   type        = string
 }
 
-variable "route53_zone_name" {
-  description = "Route53 Zone Name"
+variable "route53_zone_id" {
+  description = "Route53 Zone ID"
   type        = string
 }
 
