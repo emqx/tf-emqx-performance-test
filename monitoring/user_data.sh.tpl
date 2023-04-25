@@ -28,7 +28,7 @@ cat > playbook.yml << EOF
           - targets:
             - "localhost:9090"
       - job_name: "node"
-        scrape_interval: 5s
+        scrape_interval: 1s
         static_configs:
           - targets:
             - "localhost:9100"
@@ -37,7 +37,7 @@ cat > playbook.yml << EOF
             - "perf-test-emqx-3.int.emqx.io:9100"
             - "perf-test-emqttb-1.int.emqx.io:9100"
       - job_name: "emqx"
-        scrape_interval: "5s"
+        scrape_interval: "1s"
         metrics_path: "/api/v5/prometheus/stats"
         honor_labels: true
         static_configs:
@@ -46,7 +46,7 @@ cat > playbook.yml << EOF
             - "perf-test-emqx-2.int.emqx.io:18083"
             - "perf-test-emqx-3.int.emqx.io:18083"
       - job_name: "emqttb"
-        scrape_interval: "5s"
+        scrape_interval: "1s"
         honor_labels: true
         static_configs:
           - targets:
