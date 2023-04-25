@@ -11,7 +11,7 @@ Requirements
 
 ```bash
 terraform init
-export TF_VAR_bench_id='some unique benchmark id, for example package version / git sha'
+export TF_VAR_bench_id=abc123
 export TF_VAR_test_duration_seconds=60
 export TF_VAR_grafana_url='https://perf-dashboard.emqx.works'
 export TF_VAR_grafana_api_key='***'
