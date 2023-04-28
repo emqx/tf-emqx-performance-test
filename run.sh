@@ -10,7 +10,7 @@ set -euo pipefail
 # Script arguments are optional, but the order is fixed.
 
 export TF_VAR_region="${1:-eu-north-1}"
-export TF_VAR_s3_bucket_name="{2:-tf-emqx-performance-test}"
+export TF_VAR_s3_bucket_name="${2:-tf-emqx-performance-test}"
 export TF_VAR_bench_id="${3:-$(date +%F)/test}"
 export TF_VAR_test_duration_seconds=${4:-60}
 export TF_VAR_emqx_instance_count=${5:-1}
