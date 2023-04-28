@@ -95,10 +95,17 @@ variable "grafana_api_key" {
   description = "Grafana API KEY"
   type        = string
   sensitive   = true
+  default     = "***"
 }
 
 variable "test_duration_seconds" {
   description = "Performance test duration in seconds"
   type        = number
   default     = 60
+}
+
+variable "ssh_key_name" {
+  description = "SSH key name"
+  type        = string
+  default     = "emqx-perf-test"
 }

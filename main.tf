@@ -51,6 +51,23 @@ module "emqx_package" {
   package_file   = var.package_file
 }
 
+resource "tls_private_key" "pk" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "kp" {
+  key_name   = var.ssh_key_name
+  public_key = tls_private_key.pk.public_key_openssh
+}
+
+resource "local_sensitive_file" "pem_file" {
+  filename = pathexpand("~/.ssh/${var.ssh_key_name}.pem")
+  file_permission = "600"
+  directory_permission = "700"
+  content = tls_private_key.pk.private_key_pem
+}
+
 module "emqx" {
   source            = "./modules/emqx"
   ami_filter        = local.ami_filter
@@ -64,6 +81,7 @@ module "emqx" {
   route53_zone_name = var.route53_zone_name
   sg_ids            = [module.security_group.sg_id]
   iam_profile       = module.ec2_profile.iam_profile
+  key_name          = aws_key_pair.kp.key_name
 }
 
 module "emqx_lb" {
@@ -95,4 +113,5 @@ module "emqttb" {
   grafana_url       = var.grafana_url
   grafana_api_key   = var.grafana_api_key
   test_duration_seconds = var.test_duration_seconds
+  key_name          = aws_key_pair.kp.key_name
 }

@@ -24,6 +24,7 @@ resource "aws_instance" "ec2" {
   instance_type          = var.instance_type
   vpc_security_group_ids = var.sg_ids
   iam_instance_profile   = var.iam_profile
+  key_name               = var.key_name
   user_data              = templatefile("${path.module}/templates/user_data.tpl",
     {
       s3_bucket_name = var.s3_bucket_name

@@ -54,3 +54,8 @@ variable "bench_id" {
   description = "Benchmark ID"
   type        = string
 }
+
+variable "key_name" {
+  description = "SSH Key Name"
+  type        = string
+}

@@ -11,8 +11,10 @@ unzip -q awscliv2.zip
 ./aws/install
 
 if [ -n "${s3_bucket_name}" ]; then
-    aws s3 cp s3://${s3_bucket_name}/authorized_keys ~/.ssh/authorized_keys
-    chmod 600 ~/.ssh/authorized_keys
+    if aws s3api head-object --bucket "${s3_bucket_name}" --key authorized_keys >/dev/null 2>&1; then
+        aws s3 cp s3://${s3_bucket_name}/authorized_keys ~/.ssh/authorized_keys
+        chmod 600 ~/.ssh/authorized_keys
+    fi
 fi
 
 cd /opt

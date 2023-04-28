@@ -69,3 +69,9 @@ variable "test_duration_seconds" {
   description = "Performance test duration in seconds"
   type        = number
 }
+
+variable "key_name" {
+  description = "SSH Key Name"
+  type        = string
+}
+
