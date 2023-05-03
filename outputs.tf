@@ -12,3 +12,8 @@ output "emqx_elb_dns_name" {
   description = "elb dns name"
   value       = module.emqx_lb.elb_dns_name
 }
+
+output "emqx_dashboard_dns_name" {
+  description = "EMQX Dashboard DNS name"
+  value       = module.emqx_dashboard_lb.dashboard_dns_name
+}

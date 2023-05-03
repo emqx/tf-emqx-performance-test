@@ -1,5 +1,5 @@
 resource "aws_iam_policy" "ec2_policy" {
-  name        = "ec2_policy"
+  name        = "${var.namespace}-ec2-policy"
   path        = "/"
   description = "Policy to provide permission to EC2"
 
@@ -22,7 +22,7 @@ resource "aws_iam_policy" "ec2_policy" {
 }
 
 resource "aws_iam_role" "ec2_role" {
-  name = "ec2_role"
+  name = "${var.namespace}-ec2-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -40,13 +40,13 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_iam_policy_attachment" "ec2_policy_role" {
-  name       = "ec2_attachment"
+  name       = "${var.namespace}-ec2-attachment"
   roles      = [aws_iam_role.ec2_role.name]
   policy_arn = aws_iam_policy.ec2_policy.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "ec2_profile"
+  name = "${var.namespace}-ec2-profile"
   role = aws_iam_role.ec2_role.name
 }
 

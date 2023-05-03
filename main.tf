@@ -23,6 +23,17 @@ data "aws_subnets" "vpc_subnets" {
   }
 }
 
+data "aws_subnets" "public" {
+  filter {
+    name   = "vpc-id"
+    values = [local.vpc_id]
+  }
+  filter {
+    name   = "map-public-ip-on-launch"
+    values = ["true"]
+  }
+}
+
 resource "aws_route53_zone" "int" {
   name = var.route53_zone_name
   vpc {
@@ -40,6 +51,7 @@ module "security_group" {
 
 module "ec2_profile" {
   source         = "./modules/ec2_profile"
+  namespace      = var.namespace
   s3_bucket_name = var.s3_bucket_name
 }
 
@@ -95,6 +107,15 @@ module "emqx_lb" {
   forwarding_config   = var.forwarding_config
   route53_zone_id     = aws_route53_zone.int.zone_id
   route53_zone_name   = var.route53_zone_name
+}
+
+module "emqx_dashboard_lb" {
+  source              = "./modules/emqx_dashboard_lb"
+  vpc_id              = local.vpc_id
+  namespace           = var.namespace
+  subnet_ids          = data.aws_subnets.public.ids
+  instance_ids        = module.emqx.instance_ids
+  instance_sg_id      = module.security_group.sg_id
 }
 
 module "emqttb" {
