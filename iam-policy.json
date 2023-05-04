@@ -52,6 +52,7 @@
                 "elasticloadbalancing:ModifyLoadBalancerAttributes",
                 "elasticloadbalancing:ModifyTargetGroupAttributes",
                 "elasticloadbalancing:RegisterTargets",
+                "elasticloadbalancing:SetSecurityGroups",
                 "iam:AddRoleToInstanceProfile",
                 "iam:AttachRolePolicy",
                 "iam:CreateInstanceProfile",

@@ -36,8 +36,8 @@ sysctl -w net.ipv4.tcp_max_tw_buckets=1048576
 
 sysctl -w net.ipv4.tcp_fin_timeout=15
 
-curl -s ${package_url} -o ./emqx.deb
-apt-get install -y ./emqx.deb
+wget --no-check-certificate ${package_url}
+apt-get install -y ./*.deb
 
 private_ip=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 mkdir /etc/systemd/system/emqx.service.d
