@@ -43,7 +43,7 @@ TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
     -H "Content-Type: application/json" \
     --data-raw "{\"username\":\"admin\",\"password\":\"$NEW_PWD\"}" | jq -r .token)
 
-curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/cluster' -H "Authorization: Bearer $TOKEN"
+curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/cluster' -H "Authorization: Bearer $TOKEN"
 
 mkdir emqttb && cd emqttb
 wget ${package_url}
