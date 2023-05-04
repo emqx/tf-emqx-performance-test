@@ -27,10 +27,23 @@ sysctl -w net.core.rmem_max=16777216
 sysctl -w net.core.wmem_max=16777216
 sysctl -w net.core.optmem_max=16777216
 
+NEW_PWD=admin123
 TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
     -H 'Authorization: Bearer undefined' \
     -H 'Content-Type: application/json' \
     --data-raw '{"username":"admin","password":"public"}' | jq -r .token)
+
+curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/users/admin/change_pwd' \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    --data-raw "{\"new_pwd\":\"$NEW_PWD\",\"old_pwd\":\"public\"}"
+
+TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    --data-raw "{\"username\":\"admin\",\"password\":\"$NEW_PWD\"}" | jq -r .token)
+
+curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/cluster' -H "Authorization: Bearer $TOKEN"
 
 mkdir emqttb && cd emqttb
 wget ${package_url}
