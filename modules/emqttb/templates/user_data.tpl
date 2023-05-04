@@ -48,8 +48,8 @@ TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
     -H 'Content-Type: application/json' \
     --data-raw '{"username":"admin","password":"public"}' | jq -r .token)
 
-curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/stats' -H "Authorization: Bearer $TOKEN" > stats.json
-curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/metrics' -H "Authorization: Bearer $TOKEN" > metrics.json
+curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/stats' -H "Authorization: Bearer $TOKEN" > stats.json
+curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/metrics' -H "Authorization: Bearer $TOKEN" > metrics.json
 aws s3 cp stats.json s3://${s3_bucket_name}/${bench_id}/stats.json
 aws s3 cp metrics.json s3://${s3_bucket_name}/${bench_id}/metrics.json
 touch DONE
