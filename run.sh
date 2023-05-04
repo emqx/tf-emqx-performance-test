@@ -20,10 +20,16 @@ terraform init
 terraform apply -auto-approve
 
 until aws s3api head-object --bucket $TF_VAR_s3_bucket_name --key "$TF_VAR_bench_id/DONE" > /dev/null 2>&1; do
-    echo 'waiting'
+    printf '.'
     sleep 10
 done
+echo
+echo "Test is completed"
 
-aws s3 cp "s3://$TF_VAR_s3_bucket_name/$TF_VAR_bench_id/metrics.json" ./
-aws s3 cp "s3://$TF_VAR_s3_bucket_name/$TF_VAR_bench_id/stats.json" ./
-terraform destroy -auto-approve
+files=(metrics.json stats.json)
+for f in "${files[@]}"; do
+    if aws s3api head-object --bucket $TF_VAR_s3_bucket_name --key "$TF_VAR_bench_id/$f" > /dev/null 2>&1; then
+       aws s3 cp "s3://$TF_VAR_s3_bucket_name/$TF_VAR_bench_id/$f" ./
+    fi
+done
+terraform destroy
