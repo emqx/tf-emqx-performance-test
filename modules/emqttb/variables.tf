@@ -65,9 +65,9 @@ variable "grafana_api_key" {
   sensitive   = true
 }
 
-variable "test_duration_seconds" {
-  description = "Performance test duration in seconds"
-  type        = number
+variable "test_duration" {
+  description = "Performance test duration"
+  type        = string
 }
 
 variable "key_name" {

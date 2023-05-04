@@ -31,9 +31,13 @@ mkdir emqttb && cd emqttb
 wget ${package_url}
 tar xzf ./emqttb*.tar.gz
 
-export EMQTTB_METRICS__GRAFANA__API_KEY="Bearer ${grafana_api_key}"
-export EMQTTB_METRICS__GRAFANA__URL="${grafana_url}"
-bin/emqttb --loiter ${test_duration_seconds} --restapi --grafana --keep-running false \
+GRAFANA=
+if [ -n "${grafana_api_key}" ]; then
+  export EMQTTB_METRICS__GRAFANA__API_KEY="Bearer ${grafana_api_key}"
+  export EMQTTB_METRICS__GRAFANA__URL="${grafana_url}"
+  GRAFANA="--grafana"
+fi
+bin/emqttb --loiter ${test_duration} --restapi $GRAFANA --keep-running false \
        @pub --topic 't/%n' --conninterval 10ms --pubinterval 10ms --qos 1 --publatency 50ms --num-clients 1000 --size 1kb \
        @a -V 10 -m 0 -M 1000 \
        @sub --topic 't/#' --conninterval 10ms --num-clients 1000 \

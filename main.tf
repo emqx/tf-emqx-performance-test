@@ -133,6 +133,6 @@ module "emqttb" {
   route53_zone_name = var.route53_zone_name
   grafana_url       = var.grafana_url
   grafana_api_key   = var.grafana_api_key
-  test_duration_seconds = var.test_duration_seconds
+  test_duration     = var.test_duration
   key_name          = aws_key_pair.kp.key_name
 }

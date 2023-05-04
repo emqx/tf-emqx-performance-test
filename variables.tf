@@ -95,13 +95,13 @@ variable "grafana_api_key" {
   description = "Grafana API KEY"
   type        = string
   sensitive   = true
-  default     = "***"
+  default     = ""
 }
 
-variable "test_duration_seconds" {
-  description = "Performance test duration in seconds"
-  type        = number
-  default     = 60
+variable "test_duration" {
+  description = "Performance test duration"
+  type        = string
+  default     = "60s"
 }
 
 variable "ssh_key_name" {

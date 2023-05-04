@@ -16,7 +16,7 @@ module "emqttb_ec2" {
     emqx_lb_dns_name = var.emqx_lb_dns_name
     grafana_url      = var.grafana_url
     grafana_api_key  = var.grafana_api_key
-    test_duration_seconds = var.test_duration_seconds
+    test_duration    = var.test_duration
     s3_bucket_name   = var.s3_bucket_name
     bench_id         = var.bench_id
   })
