@@ -27,6 +27,11 @@ sysctl -w net.core.rmem_max=16777216
 sysctl -w net.core.wmem_max=16777216
 sysctl -w net.core.optmem_max=16777216
 
+TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
+    -H 'Authorization: Bearer undefined' \
+    -H 'Content-Type: application/json' \
+    --data-raw '{"username":"admin","password":"public"}' | jq -r .token)
+
 mkdir emqttb && cd emqttb
 wget ${package_url}
 tar xzf ./emqttb*.tar.gz
@@ -42,11 +47,6 @@ bin/emqttb --loiter ${test_duration} --restapi $GRAFANA --keep-running false \
        @a -V 10 -m 0 -M 1000 \
        @sub --topic 't/#' --conninterval 10ms --num-clients 1000 \
        @g --host ${emqx_lb_dns_name}
-
-TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
-    -H 'Authorization: Bearer undefined' \
-    -H 'Content-Type: application/json' \
-    --data-raw '{"username":"admin","password":"public"}' | jq -r .token)
 
 curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/stats' -H "Authorization: Bearer $TOKEN" > stats.json
 curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/metrics' -H "Authorization: Bearer $TOKEN" > metrics.json
