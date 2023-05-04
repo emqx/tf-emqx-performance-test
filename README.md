@@ -18,6 +18,8 @@ export TF_VAR_grafana_api_key='***'
 terraform apply -auto-approve
 ```
 
+Default emqx dashboard password is `admin123`.
+
 After the emqttb scenario is completed, it will upload metrics, stats and DONE marker to the `tf-emqx-performance-test` bucket.
 
 ```
