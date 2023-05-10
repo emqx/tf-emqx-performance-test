@@ -118,7 +118,18 @@ module "emqx_dashboard_lb" {
   instance_sg_id      = module.security_group.sg_id
 }
 
+module "emqx_mqtt_lb" {
+  count               = var.create_public_mqtt_lb
+  source              = "./modules/emqx_mqtt_lb"
+  vpc_id              = local.vpc_id
+  namespace           = var.namespace
+  subnet_ids          = data.aws_subnets.public.ids
+  instance_ids        = module.emqx.instance_ids
+  instance_sg_id      = module.security_group.sg_id
+}
+
 module "emqttb" {
+  count             = var.use_emqttb
   source            = "./modules/emqttb"
   ami_filter        = local.ami_filter
   s3_bucket_name    = var.s3_bucket_name
@@ -126,6 +137,8 @@ module "emqttb" {
   package_url       = var.emqttb_package_url
   namespace         = var.namespace
   instance_type     = var.emqttb_instance_type
+  instance_count    = var.emqttb_instance_count
+  scenario          = var.emqttb_scenario
   sg_ids            = [module.security_group.sg_id]
   emqx_lb_dns_name  = module.emqx_lb.elb_dns_name
   iam_profile       = module.ec2_profile.iam_profile
@@ -134,5 +147,23 @@ module "emqttb" {
   grafana_url       = var.grafana_url
   grafana_api_key   = var.grafana_api_key
   test_duration     = var.test_duration
+  key_name          = aws_key_pair.kp.key_name
+}
+
+module "emqtt_bench" {
+  count             = var.use_emqtt_bench
+  source            = "./modules/emqtt_bench"
+  ami_filter        = local.ami_filter
+  s3_bucket_name    = var.s3_bucket_name
+  package_url       = var.emqtt_bench_package_url
+  namespace         = var.namespace
+  instance_type     = var.emqtt_bench_instance_type
+  instance_count    = var.emqtt_bench_instance_count
+  scenario          = var.emqtt_bench_scenario
+  sg_ids            = [module.security_group.sg_id]
+  emqx_lb_dns_name  = module.emqx_lb.elb_dns_name
+  iam_profile       = module.ec2_profile.iam_profile
+  route53_zone_id   = aws_route53_zone.int.zone_id
+  route53_zone_name = var.route53_zone_name
   key_name          = aws_key_pair.kp.key_name
 }

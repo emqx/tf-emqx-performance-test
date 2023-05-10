@@ -6,7 +6,7 @@ resource "aws_lb" "dashboard" {
   security_groups    = [aws_security_group.alb_sg.id]
 }
 
-resource "aws_lb_listener" "dashbord" {
+resource "aws_lb_listener" "dashboard" {
   load_balancer_arn = aws_lb.dashboard.arn
   port              = "80"
   protocol          = "HTTP"

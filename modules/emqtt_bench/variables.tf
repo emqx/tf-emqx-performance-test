@@ -45,11 +45,6 @@ variable "iam_profile" {
   type        = string
 }
 
-variable "bench_id" {
-  description = "Benchmark ID"
-  type        = string
-}
-
 variable "route53_zone_name" {
   description = "Route53 Zone Name"
   type        = string
@@ -60,24 +55,8 @@ variable "route53_zone_id" {
   type        = string
 }
 
-variable "grafana_url" {
-  description = "Grafana URL"
-  type        = string
-}
-
-variable "grafana_api_key" {
-  description = "Grafana API KEY"
-  type        = string
-  sensitive   = true
-}
-
-variable "test_duration" {
-  description = "Performance test duration"
-  type        = string
-}
-
 variable "scenario" {
-  description = "emqttb scenario"
+  description = "emqtt-bench scenario"
   type        = string
 }
 

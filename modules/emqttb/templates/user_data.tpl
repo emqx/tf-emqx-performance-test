@@ -28,22 +28,25 @@ sysctl -w net.core.wmem_max=16777216
 sysctl -w net.core.optmem_max=16777216
 
 NEW_PWD=admin123
-TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
-    -H 'Authorization: Bearer undefined' \
-    -H 'Content-Type: application/json' \
-    --data-raw '{"username":"admin","password":"public"}' | jq -r .token)
+if [ $TF_LAUNCH_INDEX -eq 1 ]; then
+  TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
+      -H 'Authorization: Bearer undefined' \
+      -H 'Content-Type: application/json' \
+      --data-raw '{"username":"admin","password":"public"}' | jq -r .token)
 
-curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/users/admin/change_pwd' \
-    -H "Authorization: Bearer $TOKEN" \
-    -H 'Content-Type: application/json' \
-    --data-raw "{\"new_pwd\":\"$NEW_PWD\",\"old_pwd\":\"public\"}"
+  curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/users/admin/change_pwd' \
+      -H "Authorization: Bearer $TOKEN" \
+      -H 'Content-Type: application/json' \
+      --data-raw "{\"new_pwd\":\"$NEW_PWD\",\"old_pwd\":\"public\"}"
+  TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      --data-raw "{\"username\":\"admin\",\"password\":\"$NEW_PWD\"}" | jq -r .token)
 
-TOKEN=$(curl -sSf 'http://${emqx_lb_dns_name}:18083/api/v5/login' \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "Content-Type: application/json" \
-    --data-raw "{\"username\":\"admin\",\"password\":\"$NEW_PWD\"}" | jq -r .token)
-
-curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/cluster' -H "Authorization: Bearer $TOKEN"
+  curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/cluster' -H "Authorization: Bearer $TOKEN"
+else
+  curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/status'
+fi
 
 mkdir emqttb && cd emqttb
 wget ${package_url}
@@ -56,14 +59,14 @@ if [ -n "${grafana_api_key}" ]; then
   GRAFANA="--grafana"
 fi
 bin/emqttb --loiter ${test_duration} --restapi $GRAFANA --keep-running false \
-       @pub --topic 't/%n' --conninterval 10ms --pubinterval 10ms --qos 1 --publatency 50ms --num-clients 1000 --size 1kb \
-       @a -V 10 -m 0 -M 1000 \
-       @sub --topic 't/#' --conninterval 10ms --num-clients 1000 \
+       ${scenario} \
        @g --host ${emqx_lb_dns_name}
 
-curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/stats' -H "Authorization: Bearer $TOKEN" > stats.json
-curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/metrics' -H "Authorization: Bearer $TOKEN" > metrics.json
-aws s3 cp stats.json s3://${s3_bucket_name}/${bench_id}/stats.json
-aws s3 cp metrics.json s3://${s3_bucket_name}/${bench_id}/metrics.json
-touch DONE
-aws s3 cp DONE s3://${s3_bucket_name}/${bench_id}/DONE
+if [ $TF_LAUNCH_INDEX -eq 1 ]; then
+  curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/stats' -H "Authorization: Bearer $TOKEN" > stats.json
+  curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/metrics' -H "Authorization: Bearer $TOKEN" > metrics.json
+  aws s3 cp stats.json s3://${s3_bucket_name}/${bench_id}/stats.json
+  aws s3 cp metrics.json s3://${s3_bucket_name}/${bench_id}/metrics.json
+  touch DONE
+  aws s3 cp DONE s3://${s3_bucket_name}/${bench_id}/DONE
+fi

@@ -16,10 +16,16 @@ export TF_VAR_test_duration="${4:-5min}"
 export TF_VAR_emqx_instance_count=${5:-3}
 export TF_VAR_package_file="${6:-emqx.deb}"
 
+# export TF_VAR_emqttb_instance_count=10
+# export TF_VAR_emqttb_instance_type="c5.xlarge"
+# export TF_VAR_emqttb_scenario="@pub --topic 't/% --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb @sub --topic 't/#'"
+# export TF_VAR_emqx_instance_type="c5.4xlarge"
+# export TF_VAR_public_mqtt_lb=true
+
 terraform init
 terraform apply -auto-approve
 
-until aws s3api head-object --bucket $TF_VAR_s3_bucket_name --key "$TF_VAR_bench_id/DONE" > /dev/null 2>&1; do
+until aws s3api head-object --bucket "$TF_VAR_s3_bucket_name" --key "$TF_VAR_bench_id/DONE" > /dev/null 2>&1; do
     printf '.'
     sleep 10
 done

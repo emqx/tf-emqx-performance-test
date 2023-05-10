@@ -57,6 +57,12 @@ variable "emqttb_instance_type" {
   default     = "c5.large"
 }
 
+variable "emqttb_scenario" {
+  description = "emqttb scenario"
+  type        = string
+  default     = "@pub --topic 't/%n' --conninterval 10ms --pubinterval 10ms --qos 1 --publatency 50ms --num-clients 10000 --size 1kb @a -V 10 -m 0 -M 1000 @sub --topic 't/#' --conninterval 10ms --num-clients 10000"
+}
+
 variable "route53_zone_name" {
   description = "Hosted zone name"
   type        = string
@@ -109,3 +115,44 @@ variable "ssh_key_name" {
   type        = string
   default     = "emqx-perf-test"
 }
+
+variable "create_public_mqtt_lb" {
+  description = "Whether to create publicly exposed MQTT LB on 1883"
+  type        = number
+  default     = 0
+}
+
+variable "use_emqttb" {
+  description = "Whether to use emqttb to generate load"
+  type        = number
+  default     = 1
+}
+
+variable "use_emqtt_bench" {
+  description = "Whether to use emqtt_bench to generate load"
+  type        = number
+  default     = 0
+}
+
+variable "emqtt_bench_package_url" {
+  type    = string
+  default = "https://github.com/emqx/emqtt-bench/releases/download/0.4.11/emqtt-bench-0.4.11-ubuntu20.04-amd64.tar.gz"
+}
+variable "emqtt_bench_instance_count" {
+  description = "Instance count of emqtt_bench"
+  type        = number
+  default     = 1
+}
+
+variable "emqtt_bench_instance_type" {
+  description = "Instance type of emqtt_bench"
+  type        = string
+  default     = "c5.large"
+}
+
+variable "emqtt_bench_scenario" {
+  description = "emqtt_bench scenario"
+  type        = string
+}
+
+

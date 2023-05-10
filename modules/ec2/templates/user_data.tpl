@@ -2,6 +2,8 @@
 
 set -x
 
+export TF_LAUNCH_INDEX=${launch_index}
+
 apt-add-repository ppa:ansible/ansible
 apt update -y
 apt install -y ansible curl jq unzip
