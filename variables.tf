@@ -153,6 +153,7 @@ variable "emqtt_bench_instance_type" {
 variable "emqtt_bench_scenario" {
   description = "emqtt_bench scenario"
   type        = string
+  default     = "conn -c 100000 -i 10"
 }
 
 
