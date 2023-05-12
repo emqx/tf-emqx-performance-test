@@ -17,7 +17,7 @@ TF_VAR_internal_mqtt_nlb_count=3
 TF_VAR_use_emqttb=1
 TF_VAR_emqttb_instance_count=1
 TF_VAR_emqttb_instance_type="c5.large"
-TF_VAR_emqttb_scenario="@pub --topic 't/%' --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb --num-clients 1000 @sub --topic 't/%' --num-clients 1000"
+TF_VAR_emqttb_scenario="@pub --topic 't/%n' --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb --num-clients 1000 @sub --topic 't/%n' --num-clients 1000"
 
 TF_VAR_use_emqtt_bench=1
 TF_VAR_emqtt_bench_instance_count=1

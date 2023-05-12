@@ -60,7 +60,7 @@ variable "emqttb_instance_type" {
 variable "emqttb_scenario" {
   description = "emqttb scenario"
   type        = string
-  default     = "@pub --topic 't/%' --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb --num-clients 10000 @sub --topic 't/%' --num-clients 10000"
+  default     = "@pub --topic 't/%n' --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb --num-clients 10000 @sub --topic 't/%n' --num-clients 10000"
 }
 
 variable "route53_zone_name" {
