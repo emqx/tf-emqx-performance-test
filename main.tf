@@ -12,6 +12,7 @@ locals {
   ami_filter = "ubuntu/images/hvm-ssd/ubuntu-*-${local.os_version}-${local.os_arch}-server-*"
   vpc_id     = aws_default_vpc.default.id
   region     = data.aws_region.current.name
+  mqtt_int_nlb_dns_name = "emqx-lb.${var.route53_zone_name}"
 }
 
 #data "aws_caller_identity" "current" {}
@@ -110,21 +111,24 @@ module "emqx" {
   prometheus_push_gw = module.prometheus.private_ip
 }
 
-module "emqx_lb" {
-  source              = "./modules/elb"
+module "emqx_mqtt_int_nlb" {
+  count               = var.internal_mqtt_nlb_count
+  source              = "./modules/emqx_mqtt_int_nlb"
   vpc_id              = local.vpc_id
   namespace           = var.namespace
+  nlb_name            = "${var.namespace}-nlb-${count.index}"
+  tg_name             = "${var.namespace}-tg-${count.index}"
   region              = local.region
   subnet_ids          = data.aws_subnets.vpc_subnets.ids
   instance_count      = var.emqx_instance_count
   instance_ids        = module.emqx.instance_ids
-  forwarding_config   = var.forwarding_config
   route53_zone_id     = aws_route53_zone.int.zone_id
   route53_zone_name   = var.route53_zone_name
 }
 
-module "emqx_dashboard_lb" {
-  source              = "./modules/emqx_dashboard_lb"
+module "emqx_mqtt_public_nlb" {
+  count               = var.create_public_mqtt_nlb
+  source              = "./modules/emqx_mqtt_public_nlb"
   vpc_id              = local.vpc_id
   namespace           = var.namespace
   subnet_ids          = data.aws_subnets.public.ids
@@ -132,9 +136,8 @@ module "emqx_dashboard_lb" {
   instance_sg_id      = module.security_group.sg_id
 }
 
-module "emqx_mqtt_lb" {
-  count               = var.create_public_mqtt_lb
-  source              = "./modules/emqx_mqtt_lb"
+module "emqx_dashboard_lb" {
+  source              = "./modules/emqx_dashboard_lb"
   vpc_id              = local.vpc_id
   namespace           = var.namespace
   subnet_ids          = data.aws_subnets.public.ids
@@ -154,7 +157,7 @@ module "emqttb" {
   instance_count    = var.emqttb_instance_count
   scenario          = var.emqttb_scenario
   sg_ids            = [module.security_group.sg_id]
-  emqx_lb_dns_name  = module.emqx_lb.elb_dns_name
+  emqx_lb_dns_name  = module.emqx_mqtt_int_nlb[0].dns_name
   iam_profile       = module.ec2_profile.iam_profile
   route53_zone_id   = aws_route53_zone.int.zone_id
   route53_zone_name = var.route53_zone_name
@@ -170,15 +173,17 @@ module "emqtt_bench" {
   source            = "./modules/emqtt_bench"
   ami_filter        = local.ami_filter
   s3_bucket_name    = var.s3_bucket_name
+  bench_id          = var.bench_id
   package_url       = var.emqtt_bench_package_url
   namespace         = var.namespace
   instance_type     = var.emqtt_bench_instance_type
   instance_count    = var.emqtt_bench_instance_count
   scenario          = var.emqtt_bench_scenario
   sg_ids            = [module.security_group.sg_id]
-  emqx_lb_dns_name  = module.emqx_lb.elb_dns_name
+  emqx_lb_dns_name  = join(",", module.emqx_mqtt_int_nlb.*.dns_name)
   iam_profile       = module.ec2_profile.iam_profile
   route53_zone_id   = aws_route53_zone.int.zone_id
   route53_zone_name = var.route53_zone_name
+  test_duration     = var.test_duration
   key_name          = aws_key_pair.kp.key_name
 }

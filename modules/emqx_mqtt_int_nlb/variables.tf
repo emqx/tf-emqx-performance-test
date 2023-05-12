@@ -6,6 +6,14 @@ variable "namespace" {
   type = string
 }
 
+variable "nlb_name" {
+  type = string
+}
+
+variable "tg_name" {
+  type = string
+}
+
 variable "region" {
   type = string
 }
@@ -20,10 +28,6 @@ variable "instance_count" {
 
 variable "instance_ids" {
   type = list(string)
-}
-
-variable "forwarding_config" {
-  type = map(any)
 }
 
 variable "route53_zone_id" {

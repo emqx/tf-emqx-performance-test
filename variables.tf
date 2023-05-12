@@ -60,35 +60,13 @@ variable "emqttb_instance_type" {
 variable "emqttb_scenario" {
   description = "emqttb scenario"
   type        = string
-  default     = "@pub --topic 't/%n' --conninterval 10ms --pubinterval 10ms --qos 1 --publatency 50ms --num-clients 10000 --size 1kb @a -V 10 -m 0 -M 1000 @sub --topic 't/#' --conninterval 10ms --num-clients 10000"
+  default     = "@pub --topic 't/%' --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb --num-clients 10000 @sub --topic 't/%' --num-clients 10000"
 }
 
 variable "route53_zone_name" {
   description = "Hosted zone name"
   type        = string
   default     = "int.emqx.io"
-}
-
-variable "forwarding_config" {
-  description = "forwarding config of nlb"
-  type        = map(any)
-  default = {
-    "1883" = {
-      dest_port   = 1883,
-      protocol    = "TCP"
-      description = "mqtt"
-    },
-    "8083" = {
-      dest_port   = 8083,
-      protocol    = "TCP"
-      description = "ws"
-    },
-    "18083" = {
-      dest_port   = 18083,
-      protocol    = "TCP"
-      description = "dashboard"
-    }
-  }
 }
 
 variable "grafana_url" {
@@ -116,8 +94,8 @@ variable "ssh_key_name" {
   default     = "emqx-perf-test"
 }
 
-variable "create_public_mqtt_lb" {
-  description = "Whether to create publicly exposed MQTT LB on 1883"
+variable "create_public_mqtt_nlb" {
+  description = "Whether to create publicly exposed MQTT NLB on 1883"
   type        = number
   default     = 0
 }
@@ -156,4 +134,8 @@ variable "emqtt_bench_scenario" {
   default     = "conn -c 100000 -i 10"
 }
 
-
+variable "internal_mqtt_nlb_count" {
+  description = "Internal MQTT NLB count"
+  type        = number
+  default     = 1
+}

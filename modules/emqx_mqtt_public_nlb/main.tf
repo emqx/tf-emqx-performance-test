@@ -1,5 +1,5 @@
 resource "aws_lb" "mqtt" {
-  name               = "${var.namespace}-mqtt-lb"
+  name               = "${var.namespace}-mqtt-public-lb"
   internal           = false
   load_balancer_type = "network"
   subnets            = var.subnet_ids

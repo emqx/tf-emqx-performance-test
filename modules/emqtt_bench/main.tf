@@ -16,5 +16,8 @@ module "emqtt_bench_ec2" {
     package_url      = var.package_url
     emqx_lb_dns_name = var.emqx_lb_dns_name
     scenario         = var.scenario
+    test_duration    = var.test_duration
+    s3_bucket_name   = var.s3_bucket_name
+    bench_id         = var.bench_id
   })
 }

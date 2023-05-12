@@ -13,6 +13,11 @@ variable "s3_bucket_name" {
   type        = string
 }
 
+variable "bench_id" {
+  description = "Benchmark ID"
+  type        = string
+}
+
 variable "instance_type" {
   description = "Instance type"
   type        = string
@@ -52,6 +57,11 @@ variable "route53_zone_name" {
 
 variable "route53_zone_id" {
   description = "Route53 Zone ID"
+  type        = string
+}
+
+variable "test_duration" {
+  description = "Performance test duration"
   type        = string
 }
 

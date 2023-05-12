@@ -30,4 +30,13 @@ sysctl -w net.core.optmem_max=16777216
 mkdir emqtt-bench && cd emqtt-bench
 wget ${package_url}
 tar -xzf ./emqtt-bench*.tar.gz
+
+function signal_done() {
+  sleep ${test_duration}
+  touch EMQTT_BENCH_DONE
+  aws s3 cp EMQTT_BENCH_DONE s3://${s3_bucket_name}/${bench_id}/EMQTT_BENCH_DONE
+}
+
+signal_done &
+
 ./bin/emqtt_bench ${scenario} --host ${emqx_lb_dns_name}
