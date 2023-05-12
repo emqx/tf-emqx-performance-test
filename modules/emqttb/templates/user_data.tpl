@@ -65,8 +65,10 @@ bin/emqttb --loiter ${test_duration} --restapi $GRAFANA --keep-running false \
 if [ $TF_LAUNCH_INDEX -eq 1 ]; then
   curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/stats' -H "Authorization: Bearer $TOKEN" > stats.json
   curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/metrics' -H "Authorization: Bearer $TOKEN" > metrics.json
-  aws s3 cp stats.json s3://${s3_bucket_name}/${bench_id}/stats.json
-  aws s3 cp metrics.json s3://${s3_bucket_name}/${bench_id}/metrics.json
+  curl -sSf -m 10 --retry 5 'http://${emqx_lb_dns_name}:18083/api/v5/prometheus/stats > prometheus_stats.txt
   touch DONE
-  aws s3 cp DONE s3://${s3_bucket_name}/${bench_id}/DONE
+  files=(metrics.json stats.json prometheus_stats.txt DONE)
+  for f in "${files[@]}"; do
+    aws s3 cp $f s3://${s3_bucket_name}/${bench_id}/$f
+  done
 fi
