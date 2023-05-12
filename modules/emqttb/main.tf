@@ -21,5 +21,6 @@ module "emqttb_ec2" {
     s3_bucket_name   = var.s3_bucket_name
     bench_id         = var.bench_id
     scenario         = var.scenario
+    prometheus_push_gw = var.prometheus_push_gw
   })
 }

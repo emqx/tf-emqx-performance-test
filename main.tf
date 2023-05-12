@@ -80,6 +80,19 @@ resource "local_sensitive_file" "pem_file" {
   content = tls_private_key.pk.private_key_pem
 }
 
+module "prometheus" {
+  source            = "./modules/prometheus"
+  vpc_id           = local.vpc_id
+  cidr_blocks      = [aws_default_vpc.default.cidr_block]
+  ami_filter        = local.ami_filter
+  s3_bucket_name    = var.s3_bucket_name
+  namespace         = var.namespace
+  route53_zone_id   = aws_route53_zone.int.zone_id
+  route53_zone_name = var.route53_zone_name
+  iam_profile       = module.ec2_profile.iam_profile
+  key_name          = aws_key_pair.kp.key_name
+}
+
 module "emqx" {
   source            = "./modules/emqx"
   ami_filter        = local.ami_filter
@@ -94,6 +107,7 @@ module "emqx" {
   sg_ids            = [module.security_group.sg_id]
   iam_profile       = module.ec2_profile.iam_profile
   key_name          = aws_key_pair.kp.key_name
+  prometheus_push_gw = module.prometheus.private_ip
 }
 
 module "emqx_lb" {
@@ -148,6 +162,7 @@ module "emqttb" {
   grafana_api_key   = var.grafana_api_key
   test_duration     = var.test_duration
   key_name          = aws_key_pair.kp.key_name
+  prometheus_push_gw = module.prometheus.private_ip
 }
 
 module "emqtt_bench" {

@@ -86,4 +86,7 @@ variable "key_name" {
   type        = string
 }
 
-
+variable "prometheus_push_gw" {
+  description = "Prometheus push gateway endpoint"
+  type        = string
+}

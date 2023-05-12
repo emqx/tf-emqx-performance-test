@@ -12,9 +12,12 @@ set -euo pipefail
 export TF_VAR_region="${1:-eu-north-1}"
 export TF_VAR_s3_bucket_name="${2:-tf-emqx-performance-test}"
 export TF_VAR_bench_id="${3:-$(date +%Y-%m-%d-%H-%M-%S)}"
-export TF_VAR_package_file="${4:-emqx.deb}"
+
+wget -nc https://github.com/emqx/emqx/releases/download/v5.0.24/emqx-5.0.24-ubuntu20.04-amd64.deb
+export TF_VAR_package_file=emqx-5.0.24-ubuntu20.04-amd64.deb
 
 export TF_VAR_use_emqttb=0
+
 export TF_VAR_use_emqtt_bench=1
 export TF_VAR_emqtt_bench_instance_count=10
 export TF_VAR_emqtt_bench_instance_type="c5.large"
@@ -24,4 +27,5 @@ export TF_VAR_public_mqtt_lb=true
 
 terraform init
 terraform apply
+read -p "Press Enter to continue" key
 terraform destroy

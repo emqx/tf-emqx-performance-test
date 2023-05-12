@@ -59,3 +59,8 @@ variable "key_name" {
   description = "SSH Key Name"
   type        = string
 }
+
+variable "prometheus_push_gw" {
+  description = "Prometheus push gateway endpoint"
+  type        = string
+}

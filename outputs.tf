@@ -27,3 +27,8 @@ output "emqx_mqtt_lb_dns_name" {
   description = "The DNS name of the MQTT Load Balancer"
   value       = module.emqx_mqtt_lb.*.mqtt_lb_dns_name
 }
+
+output "grafana_url" {
+  description = "Grafana URL"
+  value       = "http://${module.prometheus.public_ip}:3000/"
+}
