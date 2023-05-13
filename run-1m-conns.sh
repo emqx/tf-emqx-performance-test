@@ -15,7 +15,7 @@ EMQX_VERSION=5.0.25
 wget -nc https://github.com/emqx/emqx/releases/download/v$EMQX_VERSION/emqx-$EMQX_VERSION-ubuntu20.04-amd64.deb
 TF_VAR_package_file=emqx-$EMQX_VERSION-ubuntu20.04-amd64.deb
 
-TF_VAR_test_duration="1h"
+TF_VAR_test_duration=3600
 
 TF_VAR_use_emqttb=1
 TF_VAR_emqttb_instance_count=3
