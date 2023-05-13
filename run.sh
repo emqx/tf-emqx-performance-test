@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 # Usage
 # ./run.sh <region> <bucket> <bench_id> <test duration in seconds>
 
@@ -18,7 +20,7 @@ export TF_VAR_package_file=emqx-$EMQX_VERSION-ubuntu20.04-amd64.deb
 
 terraform init
 terraform apply
-./wait-emqttb.sh
+$SCRIPT_DIR/wait-emqttb.sh
 echo "Test is completed"
-./fetch-metrics.sh
+$SCRIPT_DIR/fetch-metrics.sh
 terraform destroy
