@@ -90,8 +90,8 @@ variable "grafana_api_key" {
 
 variable "test_duration" {
   description = "Performance test duration in seconds"
-  type        = string
-  default     = "300"
+  type        = number
+  default     = 300
 }
 
 variable "ssh_key_name" {
