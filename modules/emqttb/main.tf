@@ -12,6 +12,7 @@ module "emqttb_ec2" {
   route53_zone_id   = var.route53_zone_id
   route53_zone_name = var.route53_zone_name
   key_name          = var.key_name
+  subnet_id         = var.subnet_id
   extra_user_data   = templatefile("${path.module}/templates/user_data.tpl", {
     package_url      = var.package_url
     emqx_lb_dns_name = var.emqx_lb_dns_name

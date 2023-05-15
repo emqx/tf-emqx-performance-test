@@ -4,6 +4,12 @@ variable "region" {
   default     = "eu-north-1"
 }
 
+variable "vpc_cidr" {
+  description = "VPC CIDR Block"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
 variable "namespace" {
   description = "namespace"
   type        = string
@@ -42,7 +48,7 @@ variable "package_file" {
 
 variable "emqttb_package_url" {
   type    = string
-  default = "https://github.com/emqx/emqttb/releases/download/v0.1.6/emqttb-0.1.6-ubuntu20.04-amd64-quic.tar.gz"
+  default = "https://github.com/emqx/emqttb/releases/download/v0.1.7/emqttb-0.1.7-ubuntu20.04-amd64-quic.tar.gz"
 }
 
 variable "emqttb_instance_count" {
@@ -60,7 +66,7 @@ variable "emqttb_instance_type" {
 variable "emqttb_scenario" {
   description = "emqttb scenario"
   type        = string
-  default     = "@pub --topic 't/%n' --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb --num-clients 10000 @sub --topic 't/%n' --num-clients 10000"
+  default     = "@pubsub_fwd -n 50_000 --pub-qos 1 --sub-qos 1"
 }
 
 variable "route53_zone_name" {
