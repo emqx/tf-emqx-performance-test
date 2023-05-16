@@ -1,4 +1,6 @@
 cd /opt
+mkdir dashboards
+wget -nc https://raw.githubusercontent.com/emqx/emqttb/master/emqttb-dashboard.json -O dashboards/emqttb-dashboard.json
 apt install -y python3-pip
 python3 -m pip install ansible==6.7.0 jmespath
 ansible-galaxy install cloudalchemy.prometheus cloudalchemy.pushgateway cloudalchemy.grafana
@@ -27,6 +29,7 @@ cat > playbook.yml << EOF
       - dashboard_id: '17446'
         revision_id: '1'
         datasource: 'Prometheus'
+    grafana_dashboards_dir: "/opt/dashboards"
     grafana_datasources:
       - name: "Prometheus"
         type: "prometheus"

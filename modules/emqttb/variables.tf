@@ -40,9 +40,9 @@ variable "sg_ids" {
   type        = list(string)
 }
 
-variable "emqx_lb_dns_name" {
-  description = "FQDN of EMQX Load Balancer"
-  type        = string
+variable "emqx_hosts" {
+  description = "EMQX Hosts"
+  type        = list(string)
 }
 
 variable "iam_profile" {

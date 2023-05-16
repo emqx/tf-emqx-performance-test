@@ -10,16 +10,20 @@ EOF
 
 sysctl -p
 
+sysctl -w net.ipv4.tcp_max_syn_backlog=16384
+sysctl -w net.ipv4.ip_local_port_range='1024 65535'
+sysctl -w net.ipv4.tcp_fin_timeout=5
+
 mkdir emqttb && cd emqttb
 wget ${package_url}
 tar xzf ./emqttb*.tar.gz
 
-GRAFANA=
-if [ -n "${grafana_api_key}" ]; then
-  export EMQTTB_METRICS__GRAFANA__API_KEY="Bearer ${grafana_api_key}"
-  export EMQTTB_METRICS__GRAFANA__URL="${grafana_url}"
-  GRAFANA="--grafana"
-fi
+# GRAFANA=
+# if [ -n "${grafana_api_key}" ]; then
+#   export EMQTTB_METRICS__GRAFANA__API_KEY="Bearer ${grafana_api_key}"
+#   export EMQTTB_METRICS__GRAFANA__URL="${grafana_url}"
+#   GRAFANA="--grafana"
+# fi
 
 function signal_done() {
   sleep ${test_duration}
@@ -29,4 +33,4 @@ function signal_done() {
 
 signal_done &
 
-bin/emqttb --restapi $GRAFANA --log-level error ${scenario} @g --host ${emqx_lb_dns_name}
+bin/emqttb --restapi --pushgw --pushgw-url http://${prometheus_push_gw}:9091 --log-level error ${scenario} @g --host ${emqx_hosts}

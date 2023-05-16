@@ -138,7 +138,7 @@ module "emqttb" {
   instance_count    = var.emqttb_instance_count
   scenario          = var.emqttb_scenario
   sg_ids            = [module.security_group.sg_id]
-  emqx_lb_dns_name  = module.emqx_mqtt_int_nlb[0].dns_name
+  emqx_hosts        = module.emqx.private_ips
   iam_profile       = module.ec2_profile.iam_profile
   route53_zone_id   = aws_route53_zone.int.zone_id
   route53_zone_name = var.route53_zone_name

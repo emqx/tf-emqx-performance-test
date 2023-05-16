@@ -18,9 +18,9 @@ export TF_VAR_package_file=emqx-$EMQX_VERSION-ubuntu20.04-amd64.deb
 export TF_VAR_test_duration=3600
 
 export TF_VAR_use_emqttb=1
-export TF_VAR_emqttb_instance_count=5
-export TF_VAR_emqttb_instance_type=c5.large
-export TF_VAR_emqttb_scenario="@conn -N 200_000"
+export TF_VAR_emqttb_instance_count=20
+export TF_VAR_emqttb_instance_type=m5.large
+export TF_VAR_emqttb_scenario="@conn -N 50_000 --conninterval 100us"
 
 export TF_VAR_use_emqtt_bench=0
 export TF_VAR_emqtt_bench_instance_count=5
@@ -28,8 +28,8 @@ export TF_VAR_emqtt_bench_instance_type="c5.2xlarge"
 export TF_VAR_emqtt_bench_scenario="conn -c 200000 -i 10"
 
 export TF_VAR_emqx_instance_count=3
-export TF_VAR_emqx_instance_type="c5.4xlarge"
-export TF_VAR_internal_mqtt_nlb_count=3
+export TF_VAR_emqx_instance_type="c5.2xlarge"
+export TF_VAR_internal_mqtt_nlb_count=1
 export TF_VAR_public_mqtt_nlb=0
 
 terraform init

@@ -15,7 +15,7 @@ module "emqttb_ec2" {
   subnet_id         = var.subnet_id
   extra_user_data   = templatefile("${path.module}/templates/user_data.tpl", {
     package_url      = var.package_url
-    emqx_lb_dns_name = var.emqx_lb_dns_name
+    emqx_hosts       = join(",", var.emqx_hosts)
     grafana_url      = var.grafana_url
     grafana_api_key  = var.grafana_api_key
     test_duration    = var.test_duration
