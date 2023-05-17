@@ -48,7 +48,7 @@ variable "package_file" {
 
 variable "emqttb_package_url" {
   type    = string
-  default = "https://github.com/emqx/emqttb/releases/download/v0.1.9/emqttb-0.1.9-ubuntu20.04-amd64-quic.tar.gz"
+  default = "https://github.com/emqx/emqttb/releases/download/v0.1.10/emqttb-0.1.10-ubuntu20.04-amd64-quic.tar.gz"
 }
 
 variable "emqttb_instance_count" {
