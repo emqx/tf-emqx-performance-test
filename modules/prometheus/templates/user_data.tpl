@@ -34,14 +34,6 @@ cat > playbook.yml << EOF
         honor_labels: true
         static_configs:
           - targets: ${node_targets}
-    prometheus_remote_write:
-      - url: ${remote_write_url}
-        queue_config:
-          max_samples_per_send: 1000
-          max_shards: 200
-          capacity: 2500
-        sigv4:
-          region: ${remote_write_region}
     grafana_auth:
       anonymous:
         org_name: "EMQ Technologies"
@@ -63,10 +55,28 @@ cat > playbook.yml << EOF
         access: "proxy"
         url: "http://localhost:9090"
         isDefault: true
+  vars_files:
+    - remote_write.yml
   roles:
     - cloudalchemy.prometheus
     - cloudalchemy.pushgateway
     - cloudalchemy.grafana
 EOF
+
+echo '---' > remote_write.yml
+
+if [ -n "${remote_write_url}" ]; then
+    cat >> remote_write.yml << EOF
+
+prometheus_remote_write:
+  - url: ${remote_write_url}
+    queue_config:
+      max_samples_per_send: 1000
+      max_shards: 200
+      capacity: 2500
+    sigv4:
+      region: ${remote_write_region}
+EOF
+fi
 
 ansible-playbook -vv -i localhost, -c local playbook.yml

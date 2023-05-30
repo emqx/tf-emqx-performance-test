@@ -137,10 +137,12 @@ variable "internal_mqtt_nlb_count" {
 variable "prometheus_remote_write_url" {
   description = "Prometheus remote write URL"
   type        = string
+  default     = ""
 }
 
 variable "prometheus_remote_write_region" {
   description = "Prometheus remote write region"
   type        = string
+  default     = "eu-west-1"
 }
 
