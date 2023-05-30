@@ -4,76 +4,13 @@ resource "aws_default_vpc" "default" {
   }
 }
 
-data "aws_region" "current" {}
-
-data "aws_route53_zone" "public" {
-  name         = var.route53_zone_name
-  private_zone = false
-}
-
-data "aws_route53_zone" "private" {
-  name         = var.route53_int_zone_name
-  private_zone = true
-}
-
 locals {
   vpc_id = aws_default_vpc.default.id
-  region = data.aws_region.current.name
   domain_name = "perf-dashboard.${var.route53_zone_name}"
-  prom_push_gw_fqdn = "prometheus.${var.route53_int_zone_name}"
-  instance_type = "t4g.medium"
+  instance_type = "a1.medium"
   os_version = "22.04"
   os_arch    = "arm64"
   ami_filter = "ubuntu/images/hvm-ssd/ubuntu-*-${local.os_version}-${local.os_arch}-server-*"
-}
-
-#data "aws_caller_identity" "current" {}
-
-data "aws_subnets" "vpc_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [local.vpc_id]
-  }
-}
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = [local.ami_filter]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["arm64"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-}
-
-data "aws_ami" "amzn2" {
-  most_recent = true
-  owners = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["arm64"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
 }
 
 resource "aws_security_group" "lb_sg" {
@@ -145,7 +82,13 @@ resource "aws_launch_template" "grafana-lt" {
   image_id = data.aws_ami.ubuntu.id
   instance_type = local.instance_type
   vpc_security_group_ids = [aws_security_group.instance_sg.id]
-  user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", { s3_bucket_name = var.s3_bucket_name }))
+  user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
+    domain_name = local.domain_name
+    region = var.region
+    s3_bucket_name = var.s3_bucket_name
+    prometheus_url = var.prometheus_url
+    grafana_admin_password = var.grafana_admin_password
+  }))
   iam_instance_profile {
     arn = aws_iam_instance_profile.grafana.arn
   }
@@ -153,13 +96,6 @@ resource "aws_launch_template" "grafana-lt" {
     resource_type = "instance"
     tags = {
       Name = "grafana"
-    }
-  }
-  block_device_mappings {
-    device_name = "/dev/sdf"
-    ebs {
-      volume_size = 20
-      delete_on_termination = false
     }
   }
 }
@@ -177,7 +113,7 @@ resource "aws_autoscaling_group" "grafana-asg" {
     version = "$Latest"
   }
 
-  target_group_arns = [aws_lb_target_group.grafana.arn, aws_lb_target_group.prom_push_gw.arn]
+  target_group_arns = [aws_lb_target_group.grafana.arn]
   vpc_zone_identifier = data.aws_subnets.vpc_subnets.ids
 }
 
@@ -264,6 +200,18 @@ resource "aws_iam_policy" "grafana" {
         "Resource": [
           "arn:aws:s3:::${var.s3_bucket_name}/*"
         ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "aps:GetLabels",
+          "aps:GetMetricMetadata",
+          "aps:GetSeries",
+          "aps:QueryMetrics"
+        ],
+        "Resource": [
+          "*"
+        ]
       }
     ]
   })
@@ -296,40 +244,4 @@ resource "aws_iam_policy_attachment" "grafana" {
 resource "aws_iam_instance_profile" "grafana" {
   name = "grafana"
   role = aws_iam_role.grafana.name
-}
-
-resource "aws_lb" "prom-push-gw" {
-  name               = "${var.namespace}-prom-push-gw"
-  internal           = true
-  load_balancer_type = "network"
-  subnets            = data.aws_subnets.vpc_subnets.ids
-}
-
-resource "aws_lb_listener" "prom-push-gw" {
-  load_balancer_arn = aws_lb.prom-push-gw.arn
-  port              = 9091
-  protocol          = "TCP"
-  default_action {
-    target_group_arn = aws_lb_target_group.prom_push_gw.arn
-    type             = "forward"
-  }
-}
-
-resource "aws_lb_target_group" "prom_push_gw" {
-  name     = "prom-push-gw-tg"
-  port     = 9091
-  protocol = "TCP"
-  vpc_id   = local.vpc_id
-}
-
-resource "aws_route53_record" "prom_push_gw" {
-  zone_id = data.aws_route53_zone.private.zone_id
-  name    = local.prom_push_gw_fqdn
-  type    = "A"
-
-  alias {
-    name                   = aws_lb.prom-push-gw.dns_name
-    zone_id                = aws_lb.prom-push-gw.zone_id
-    evaluate_target_health = true
-  }
 }
