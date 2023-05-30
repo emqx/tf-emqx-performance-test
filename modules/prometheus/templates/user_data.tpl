@@ -18,6 +18,30 @@ cat > playbook.yml << EOF
         static_configs:
           - targets:
             - "localhost:9091"
+      - job_name: "emqx"
+        scrape_interval: "5s"
+        metrics_path: "/api/v5/prometheus/stats"
+        honor_labels: true
+        static_configs:
+          - targets: ${emqx_targets}
+      - job_name: "emqttb"
+        scrape_interval: "5s"
+        honor_labels: true
+        static_configs:
+          - targets: ${emqttb_targets}
+      - job_name: "node"
+        scrape_interval: "5s"
+        honor_labels: true
+        static_configs:
+          - targets: ${node_targets}
+    prometheus_remote_write:
+      - url: ${remote_write_url}
+        queue_config:
+          max_samples_per_send: 1000
+          max_shards: 200
+          capacity: 2500
+        sigv4:
+          region: ${remote_write_region}
     grafana_auth:
       anonymous:
         org_name: "EMQ Technologies"
@@ -28,6 +52,9 @@ cat > playbook.yml << EOF
     grafana_dashboards:
       - dashboard_id: '17446'
         revision_id: '1'
+        datasource: 'Prometheus'
+      - dashboard_id: '1860'
+        revision_id: '31'
         datasource: 'Prometheus'
     grafana_dashboards_dir: "/opt/dashboards"
     grafana_datasources:

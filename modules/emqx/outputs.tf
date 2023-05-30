@@ -1,11 +1,16 @@
 output "private_ips" {
-  description = "private ip of ec2 instance"
+  description = "Private IPs of emqx instances"
   value       = module.emqx_ec2.private_ip
 }
 
 output "public_ips" {
-  description = "public ip of ec2 instance"
+  description = "Public IPs of emqx instances"
   value       = module.emqx_ec2.public_ip
+}
+
+output "internal_fqdn" {
+  description = "Internal fqdn of emqx instances"
+  value       = module.emqx_ec2.internal_fqdn
 }
 
 output "instance_ids" {

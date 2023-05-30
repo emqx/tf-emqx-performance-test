@@ -60,20 +60,6 @@ resource "local_sensitive_file" "pem_file" {
   content = tls_private_key.pk.private_key_pem
 }
 
-module "prometheus" {
-  source            = "./modules/prometheus"
-  vpc_id            = module.vpc.vpc_id
-  cidr_blocks       = [var.vpc_cidr]
-  ami_filter        = local.ami_filter
-  s3_bucket_name    = var.s3_bucket_name
-  namespace         = var.namespace
-  route53_zone_id   = aws_route53_zone.int.zone_id
-  route53_zone_name = var.route53_zone_name
-  iam_profile       = module.ec2_profile.iam_profile
-  key_name          = aws_key_pair.kp.key_name
-  subnet_id         = module.vpc.public_subnet_ids[0]
-}
-
 module "emqx" {
   source            = "./modules/emqx"
   ami_filter        = local.ami_filter
@@ -89,7 +75,6 @@ module "emqx" {
   iam_profile       = module.ec2_profile.iam_profile
   key_name          = aws_key_pair.kp.key_name
   subnet_id         = module.vpc.public_subnet_ids[0]
-  prometheus_push_gw = module.prometheus.private_ip
 }
 
 module "emqx_mqtt_int_nlb" {
@@ -142,11 +127,8 @@ module "emqttb" {
   iam_profile       = module.ec2_profile.iam_profile
   route53_zone_id   = aws_route53_zone.int.zone_id
   route53_zone_name = var.route53_zone_name
-  grafana_url       = var.grafana_url
-  grafana_api_key   = var.grafana_api_key
   test_duration     = var.test_duration
   key_name          = aws_key_pair.kp.key_name
-  prometheus_push_gw = module.prometheus.private_ip
   subnet_id         = module.vpc.public_subnet_ids[0]
 }
 
@@ -170,3 +152,23 @@ module "emqtt_bench" {
   key_name          = aws_key_pair.kp.key_name
   subnet_id         = module.vpc.public_subnet_ids[0]
 }
+
+module "prometheus" {
+  source            = "./modules/prometheus"
+  vpc_id            = module.vpc.vpc_id
+  cidr_blocks       = [var.vpc_cidr]
+  ami_filter        = local.ami_filter
+  s3_bucket_name    = var.s3_bucket_name
+  namespace         = var.namespace
+  route53_zone_id   = aws_route53_zone.int.zone_id
+  route53_zone_name = var.route53_zone_name
+  iam_profile       = module.ec2_profile.iam_profile
+  key_name          = aws_key_pair.kp.key_name
+  subnet_id         = module.vpc.public_subnet_ids[0]
+  remote_write_url  = var.prometheus_remote_write_url
+  remote_write_region = var.prometheus_remote_write_region
+  emqx_targets      = module.emqx.internal_fqdn
+  emqttb_targets    = var.use_emqttb == 1 ? module.emqttb[0].internal_fqdn : []
+}
+
+

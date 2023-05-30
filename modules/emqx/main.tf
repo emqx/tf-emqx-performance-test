@@ -23,7 +23,6 @@ module "emqx_ec2" {
     bench_id         = var.bench_id
     package_url      = var.package_url
     cluster_dns_name = local.cluster_dns_name
-    prometheus_push_gw = var.prometheus_push_gw
   })
 
 }

@@ -16,6 +16,19 @@ resource "aws_iam_policy" "ec2_policy" {
         "Resource": [
           "arn:aws:s3:::${var.s3_bucket_name}/*"
         ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "aps:GetLabels",
+          "aps:GetMetricMetadata",
+          "aps:GetSeries",
+          "aps:QueryMetrics",
+          "aps:RemoteWrite"
+        ],
+        "Resource": [
+          "*"
+        ]
       }
     ]
   })

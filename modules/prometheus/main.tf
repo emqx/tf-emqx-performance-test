@@ -65,5 +65,11 @@ module "prometheus_ec2" {
   route53_zone_name = var.route53_zone_name
   key_name          = var.key_name
   subnet_id         = var.subnet_id
-  extra_user_data   = templatefile("${path.module}/templates/user_data.tpl", {})
+  extra_user_data   = templatefile("${path.module}/templates/user_data.tpl", {
+    emqx_targets     = format("%#v", [for x in var.emqx_targets : "${x}:18083"])
+    emqttb_targets   = format("%#v", [for x in var.emqttb_targets : "${x}:8017"])
+    node_targets     = format("%#v", [for x in concat(var.emqx_targets, var.emqttb_targets) : "${x}:9100"])
+    remote_write_url = var.remote_write_url
+    remote_write_region = var.remote_write_region
+  })
 }

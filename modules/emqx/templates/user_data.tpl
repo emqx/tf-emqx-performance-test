@@ -29,7 +29,6 @@ Environment=EMQX_CLUSTER__DISCOVERY_STRATEGY=dns
 Environment=EMQX_CLUSTER__DNS__NAME=${cluster_dns_name}
 Environment=EMQX_CLUSTER__DNS__RECORD_TYPE=a
 Environment=EMQX_PROMETHEUS__ENABLE=true
-Environment=EMQX_PROMETHEUS__PUSH_GATEWAY_SERVER=http://${prometheus_push_gw}:9091
 EOF
 
 systemctl daemon-reload

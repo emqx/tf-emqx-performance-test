@@ -18,13 +18,6 @@ mkdir emqttb && cd emqttb
 wget ${package_url}
 tar xzf ./emqttb*.tar.gz
 
-# GRAFANA=
-# if [ -n "${grafana_api_key}" ]; then
-#   export EMQTTB_METRICS__GRAFANA__API_KEY="Bearer ${grafana_api_key}"
-#   export EMQTTB_METRICS__GRAFANA__URL="${grafana_url}"
-#   GRAFANA="--grafana"
-# fi
-
 function signal_done() {
   sleep ${test_duration}
   touch EMQTTB_DONE
@@ -33,4 +26,4 @@ function signal_done() {
 
 signal_done &
 
-bin/emqttb --restapi --pushgw --pushgw-url http://${prometheus_push_gw}:9091 --log-level error ${scenario} @g --host ${emqx_hosts}
+bin/emqttb --restapi --log-level error ${scenario} @g --host ${emqx_hosts}

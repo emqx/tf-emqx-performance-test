@@ -51,3 +51,23 @@ variable "subnet_id" {
   description = "Subnet ID"
   type        = string
 }
+
+variable "remote_write_url" {
+  description = "Prometheus Remote Write URL"
+  type        = string
+}
+
+variable "remote_write_region" {
+  description = "Prometheus Remote Write Region"
+  type        = string
+}
+
+variable "emqx_targets" {
+  description = "Private IPs of EMQX instances"
+  type        = list(string)
+}
+
+variable "emqttb_targets" {
+  description = "Private IPs of emqttb instances"
+  type        = list(string)
+}

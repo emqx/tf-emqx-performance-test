@@ -1,7 +1,7 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "eu-north-1"
+  default     = "eu-west-1"
 }
 
 variable "vpc_cidr" {
@@ -25,13 +25,13 @@ variable "emqx_instance_count" {
 variable "emqx_instance_type" {
   description = "Instance type of emqx"
   type        = string
-  default     = "c5.large"
+  default     = "c5.xlarge"
 }
 
 variable "s3_bucket_name" {
   description = "S3 Bucket"
   type        = string
-  default     = "tf-emqx-performance-test"
+  default     = "tf-emqx-performance-test2"
 }
 
 variable "bench_id" {
@@ -66,26 +66,13 @@ variable "emqttb_instance_type" {
 variable "emqttb_scenario" {
   description = "emqttb scenario"
   type        = string
-  default     = "@pubsub_fwd -n 50_000 --pub-qos 1 --sub-qos 1"
+  default     = "@pubsub_fwd -n 1_000 --pub-qos 1 --sub-qos 1"
 }
 
 variable "route53_zone_name" {
   description = "Hosted zone name"
   type        = string
   default     = "int.emqx.io"
-}
-
-variable "grafana_url" {
-  description = "Grafana URL"
-  type        = string
-  default     = "https://perf-dashboard.emqx.works"
-}
-
-variable "grafana_api_key" {
-  description = "Grafana API KEY"
-  type        = string
-  sensitive   = true
-  default     = ""
 }
 
 variable "test_duration" {
@@ -122,6 +109,7 @@ variable "emqtt_bench_package_url" {
   type    = string
   default = "https://github.com/emqx/emqtt-bench/releases/download/0.4.11/emqtt-bench-0.4.11-ubuntu20.04-amd64.tar.gz"
 }
+
 variable "emqtt_bench_instance_count" {
   description = "Instance count of emqtt_bench"
   type        = number
@@ -145,3 +133,14 @@ variable "internal_mqtt_nlb_count" {
   type        = number
   default     = 1
 }
+
+variable "prometheus_remote_write_url" {
+  description = "Prometheus remote write URL"
+  type        = string
+}
+
+variable "prometheus_remote_write_region" {
+  description = "Prometheus remote write region"
+  type        = string
+}
+

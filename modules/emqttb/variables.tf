@@ -60,17 +60,6 @@ variable "route53_zone_id" {
   type        = string
 }
 
-variable "grafana_url" {
-  description = "Grafana URL"
-  type        = string
-}
-
-variable "grafana_api_key" {
-  description = "Grafana API KEY"
-  type        = string
-  sensitive   = true
-}
-
 variable "test_duration" {
   description = "Performance test duration"
   type        = string
@@ -83,11 +72,6 @@ variable "scenario" {
 
 variable "key_name" {
   description = "SSH Key Name"
-  type        = string
-}
-
-variable "prometheus_push_gw" {
-  description = "Prometheus push gateway endpoint"
   type        = string
 }
 
