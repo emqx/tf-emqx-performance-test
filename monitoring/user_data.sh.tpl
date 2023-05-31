@@ -125,6 +125,8 @@ providers:
    orgId: 1
    folder: ''
    type: file
+   allowUiUpdates: true
+   disableDeletion: false
    options:
      path: "/var/lib/grafana/dashboards"
 EOF
@@ -150,3 +152,5 @@ EOF
 
 systemctl daemon-reload
 systemctl enable --now grafana-server
+
+curl -fsS -m 30 --retry 6 --retry-delay 5 --retry-connrefused -X PUT -H "Content-Type: application/json" -d '{"name": "EMQ Technologies"}' "http://admin:${grafana_admin_password}@localhost:3000/api/orgs/1"
