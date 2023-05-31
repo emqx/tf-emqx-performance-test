@@ -8,8 +8,8 @@ cat > playbook.yml << EOF
 - hosts: all
   vars:
     prometheus_global:
-      scrape_interval: 10s
-      scrape_timeout: 10s
+      scrape_interval: 5s
+      scrape_timeout: 5s
       evaluation_interval: 15s
     prometheus_scrape_configs:
       - job_name: "prometheus"
@@ -28,6 +28,8 @@ cat > playbook.yml << EOF
           - targets: ${emqx_targets}
       - job_name: "emqttb"
         honor_labels: true
+        scrape_interval: 30s
+        scrape_timeout: 30s
         static_configs:
           - targets: ${emqttb_targets}
       - job_name: "node"
