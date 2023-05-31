@@ -3,9 +3,9 @@
 Requirements
 - [Terraform](https://developer.hashicorp.com/terraform/downloads)
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-- AWS crednetials in shell environment
+- AWS crednetials in shell environment (necessary permissions are in the `./iam-policy.json` document, mind the bucket name)
 
-This creates an EMQX cluster with configurable number of nodes, [emqttb](https://github.com/emqx/emqttb) and/or [emqtt-bench](https://github.com/emqx/emqtt-bench) load generator nodes and prometheus+grafana instance in default VPC.
+This creates an EMQX cluster with configurable number of nodes, [emqttb](https://github.com/emqx/emqttb) and/or [emqtt-bench](https://github.com/emqx/emqtt-bench) load generator nodes and prometheus+grafana instance in a private VPC.
 
 ## Quick start
 
@@ -15,8 +15,6 @@ This creates an EMQX cluster with configurable number of nodes, [emqttb](https:/
 ```
 
 Default emqx dashboard credentials are `admin:admin`, grafana as well `admin:admin`.
-
-The script will create infrastructure, run a load test for 5 minutes, will fetch metrics from emqx cluster, store them in `metrics.json` file, and tear everything down.
 
 ## Running with non-default variables
 

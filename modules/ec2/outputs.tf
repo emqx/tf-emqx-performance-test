@@ -10,3 +10,6 @@ output "instance_id" {
   value = aws_instance.ec2.*.id
 }
 
+output "internal_fqdn" {
+  value = aws_route53_record.dns.*.fqdn
+}

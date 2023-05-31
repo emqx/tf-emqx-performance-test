@@ -9,20 +9,21 @@ export TF_VAR_package_file=emqx-$EMQX_VERSION-ubuntu20.04-amd64.deb
 export TF_VAR_region=eu-central-1
 export TF_VAR_s3_bucket_name=id-emqx-test
 export TF_VAR_bench_id="$(date +%Y-%m-%d-%H-%M-%S)"
-export TF_VAR_test_duration="1h"
+export TF_VAR_test_duration=3600
+export TF_VAR_emqx_instance_type=c5.large
 export TF_VAR_emqx_instance_count=3
-export TF_VAR_package_file=emqx-5.0.24-ubuntu20.04-amd64.deb
+export TF_VAR_package_file=emqx-$EMQX_VERSION-ubuntu20.04-amd64.deb
 export TF_VAR_internal_mqtt_nlb_count=3
 
 export TF_VAR_use_emqttb=1
 export TF_VAR_emqttb_instance_count=1
-export TF_VAR_emqttb_instance_type="c5.large"
-export TF_VAR_emqttb_scenario="@pub --topic 't/%n' --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb --num-clients 1000 @sub --topic 't/%n' --num-clients 1000"
+export TF_VAR_emqttb_instance_type=c5.large
+# export TF_VAR_emqttb_scenario="@pubsub_fwd -n 50_000 --pub-qos 1 --sub-qos 1"
 
-export TF_VAR_use_emqtt_bench=1
-export TF_VAR_emqtt_bench_instance_count=1
-export TF_VAR_emqtt_bench_instance_type="c5.large"
-export TF_VAR_emqtt_bench_scenario="conn -c 100000 -i 10"
+# export TF_VAR_use_emqtt_bench=0
+# export TF_VAR_emqtt_bench_instance_count=1
+# export TF_VAR_emqtt_bench_instance_type=c5.large
+# export TF_VAR_emqtt_bench_scenario="conn -c 100000 -i 10"
 
 terraform init
 terraform apply

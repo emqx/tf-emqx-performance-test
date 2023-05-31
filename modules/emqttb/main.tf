@@ -12,15 +12,13 @@ module "emqttb_ec2" {
   route53_zone_id   = var.route53_zone_id
   route53_zone_name = var.route53_zone_name
   key_name          = var.key_name
+  subnet_id         = var.subnet_id
   extra_user_data   = templatefile("${path.module}/templates/user_data.tpl", {
     package_url      = var.package_url
-    emqx_lb_dns_name = var.emqx_lb_dns_name
-    grafana_url      = var.grafana_url
-    grafana_api_key  = var.grafana_api_key
+    emqx_hosts       = join(",", var.emqx_hosts)
     test_duration    = var.test_duration
     s3_bucket_name   = var.s3_bucket_name
     bench_id         = var.bench_id
     scenario         = var.scenario
-    prometheus_push_gw = var.prometheus_push_gw
   })
 }

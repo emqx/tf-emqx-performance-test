@@ -40,9 +40,9 @@ variable "sg_ids" {
   type        = list(string)
 }
 
-variable "emqx_lb_dns_name" {
-  description = "FQDN of EMQX Load Balancer"
-  type        = string
+variable "emqx_hosts" {
+  description = "EMQX Hosts"
+  type        = list(string)
 }
 
 variable "iam_profile" {
@@ -60,17 +60,6 @@ variable "route53_zone_id" {
   type        = string
 }
 
-variable "grafana_url" {
-  description = "Grafana URL"
-  type        = string
-}
-
-variable "grafana_api_key" {
-  description = "Grafana API KEY"
-  type        = string
-  sensitive   = true
-}
-
 variable "test_duration" {
   description = "Performance test duration"
   type        = string
@@ -86,7 +75,7 @@ variable "key_name" {
   type        = string
 }
 
-variable "prometheus_push_gw" {
-  description = "Prometheus push gateway endpoint"
+variable "subnet_id" {
+  description = "Subnet ID"
   type        = string
 }

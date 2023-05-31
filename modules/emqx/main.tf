@@ -17,12 +17,12 @@ module "emqx_ec2" {
   route53_zone_id   = var.route53_zone_id
   route53_zone_name = var.route53_zone_name
   key_name          = var.key_name
+  subnet_id         = var.subnet_id
   extra_user_data   = templatefile("${path.module}/templates/user_data.tpl", {
     s3_bucket_name   = var.s3_bucket_name
     bench_id         = var.bench_id
     package_url      = var.package_url
     cluster_dns_name = local.cluster_dns_name
-    prometheus_push_gw = var.prometheus_push_gw
   })
 
 }

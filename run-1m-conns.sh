@@ -18,19 +18,19 @@ export TF_VAR_package_file=emqx-$EMQX_VERSION-ubuntu20.04-amd64.deb
 export TF_VAR_test_duration=3600
 
 export TF_VAR_use_emqttb=1
-export TF_VAR_emqttb_instance_count=3
-export TF_VAR_emqttb_instance_type="c5.large"
-export TF_VAR_emqttb_scenario="@pub --topic 't/%n' --pubinterval 10ms --qos 1 --publatency 50ms --size 1kb --num-clients 1000 @sub --topic 't/%n' --num-clients 1000"
+export TF_VAR_emqttb_instance_count=5
+export TF_VAR_emqttb_instance_type=c5.2xlarge
+export TF_VAR_emqttb_scenario="@conn -N 200_000 --conninterval 1ms @a -a conn_group_autoscale -V 100"
 
-export TF_VAR_use_emqtt_bench=1
-export TF_VAR_emqtt_bench_instance_count=10
-export TF_VAR_emqtt_bench_instance_type="c5.large"
-export TF_VAR_emqtt_bench_scenario="conn -c 100000 -i 10"
+# export TF_VAR_use_emqtt_bench=0
+# export TF_VAR_emqtt_bench_instance_count=5
+# export TF_VAR_emqtt_bench_instance_type="c5.2xlarge"
+# export TF_VAR_emqtt_bench_scenario="conn -c 200000 -i 10"
 
 export TF_VAR_emqx_instance_count=3
-export TF_VAR_emqx_instance_type="c5.4xlarge"
-export TF_VAR_internal_mqtt_nlb_count=3
-export TF_VAR_public_mqtt_nlb=true
+export TF_VAR_emqx_instance_type="c5.2xlarge"
+export TF_VAR_internal_mqtt_nlb_count=1
+export TF_VAR_public_mqtt_nlb=0
 
 terraform init
 terraform apply

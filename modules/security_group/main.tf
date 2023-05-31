@@ -7,7 +7,7 @@ resource "aws_security_group" "sg" {
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
-    self = true
+    self             = true
   }
 
   ingress {
