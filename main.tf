@@ -60,6 +60,33 @@ resource "local_sensitive_file" "pem_file" {
   content = tls_private_key.pk.private_key_pem
 }
 
+module "prometheus" {
+  source            = "./modules/prometheus"
+  vpc_id            = module.vpc.vpc_id
+  cidr_blocks       = [var.vpc_cidr]
+  ami_filter        = local.ami_filter
+  s3_bucket_name    = var.s3_bucket_name
+  namespace         = var.namespace
+  route53_zone_id   = aws_route53_zone.int.zone_id
+  route53_zone_name = var.route53_zone_name
+  iam_profile       = module.ec2_profile.iam_profile
+  key_name          = aws_key_pair.kp.key_name
+  subnet_id         = module.vpc.public_subnet_ids[0]
+  remote_write_url  = var.prometheus_remote_write_url
+  remote_write_region = var.prometheus_remote_write_region
+  # not good, replicating the same logc as in ec2/main.tf:aws_route53_record.dns
+  # but with this approach we can start prometheus before emqx and emqttb,
+  # and do not loose any metrics
+  emqx_targets      = [
+    for x in range(1, var.emqx_instance_count+1):
+      "${var.namespace}-emqx-${x}.${var.route53_zone_name}"
+  ]
+  emqttb_targets    = var.use_emqttb == 1 ? [
+    for x in range(1, var.emqttb_instance_count+1):
+      "${var.namespace}-emqttb-${x}.${var.route53_zone_name}"
+  ] : []
+}
+
 module "emqx" {
   source            = "./modules/emqx"
   ami_filter        = local.ami_filter
@@ -75,6 +102,10 @@ module "emqx" {
   iam_profile       = module.ec2_profile.iam_profile
   key_name          = aws_key_pair.kp.key_name
   subnet_id         = module.vpc.public_subnet_ids[0]
+  # wait for prometheus to be up
+  depends_on = [
+    module.prometheus
+  ]
 }
 
 module "emqx_mqtt_int_nlb" {
@@ -130,6 +161,10 @@ module "emqttb" {
   test_duration     = var.test_duration
   key_name          = aws_key_pair.kp.key_name
   subnet_id         = module.vpc.public_subnet_ids[0]
+  # wait for prometheus to be up
+  depends_on = [
+    module.prometheus
+  ]
 }
 
 module "emqtt_bench" {
@@ -152,23 +187,3 @@ module "emqtt_bench" {
   key_name          = aws_key_pair.kp.key_name
   subnet_id         = module.vpc.public_subnet_ids[0]
 }
-
-module "prometheus" {
-  source            = "./modules/prometheus"
-  vpc_id            = module.vpc.vpc_id
-  cidr_blocks       = [var.vpc_cidr]
-  ami_filter        = local.ami_filter
-  s3_bucket_name    = var.s3_bucket_name
-  namespace         = var.namespace
-  route53_zone_id   = aws_route53_zone.int.zone_id
-  route53_zone_name = var.route53_zone_name
-  iam_profile       = module.ec2_profile.iam_profile
-  key_name          = aws_key_pair.kp.key_name
-  subnet_id         = module.vpc.public_subnet_ids[0]
-  remote_write_url  = var.prometheus_remote_write_url
-  remote_write_region = var.prometheus_remote_write_region
-  emqx_targets      = module.emqx.internal_fqdn
-  emqttb_targets    = var.use_emqttb == 1 ? module.emqttb[0].internal_fqdn : []
-}
-
-

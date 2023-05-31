@@ -7,9 +7,12 @@ ansible-galaxy install cloudalchemy.prometheus cloudalchemy.pushgateway cloudalc
 cat > playbook.yml << EOF
 - hosts: all
   vars:
+    prometheus_global:
+      scrape_interval: 10s
+      scrape_timeout: 10s
+      evaluation_interval: 15s
     prometheus_scrape_configs:
       - job_name: "prometheus"
-        metrics_path: "/metrics"
         static_configs:
           - targets:
             - "localhost:9090"
@@ -19,18 +22,15 @@ cat > playbook.yml << EOF
           - targets:
             - "localhost:9091"
       - job_name: "emqx"
-        scrape_interval: "5s"
         metrics_path: "/api/v5/prometheus/stats"
         honor_labels: true
         static_configs:
           - targets: ${emqx_targets}
       - job_name: "emqttb"
-        scrape_interval: "5s"
         honor_labels: true
         static_configs:
           - targets: ${emqttb_targets}
       - job_name: "node"
-        scrape_interval: "5s"
         honor_labels: true
         static_configs:
           - targets: ${node_targets}
