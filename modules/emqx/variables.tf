@@ -28,6 +28,11 @@ variable "route53_zone_id" {
   type        = string
 }
 
+variable "test_duration" {
+  description = "Performance test duration"
+  type        = string
+}
+
 variable "instance_count" {
   description = "Instance count"
   type        = number
@@ -62,5 +67,10 @@ variable "key_name" {
 
 variable "subnet_id" {
   description = "Subnet ID"
+  type        = string
+}
+
+variable "prometheus_push_gw_url" {
+  description = "Prometheus Push Gateway URL"
   type        = string
 }

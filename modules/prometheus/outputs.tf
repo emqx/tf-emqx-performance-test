@@ -11,3 +11,11 @@ output "public_ip" {
 output "instance_id" {
   value = module.prometheus_ec2.instance_id
 }
+
+output "push_gw_url" {
+  value = "http://${module.prometheus_ec2.private_ip[0]}:9091"
+}
+
+output "grafana_url" {
+  value = "http://${module.prometheus_ec2.private_ip[0]}:3000"
+}

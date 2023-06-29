@@ -135,13 +135,11 @@ mkdir -p /var/lib/grafana/dashboards
 chown grafana:grafana /var/lib/grafana/dashboards
 # emqx
 wget https://grafana.com/api/dashboards/17446/revisions/1/download -O /tmp/17446.json
-# node exporter full
-wget https://grafana.com/api/dashboards/1860/revisions/31/download -O /tmp/1860.json
 export DS_PROMETHEUS=Prometheus
 envsubst < /tmp/17446.json > /var/lib/grafana/dashboards/17446.json
-envsubst < /tmp/1860.json > /var/lib/grafana/dashboards/1860.json
 sed -i 's/DS_PROMETHEUS/Prometheus/g' /var/lib/grafana/dashboards/17446.json
-sed -i 's/DS_PROMETHEUS/Prometheus/g' /var/lib/grafana/dashboards/1860.json
+# node exporter full
+wget https://grafana.com/api/dashboards/1860/revisions/31/download -O /var/lib/grafana/dashboards/1860.json
 
 mkdir /etc/systemd/system/grafana-server.service.d
 cat << EOF > /etc/systemd/system/grafana-server.service.d/override.conf
