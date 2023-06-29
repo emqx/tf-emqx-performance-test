@@ -113,7 +113,11 @@
             "Action": [
                 "s3:ListBucket"
             ],
-            "Resource": "arn:aws:s3:::tf-emqx-performance-test*"
+            "Resource": [
+                "arn:aws:s3:::tf-emqx-performance-test",
+                "arn:aws:s3:::tf-emqx-performance-test2",
+                "arn:aws:s3:::id-emqx-test"
+            ]
         },
         {
             "Effect": "Allow",
@@ -139,7 +143,11 @@
                 "s3:PutObjectVersionAcl",
                 "s3:PutObjectVersionTagging"
             ],
-            "Resource": "arn:aws:s3:::tf-emqx-performance-test*/*"
+            "Resource": [
+                "arn:aws:s3:::tf-emqx-performance-test/*",
+                "arn:aws:s3:::tf-emqx-performance-test2/*",
+                "arn:aws:s3:::id-emqx-test/*"
+            ]
         }
     ]
 }

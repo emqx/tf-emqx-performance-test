@@ -15,8 +15,8 @@ sysctl -w net.ipv4.ip_local_port_range='1024 65535'
 sysctl -w net.ipv4.tcp_fin_timeout=5
 
 mkdir emqttb && cd emqttb
-wget ${package_url}
-tar xzf ./emqttb*.tar.gz
+wget "${package_url}" -O /emqttb.tar.gz
+tar xzf ./emqttb.tar.gz
 
 function signal_done() {
   sleep ${test_duration}
