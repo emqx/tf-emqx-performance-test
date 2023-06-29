@@ -79,3 +79,19 @@ variable "subnet_id" {
   description = "Subnet ID"
   type        = string
 }
+
+variable "start_n_multiplier" {
+  description = "start-n multiplier for each next emqttb instance based on launch index"
+  type        = number
+  default     = 0
+}
+
+variable "grafana_url" {
+  description = "Grafana URL"
+  type        = string
+}
+
+variable "prometheus_push_gw_url" {
+  description = "Prometheus Push Gateway URL"
+  type        = string
+}

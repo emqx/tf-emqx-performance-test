@@ -69,6 +69,18 @@ variable "emqttb_scenario" {
   default     = "@pubsub_fwd -n 1_000 --pub-qos 1 --sub-qos 1"
 }
 
+variable "emqttb_start_n_multiplier" {
+  description = "start-n multiplier for each next emqttb instance based on launch index"
+  type        = number
+  default     = 0
+}
+
+variable "use_emqttb" {
+  description = "Whether to use emqttb to generate load"
+  type        = number
+  default     = 1
+}
+
 variable "route53_zone_name" {
   description = "Hosted zone name"
   type        = string
@@ -91,12 +103,6 @@ variable "create_public_mqtt_nlb" {
   description = "Whether to create publicly exposed MQTT NLB on 1883"
   type        = number
   default     = 0
-}
-
-variable "use_emqttb" {
-  description = "Whether to use emqttb to generate load"
-  type        = number
-  default     = 1
 }
 
 variable "use_emqtt_bench" {
@@ -145,4 +151,3 @@ variable "prometheus_remote_write_region" {
   type        = string
   default     = "eu-west-1"
 }
-

@@ -74,17 +74,21 @@ module "prometheus" {
   subnet_id         = module.vpc.public_subnet_ids[0]
   remote_write_url  = var.prometheus_remote_write_url
   remote_write_region = var.prometheus_remote_write_region
-  # not good, replicating the same logc as in ec2/main.tf:aws_route53_record.dns
+  # using push gateway now
+  # uncomment below to use prometheus scrape instead
+  emqx_targets = []
+  emqttb_targets = []
+  # not good, replicating the same logic as in ec2/main.tf:aws_route53_record.dns
   # but with this approach we can start prometheus before emqx and emqttb,
   # and do not loose any metrics
-  emqx_targets      = [
-    for x in range(1, var.emqx_instance_count+1):
-      "${var.namespace}-emqx-${x}.${var.route53_zone_name}"
-  ]
-  emqttb_targets    = var.use_emqttb == 1 ? [
-    for x in range(1, var.emqttb_instance_count+1):
-      "${var.namespace}-emqttb-${x}.${var.route53_zone_name}"
-  ] : []
+  # emqx_targets      = [
+  #   for x in range(1, var.emqx_instance_count+1):
+  #     "${var.namespace}-emqx-${x}.${var.route53_zone_name}"
+  # ]
+  # emqttb_targets    = var.use_emqttb == 1 ? [
+  #   for x in range(1, var.emqttb_instance_count+1):
+  #     "${var.namespace}-emqttb-${x}.${var.route53_zone_name}"
+  # ] : []
 }
 
 module "emqx" {
@@ -98,14 +102,12 @@ module "emqx" {
   instance_type     = var.emqx_instance_type
   route53_zone_id   = aws_route53_zone.int.zone_id
   route53_zone_name = var.route53_zone_name
+  test_duration     = var.test_duration
   sg_ids            = [module.security_group.sg_id]
   iam_profile       = module.ec2_profile.iam_profile
   key_name          = aws_key_pair.kp.key_name
   subnet_id         = module.vpc.public_subnet_ids[0]
-  # wait for prometheus to be up
-  depends_on = [
-    module.prometheus
-  ]
+  prometheus_push_gw_url = module.prometheus.push_gw_url
 }
 
 module "emqx_mqtt_int_nlb" {
@@ -161,10 +163,9 @@ module "emqttb" {
   test_duration     = var.test_duration
   key_name          = aws_key_pair.kp.key_name
   subnet_id         = module.vpc.public_subnet_ids[0]
-  # wait for prometheus to be up
-  depends_on = [
-    module.prometheus
-  ]
+  grafana_url       = module.prometheus.grafana_url
+  prometheus_push_gw_url = module.prometheus.push_gw_url
+  start_n_multiplier = var.emqttb_start_n_multiplier
 }
 
 module "emqtt_bench" {

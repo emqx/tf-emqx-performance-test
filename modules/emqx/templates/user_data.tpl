@@ -29,22 +29,25 @@ Environment=EMQX_CLUSTER__DISCOVERY_STRATEGY=dns
 Environment=EMQX_CLUSTER__DNS__NAME=${cluster_dns_name}
 Environment=EMQX_CLUSTER__DNS__RECORD_TYPE=a
 Environment=EMQX_PROMETHEUS__ENABLE=true
+Environment=EMQX_PROMETHEUS__PUSH_GATEWAY_SERVER=${prometheus_push_gw_url}
 EOF
 
 systemctl daemon-reload
 systemctl restart emqx
+systemctl enable emqx
 
-wait_for_emqx() {
-    local attempts=10
-    local url='http://localhost:18083/status'
-    while ! curl "$url" >/dev/null 2>&1; do
-        if [ $attempts -eq 0 ]; then
-            echo "emqx is not responding on $url"
-            exit 1
-        fi
-        sleep 5
-        attempts=$((attempts-1))
-    done
-}
-wait_for_emqx
+curl --head -X GET --retry 10 --retry-connrefused --retry-delay 5 http://localhost:18083/status
 su - emqx /usr/bin/emqx eval 'emqx_dashboard_admin:force_add_user(<<"admin">>, <<"admin">>, <<"admin">>).'
+
+function signal_done() {
+  sleep ${test_duration}
+  #systemctl stop emqx.service
+  cp /var/log/cloud-init-output.log /var/log/emqx/* /var/lib/cloud/instance/user-data.txt ./
+  journalctl -u emqx.service > emqx-stdout.log
+  tar czf ./emqx-$TF_LAUNCH_INDEX.tar.gz cloud-init-output.log emqx.log* emqx-stdout.log user-data.txt
+  aws s3 cp ./emqx-$TF_LAUNCH_INDEX.tar.gz s3://${s3_bucket_name}/${bench_id}/emqx-$TF_LAUNCH_INDEX.tar.gz
+  touch EMQX_DONE
+  aws s3 cp EMQX_DONE s3://${s3_bucket_name}/${bench_id}/EMQX_DONE_$TF_LAUNCH_INDEX
+}
+
+signal_done &

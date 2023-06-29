@@ -20,5 +20,8 @@ module "emqttb_ec2" {
     s3_bucket_name   = var.s3_bucket_name
     bench_id         = var.bench_id
     scenario         = var.scenario
+    grafana_url      = var.grafana_url
+    start_n_multiplier = var.start_n_multiplier
+    prometheus_push_gw_url = var.prometheus_push_gw_url
   })
 }
