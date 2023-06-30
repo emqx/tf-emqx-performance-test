@@ -48,7 +48,7 @@ variable "package_file" {
 
 variable "emqttb_package_url" {
   type    = string
-  default = "https://github.com/emqx/emqttb/releases/download/v0.1.10/emqttb-0.1.10-ubuntu20.04-amd64-quic.tar.gz"
+  default = "https://github.com/emqx/emqttb/releases/download/v0.1.14/emqttb-0.1.14-ubuntu20.04-amd64-quic.tar.gz"
 }
 
 variable "emqttb_instance_count" {
@@ -84,7 +84,7 @@ variable "use_emqttb" {
 variable "route53_zone_name" {
   description = "Hosted zone name"
   type        = string
-  default     = "int.emqx.io"
+  default     = "perftest.emqx.io"
 }
 
 variable "test_duration" {

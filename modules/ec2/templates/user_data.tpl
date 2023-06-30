@@ -3,6 +3,7 @@
 set -x
 
 export TF_LAUNCH_INDEX=${launch_index}
+hostnamectl set-hostname ${hostname}
 
 apt-add-repository ppa:ansible/ansible
 apt update -y

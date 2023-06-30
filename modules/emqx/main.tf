@@ -3,6 +3,18 @@ locals {
   zone_id  = var.route53_zone_id
 }
 
+# https://www.emqx.io/docs/en/v5.0/deploy/cluster/create-cluster.html#autocluster-by-dns-records
+resource "aws_route53_record" "emqx" {
+  zone_id = var.route53_zone_id
+  name    = local.cluster_dns_name
+  type    = "SRV"
+  ttl     = 30
+  records = [
+    for x in range(1, var.instance_count+1):
+      "10 20 1883 ${var.namespace}-emqx-${x}.${var.route53_zone_name}"
+  ]
+}
+
 module "emqx_ec2" {
   source = "../ec2"
 
@@ -29,10 +41,3 @@ module "emqx_ec2" {
 
 }
 
-resource "aws_route53_record" "emqx" {
-  zone_id = var.route53_zone_id
-  name    = local.cluster_dns_name
-  type    = "A"
-  ttl     = 30
-  records = module.emqx_ec2.private_ip
-}

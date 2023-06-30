@@ -71,3 +71,8 @@ variable "emqttb_targets" {
   description = "Private IPs of emqttb instances"
   type        = list(string)
 }
+
+variable "emqtt_bench_targets" {
+  description = "Private IPs of emqtt-bench instances"
+  type        = list(string)
+}

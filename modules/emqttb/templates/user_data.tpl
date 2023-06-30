@@ -20,8 +20,6 @@ tar xzf ./emqttb.tar.gz
 
 START_N=$((${start_n_multiplier} * ($TF_LAUNCH_INDEX-1)))
 
-hostnamectl set-hostname "emqttb-$TF_LAUNCH_INDEX"
-
 # wait max 2 min for grafana
 curl --head -X GET --retry 12 --retry-connrefused --retry-delay 10 ${grafana_url}
 
@@ -34,6 +32,7 @@ After=network.target
 Environment=EMQTTB_METRICS__GRAFANA__LOGIN=admin
 Environment=EMQTTB_METRICS__GRAFANA__PASSWORD=admin
 Environment=EMQTTB_METRICS__GRAFANA__URL=${grafana_url}
+Environment=EMQTTB_CLUSTER__NODE_NAME=emqttb@$(hostname)
 ExecStart=/opt/emqttb/bin/emqttb --grafana --restapi --pushgw --pushgw-url ${prometheus_push_gw_url} ${scenario} @g --host ${emqx_hosts}
 LimitNOFILE=1048576
 Restart=on-failure
@@ -52,7 +51,7 @@ function signal_done() {
   tar czf ./emqttb-$TF_LAUNCH_INDEX.tar.gz cloud-init-output.log emqttb.log emqttb-stdout.log user-data.txt
   aws s3 cp ./emqttb-$TF_LAUNCH_INDEX.tar.gz s3://${s3_bucket_name}/${bench_id}/emqttb-$TF_LAUNCH_INDEX.tar.gz
   touch EMQTTB_DONE
-  aws s3 cp EMQTTB_DONE s3://${s3_bucket_name}/${bench_id}/EMQTTB_DONE_$TF_LAUNCH_INDEX
+  aws s3 cp EMQTTB_DONE s3://${s3_bucket_name}/${bench_id}/EMQTTB_DONE
 }
 
 signal_done &

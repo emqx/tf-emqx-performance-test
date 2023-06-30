@@ -16,18 +16,17 @@ EOF
 
 sysctl -p
 
-wget --no-check-certificate ${package_url}
-apt-get install -y ./*.deb
+wget --no-check-certificate "${package_url}" -O ./emqx.deb
+apt-get install -y ./emqx.deb
 
-private_ip=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 mkdir /etc/systemd/system/emqx.service.d
 cat << EOF > /etc/systemd/system/emqx.service.d/override.conf
 [Service]
-Environment=EMQX_NODE__NAME=emqx@$private_ip
+Environment=EMQX_NODE__NAME=emqx@$(hostname --fqdn)
 Environment=EMQX_NODE__COOKIE=emqxperformancetest
 Environment=EMQX_CLUSTER__DISCOVERY_STRATEGY=dns
 Environment=EMQX_CLUSTER__DNS__NAME=${cluster_dns_name}
-Environment=EMQX_CLUSTER__DNS__RECORD_TYPE=a
+Environment=EMQX_CLUSTER__DNS__RECORD_TYPE=srv
 Environment=EMQX_PROMETHEUS__ENABLE=true
 Environment=EMQX_PROMETHEUS__PUSH_GATEWAY_SERVER=${prometheus_push_gw_url}
 EOF
@@ -41,7 +40,6 @@ su - emqx /usr/bin/emqx eval 'emqx_dashboard_admin:force_add_user(<<"admin">>, <
 
 function signal_done() {
   sleep ${test_duration}
-  #systemctl stop emqx.service
   cp /var/log/cloud-init-output.log /var/log/emqx/* /var/lib/cloud/instance/user-data.txt ./
   journalctl -u emqx.service > emqx-stdout.log
   tar czf ./emqx-$TF_LAUNCH_INDEX.tar.gz cloud-init-output.log emqx.log* emqx-stdout.log user-data.txt

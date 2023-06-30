@@ -74,21 +74,18 @@ module "prometheus" {
   subnet_id         = module.vpc.public_subnet_ids[0]
   remote_write_url  = var.prometheus_remote_write_url
   remote_write_region = var.prometheus_remote_write_region
-  # using push gateway now
-  # uncomment below to use prometheus scrape instead
-  emqx_targets = []
-  emqttb_targets = []
-  # not good, replicating the same logic as in ec2/main.tf:aws_route53_record.dns
-  # but with this approach we can start prometheus before emqx and emqttb,
-  # and do not loose any metrics
-  # emqx_targets      = [
-  #   for x in range(1, var.emqx_instance_count+1):
-  #     "${var.namespace}-emqx-${x}.${var.route53_zone_name}"
-  # ]
-  # emqttb_targets    = var.use_emqttb == 1 ? [
-  #   for x in range(1, var.emqttb_instance_count+1):
-  #     "${var.namespace}-emqttb-${x}.${var.route53_zone_name}"
-  # ] : []
+  emqx_targets      = [
+    for x in range(1, var.emqx_instance_count+1):
+      "${var.namespace}-emqx-${x}.${var.route53_zone_name}"
+  ]
+  emqttb_targets    = var.use_emqttb == 1 ? [
+    for x in range(1, var.emqttb_instance_count+1):
+      "${var.namespace}-emqttb-${x}.${var.route53_zone_name}"
+  ] : []
+  emqtt_bench_targets = var.use_emqtt_bench == 1 ? [
+    for x in range(1, var.emqtt_bench_instance_count+1):
+      "${var.namespace}-emqtt_bench-${x}.${var.route53_zone_name}"
+  ] : []
 }
 
 module "emqx" {
