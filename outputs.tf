@@ -50,5 +50,3 @@ output "s3_bucket_name" {
 output "bench_id" {
   value = var.bench_id
 }
-
-

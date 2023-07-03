@@ -31,6 +31,7 @@ resource "aws_instance" "ec2" {
       s3_bucket_name = var.s3_bucket_name
       extra          = var.extra_user_data
       launch_index   = count.index + 1
+      hostname       = "${var.instance_name}-${count.index + 1}.${var.route53_zone_name}"
     })
 
   tags = {

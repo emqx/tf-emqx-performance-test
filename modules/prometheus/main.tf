@@ -66,9 +66,13 @@ module "prometheus_ec2" {
   key_name          = var.key_name
   subnet_id         = var.subnet_id
   extra_user_data   = templatefile("${path.module}/templates/user_data.tpl", {
-    emqx_targets     = format("%#v", [for x in var.emqx_targets : "${x}:18083"])
-    emqttb_targets   = format("%#v", [for x in var.emqttb_targets : "${x}:8017"])
-    node_targets     = format("%#v", [for x in concat(var.emqx_targets, var.emqttb_targets) : "${x}:9100"])
+    # emqx_targets     = format("%#v", [for x in var.emqx_targets : "${x}:18083"])
+    # emqttb_targets   = format("%#v", [for x in var.emqttb_targets : "${x}:8017"])
+    # these are using push gateway now
+    emqx_targets    = ""
+    emqttb_targets  = ""
+    node_targets     = format("%#v", [
+      for x in concat(var.emqx_targets, var.emqttb_targets, var.emqtt_bench_targets) : "${x}:9100"])
     remote_write_url = var.remote_write_url
     remote_write_region = var.remote_write_region
   })
