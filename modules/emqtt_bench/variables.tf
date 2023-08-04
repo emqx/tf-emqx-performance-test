@@ -79,3 +79,9 @@ variable "subnet_id" {
   description = "Subnet ID"
   type        = string
 }
+
+variable "start_n_multiplier" {
+  description = "multiplier for --startnumber option for each next emqtt-bench instance based on launch index"
+  type        = number
+  default     = 0
+}

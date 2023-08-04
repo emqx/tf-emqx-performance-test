@@ -1,6 +1,22 @@
 #!/bin/bash
 
 set -x
+cat >> /etc/sysctl.conf <<EOF
+fs.file-max=2097152
+fs.nr_open=2097152
+EOF
+
+sysctl -w fs.file-max=2097152
+sysctl -w fs.nr_open=2097152
+echo 2097152 > /proc/sys/fs/nr_open
+ulimit -n 2097152
+
+echo 'DefaultLimitNOFILE=2097152' >> /etc/systemd/system.conf
+echo >> /etc/security/limits.conf << EOF
+*      soft   nofile      2097152
+*      hard   nofile      2097152
+EOF
+
 
 export TF_LAUNCH_INDEX=${launch_index}
 hostnamectl set-hostname ${hostname}

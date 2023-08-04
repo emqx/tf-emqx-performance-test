@@ -1,6 +1,11 @@
-output "emqx_public_ips" {
-  description = "public ip of emqx instances"
-  value       = module.emqx.public_ips
+output "emqx_core_public_ips" {
+  description = "public ip of emqx core nodes"
+  value       = module.emqx_core.public_ips
+}
+
+output "emqx_replicant_public_ips" {
+  description = "public ip of emqx replicant nodes"
+  value       = module.emqx_replicant.public_ips
 }
 
 output "emqttb_public_ips" {

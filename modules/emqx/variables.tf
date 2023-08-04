@@ -74,3 +74,26 @@ variable "prometheus_push_gw_url" {
   description = "Prometheus Push Gateway URL"
   type        = string
 }
+
+variable "node_role" {
+  description = "Node Role"
+  type        = string
+  default     = "core"
+}
+
+variable "launch_index_offset" {
+  description = "Launch Index Offset"
+  type        = number
+  default     = 0
+}
+
+variable "core_nodes" {
+  description = "Core Nodes"
+  type        = list(string)
+  default     = []
+}
+
+variable "cluster_dns_name" {
+  description = "Cluster DNS Name"
+  type        = string
+}

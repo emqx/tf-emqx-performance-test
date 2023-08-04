@@ -20,5 +20,6 @@ module "emqtt_bench_ec2" {
     test_duration    = var.test_duration
     s3_bucket_name   = var.s3_bucket_name
     bench_id         = var.bench_id
+    start_n_multiplier = var.start_n_multiplier
   })
 }
