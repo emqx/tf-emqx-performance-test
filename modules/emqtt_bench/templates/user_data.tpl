@@ -1,34 +1,53 @@
 cat >> /etc/sysctl.d/99-sysctl.conf <<EOF
 net.core.rmem_default=262144000
-net.core.wmem_default=262144000
 net.core.rmem_max=262144000
+net.core.wmem_default=262144000
 net.core.wmem_max=262144000
+net.ipv4.ip_local_port_range=1024 65535
+net.ipv4.tcp_fin_timeout=5
+net.ipv4.tcp_max_syn_backlog=16384
 net.ipv4.tcp_mem=378150000  504200000  756300000
-fs.file-max=2097152
-fs.nr_open=2097152
 EOF
 
-sysctl -p
-
-echo 2097152 > /proc/sys/fs/nr_open
-ulimit -n 2097152
-
-echo 'DefaultLimitNOFILE=2097152' >> /etc/systemd/system.conf
-echo >> /etc/security/limits.conf << EOF
-*      soft   nofile      2097152
-*      hard   nofile      2097152
-EOF
+sysctl --system
 
 mkdir emqtt-bench && cd emqtt-bench
-wget ${package_url}
-tar -xzf ./emqtt-bench*.tar.gz
+wget "${package_url}" -O ./emqtt-bench.tar.gz
+tar -xzf ./emqtt-bench.tar.gz
 
-function signal_done() {
-  sleep ${test_duration}
-  touch EMQTT_BENCH_DONE
-  aws s3 cp EMQTT_BENCH_DONE s3://${s3_bucket_name}/${bench_id}/EMQTT_BENCH_DONE
-}
+START_N=$((${start_n_multiplier} * ($TF_LAUNCH_INDEX-1)))
+# substitute START_N with actual value, and escape percent sign for systemd
+scenario=$(sed "s/START_N/$START_N/g;s/%/%%/g" <<< '${scenario}')
+cat << EOF > /lib/systemd/system/emqtt-bench.service
+[Unit]
+Description=EMQTT bench
+After=network.target
 
-signal_done &
+[Service]
+ExecStart=:/opt/emqtt-bench/bin/emqtt_bench $scenario --host ${emqx_lb_dns_name}
+LimitNOFILE=2097152
+Restart=on-failure
 
-./bin/emqtt_bench ${scenario} --host ${emqx_lb_dns_name}
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+
+cat << EOF > ./finalize.sh
+#!/bin/bash
+
+sleep ${test_duration}
+systemctl stop emqtt-bench.service
+journalctl -u emqtt-bench.service > emqtt-bench-stdout.log
+cp /var/log/cloud-init-output.log /var/lib/cloud/instance/user-data.txt ./
+tar czf ./emqtt-bench-$TF_LAUNCH_INDEX.tar.gz cloud-init-output.log emqtt-bench-stdout.log user-data.txt
+aws s3 cp ./emqtt-bench-$TF_LAUNCH_INDEX.tar.gz s3://${s3_bucket_name}/${bench_id}/emqtt-bench-$TF_LAUNCH_INDEX.tar.gz
+touch EMQTT_BENCH_DONE
+aws s3 cp EMQTT_BENCH_DONE s3://${s3_bucket_name}/${bench_id}/EMQTT_BENCH_DONE
+EOF
+
+chmod +x ./finalize.sh
+./finalize.sh &
+
+systemctl enable --now emqtt-bench.service
