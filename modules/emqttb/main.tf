@@ -1,3 +1,13 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.16"
+    }
+  }
+  required_version = ">= 1.2.0"
+}
+
 module "emqttb_ec2" {
   source = "../ec2"
 
@@ -8,7 +18,7 @@ module "emqttb_ec2" {
   sg_ids            = var.sg_ids
   s3_bucket_name    = var.s3_bucket_name
   iam_profile       = var.iam_profile
-  instance_name     = "${var.namespace}-emqttb"
+  instance_name     = "emqttb"
   route53_zone_id   = var.route53_zone_id
   route53_zone_name = var.route53_zone_name
   key_name          = var.key_name

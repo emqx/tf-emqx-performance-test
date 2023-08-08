@@ -18,10 +18,10 @@ output "emqtt_bench_public_ips" {
   value       = module.emqtt_bench.*.public_ips
 }
 
-output "emqx_mqtt_public_nlb_dns_name" {
-  description = "The DNS name of the MQTT Public NLB"
-  value       = module.emqx_mqtt_public_nlb.*.mqtt_lb_dns_name
-}
+# output "emqx_mqtt_public_nlb_dns_name" {
+#   description = "The DNS name of the MQTT Public NLB"
+#   value       = module.emqx_mqtt_public_nlb.*.mqtt_lb_dns_name
+# }
 
 output "emqx_dashboard_url" {
   description = "EMQX Dashboard URL"
