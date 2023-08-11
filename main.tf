@@ -114,13 +114,13 @@ resource "aws_route53_zone_association" "secondary" {
 
 resource "aws_security_group" "vpc_sg" {
   name        = "${var.namespace}-vpc-sg"
-  description = "Allow all inbound traffic withing sg, external SSH access and all outbound traffic"
+  description = "Allow all inbound traffic within sg, external SSH access and all outbound traffic"
   vpc_id      = module.vpc.vpc_id
 }
 
 resource "aws_security_group" "secondary_vpc_sg" {
   name        = "${var.namespace}-secondary-vpc-sg"
-  description = "Allow all inbound traffic withing sg, external SSH access and all outbound traffic"
+  description = "Allow all inbound traffic within sg, external SSH access and all outbound traffic"
   vpc_id      = module.secondary_vpc.vpc_id
   provider    = aws.secondary
 }
@@ -173,7 +173,7 @@ resource "aws_key_pair" "kp2" {
 }
 
 resource "local_sensitive_file" "pem_file" {
-  filename = pathexpand(format("~/.ssh/%s.pem", replace("${var.namespace}-${var.bench_id}", "/", "-")))
+  filename = pathexpand(format("~/.ssh/%s.pem", replace(local.ssh_key_name, "/", "-")))
   file_permission = "600"
   directory_permission = "700"
   content = tls_private_key.pk.private_key_pem
