@@ -1,5 +1,11 @@
 variable "region" {
-  description = "AWS region"
+  description = "AWS primary region (core nodes and monitoring)"
+  type        = string
+  default     = "eu-west-1"
+}
+
+variable "secondary_region" {
+  description = "AWS secondary region (replicant nodes and loadgen, can be the same as primary region)"
   type        = string
   default     = "eu-west-1"
 }
@@ -10,10 +16,16 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
+variable "secondary_vpc_cidr" {
+  description = "Secondary VPC CIDR Block"
+  type        = string
+  default     = "10.1.0.0/16"
+}
+
 variable "namespace" {
   description = "namespace"
   type        = string
-  default     = "perf-test"
+  default     = "perftest"
 }
 
 variable "emqx_nodes" {
@@ -87,12 +99,6 @@ variable "emqttb_start_n_multiplier" {
   default     = 0
 }
 
-variable "route53_zone_name" {
-  description = "Hosted zone name"
-  type        = string
-  default     = "perftest.emqx.io"
-}
-
 variable "duration" {
   description = "Performance test duration in seconds"
   type        = number
@@ -105,11 +111,11 @@ variable "ssh_key_name" {
   default     = "emqx-perf-test"
 }
 
-variable "create_public_mqtt_nlb" {
-  description = "Whether to create publicly exposed MQTT NLB on 1883"
-  type        = number
-  default     = 0
-}
+# variable "create_public_mqtt_nlb" {
+#   description = "Whether to create publicly exposed MQTT NLB on 1883"
+#   type        = number
+#   default     = 0
+# }
 
 variable "emqtt_bench_package_url" {
   type    = string
@@ -140,11 +146,11 @@ variable "emqtt_bench_start_n_multiplier" {
   default     = 0
 }
 
-variable "internal_mqtt_nlb_count" {
-  description = "Internal MQTT NLB count"
-  type        = number
-  default     = 1
-}
+# variable "internal_mqtt_nlb_count" {
+#   description = "Internal MQTT NLB count"
+#   type        = number
+#   default     = 1
+# }
 
 variable "prometheus_remote_write_url" {
   description = "Prometheus remote write URL"

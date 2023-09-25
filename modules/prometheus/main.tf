@@ -1,6 +1,6 @@
 resource "aws_security_group" "instance_sg" {
-  name        = "${var.namespace}-instance-sg"
-  description = "Allow all inbound traffic withing sg, within VPC, external SSH access and all outbound traffic"
+  name        = "${var.namespace}-prometheus-instance-sg"
+  description = "Allow all inbound traffic within sg, within VPC, external SSH access and all outbound traffic"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -60,7 +60,7 @@ module "prometheus_ec2" {
   sg_ids            = [aws_security_group.instance_sg.id]
   s3_bucket_name    = var.s3_bucket_name
   iam_profile       = var.iam_profile
-  instance_name     = "${var.namespace}-prometheus"
+  instance_name     = "prometheus"
   route53_zone_id   = var.route53_zone_id
   route53_zone_name = var.route53_zone_name
   key_name          = var.key_name

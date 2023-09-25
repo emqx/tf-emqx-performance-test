@@ -24,7 +24,7 @@ Description=EMQTT bench
 After=network.target
 
 [Service]
-ExecStart=:/opt/emqtt-bench/bin/emqtt_bench $scenario --host ${emqx_lb_dns_name}
+ExecStart=:/opt/emqtt-bench/bin/emqtt_bench $scenario --host ${emqx_hosts}
 LimitNOFILE=2097152
 Restart=on-failure
 

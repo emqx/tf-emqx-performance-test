@@ -36,7 +36,7 @@ resource "aws_security_group" "lb_sg" {
 
 resource "aws_security_group" "instance_sg" {
   name        = "${var.namespace}-instance-sg"
-  description = "Allow all inbound traffic withing sg, within VPC, external SSH access and all outbound traffic"
+  description = "Allow all inbound traffic within sg, within VPC, external SSH access and all outbound traffic"
   vpc_id      = local.vpc_id
 
   ingress {

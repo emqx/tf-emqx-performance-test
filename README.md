@@ -133,6 +133,7 @@ terraform plan -out=plan.tfplan \
     -var=bench_id=$(date +%Y-%m-%d)/retained \
     -var=duration=1800 \
     -var=emqx_nodes=6 \
+    -var=emqx_core_nodes=3 \
     -var=emqx_core_instance_type=c5.2xlarge \
     -var=emqx_replicant_instance_type=c5.xlarge \
     -var=emqttb_nodes=0 \
@@ -140,6 +141,31 @@ terraform plan -out=plan.tfplan \
     -var=emqtt_bench_instance_type=c5.xlarge \
     -var=emqtt_bench_scenario='pub -t "t/%i" -c 10000 -i 1 -r true -n START_N' \
     -var=emqtt_bench_start_n_multiplier=10000 && \
+    terraform apply ./plan.tfplan
+terraform destroy
+```
+
+### Connection rate in multi-region cluster
+
+Cores in eu-west-1, replicants in us-east-1, loadgens in us-east-1.
+
+```bash
+./download-emqx.sh 5.1.4 emqx-v5.1.4.deb
+terraform init
+terraform plan -out=plan.tfplan \
+    -var=emqx_package_file=./emqx-v5.1.4.deb \
+    -var=bench_id=$(date +%Y-%m-%d)/multi-region \
+    -var=region=eu-west-1 \
+    -var=secondary_region=us-east-1 \
+    -var=emqx_nodes=6 \
+    -var=emqx_core_nodes=3 \
+    -var=emqx_core_instance_type=c5.large \
+    -var=emqx_replicant_instance_type=c5.large \
+    -var=emqttb_nodes=0 \
+    -var=emqtt_bench_nodes=1 \
+    -var=emqtt_bench_instance_type=c5.xlarge \
+    -var=emqtt_bench_scenario='conn -c 50000  -R 5000' \
+    -var=duration=1800 && \
     terraform apply ./plan.tfplan
 terraform destroy
 ```
