@@ -167,7 +167,7 @@ resource "aws_key_pair" "kp" {
 }
 
 resource "aws_key_pair" "kp2" {
-  key_name   = local.ssh_key_name
+  key_name   = "${local.ssh_key_name}-2"
   public_key = tls_private_key.pk.public_key_openssh
   provider   = aws.secondary
 }
