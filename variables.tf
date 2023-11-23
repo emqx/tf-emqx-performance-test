@@ -1,25 +1,17 @@
-variable "region" {
-  description = "AWS primary region (core nodes and monitoring)"
-  type        = string
-  default     = "eu-west-1"
-}
-
-variable "secondary_region" {
-  description = "AWS secondary region (replicant nodes and loadgen, can be the same as primary region)"
-  type        = string
-  default     = "eu-west-1"
+variable "regions_abbrev_map" {
+  type = map
+  default = {
+    "eu-west-1" = "euw1"
+    "us-east-1" = "use1"
+    "us-west-1" = "usw1"
+    "ap-southeast-1" = "apse1"
+  }
 }
 
 variable "vpc_cidr" {
   description = "VPC CIDR Block"
   type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "secondary_vpc_cidr" {
-  description = "Secondary VPC CIDR Block"
-  type        = string
-  default     = "10.1.0.0/16"
+  default     = "10.0.0.0/8"
 }
 
 variable "namespace" {
@@ -28,138 +20,59 @@ variable "namespace" {
   default     = "perftest"
 }
 
-variable "emqx_nodes" {
-  description = "Total number of emqx nodes"
-  type        = number
-  default     = 3
-}
-
-variable "emqx_core_nodes" {
-  description = "Number of emqx core nodes"
-  type        = number
-  default     = 3
-}
-
-variable "emqx_core_instance_type" {
-  description = "Instance type of emqx core nodes"
+variable "instance_type" {
+  description = "Default instance type"
   type        = string
-  default     = "c5.xlarge"
-}
-
-variable "emqx_replicant_instance_type" {
-  description = "Instance type of emqx core nodes"
-  type        = string
-  default     = "c5.xlarge"
-}
-
-variable "s3_bucket_name" {
-  description = "S3 Bucket"
-  type        = string
-  default     = "tf-emqx-performance-test2"
+  default     = "m6a.large"
 }
 
 variable "bench_id" {
   description = "Benchmark ID"
   type        = string
-  default     = "test"
+  default     = null
 }
 
-variable "emqx_package_file" {
-  description = "Package file"
+variable "spec_file" {
   type        = string
-  default     = "emqx.deb"
+  default     = "tests/default.yaml"
 }
 
-variable "emqttb_package_url" {
-  type    = string
-  default = "https://github.com/emqx/emqttb/releases/download/v0.1.14/emqttb-0.1.14-ubuntu20.04-amd64-quic.tar.gz"
-}
+# variable "emqttb_package_url" {
+#   type    = string
+#   default = "https://github.com/emqx/emqttb/releases/download/v0.1.14/emqttb-0.1.14-ubuntu20.04-amd64-quic.tar.gz"
+# }
 
-variable "emqttb_nodes" {
-  description = "amount of emqttb (loadgen) nodes"
-  type        = number
-  default     = 1
-}
+# variable "emqttb_scenario" {
+#   description = "emqttb scenario"
+#   type        = string
+#   default     = "@pubsub_fwd -n 1_000 --pub-qos 1 --sub-qos 1"
+# }
 
-variable "emqttb_instance_type" {
-  description = "Instance type of emqttb"
-  type        = string
-  default     = "c5.large"
-}
-
-variable "emqttb_scenario" {
-  description = "emqttb scenario"
-  type        = string
-  default     = "@pubsub_fwd -n 1_000 --pub-qos 1 --sub-qos 1"
-}
-
-variable "emqttb_start_n_multiplier" {
-  description = "start-n multiplier for each next emqttb instance based on launch index"
-  type        = number
-  default     = 0
-}
-
-variable "duration" {
-  description = "Performance test duration in seconds"
-  type        = number
-  default     = 300
-}
-
-variable "ssh_key_name" {
-  description = "SSH key name"
-  type        = string
-  default     = "emqx-perf-test"
-}
-
-# variable "create_public_mqtt_nlb" {
-#   description = "Whether to create publicly exposed MQTT NLB on 1883"
+# variable "emqttb_start_n_multiplier" {
+#   description = "start-n multiplier for each next emqttb instance based on launch index"
 #   type        = number
 #   default     = 0
 # }
 
-variable "emqtt_bench_package_url" {
-  type    = string
-  default = "https://github.com/emqx/emqtt-bench/releases/download/0.4.11/emqtt-bench-0.4.11-ubuntu20.04-amd64.tar.gz"
-}
-
-variable "emqtt_bench_nodes" {
-  description = "amount of emqtt-bench (loadgen) nodes"
-  type        = number
-  default     = 0
-}
-
-variable "emqtt_bench_instance_type" {
-  description = "Instance type of emqtt-bench nodes"
-  type        = string
-  default     = "c5.large"
-}
-
-variable "emqtt_bench_scenario" {
-  description = "emqtt-bench scenario"
-  type        = string
-  default     = "conn -c 100000 -i 10"
-}
-
-variable "emqtt_bench_start_n_multiplier" {
-  description = "multiplier for --startnumber option for each next emqtt-bench instance based on launch index"
-  type        = number
-  default     = 0
-}
-
-# variable "internal_mqtt_nlb_count" {
-#   description = "Internal MQTT NLB count"
+# variable "duration" {
+#   description = "Performance test duration in seconds"
 #   type        = number
-#   default     = 1
+#   default     = 300
 # }
 
-variable "prometheus_remote_write_url" {
-  description = "Prometheus remote write URL"
-  type        = string
-  default     = ""
-}
+# variable "emqtt_bench_package_url" {
+#   type    = string
+#   default = "https://github.com/emqx/emqtt-bench/releases/download/0.4.11/emqtt-bench-0.4.11-ubuntu20.04-amd64.tar.gz"
+# }
 
-variable "prometheus_remote_write_region" {
-  description = "Prometheus remote write region"
-  type        = string
-  default     = "eu-west-1"
-}
+# variable "emqtt_bench_scenario" {
+#   description = "emqtt-bench scenario"
+#   type        = string
+#   default     = "conn -c 100000 -i 10"
+# }
+
+# variable "emqtt_bench_start_n_multiplier" {
+#   description = "multiplier for --startnumber option for each next emqtt-bench instance based on launch index"
+#   type        = number
+#   default     = 0
+# }

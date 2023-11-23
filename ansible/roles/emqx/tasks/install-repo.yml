@@ -1,0 +1,53 @@
+- name: Install required packages
+  when: ansible_os_family == 'Debian'
+  become: yes
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - apt-transport-https
+    - gnupg
+
+- name: Install required packages
+  when: ansible_os_family == 'RedHat'
+  become: yes
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - pygpgme
+    - yum-utils
+
+- name: Add EMQX repo gpg key
+  when: ansible_os_family == 'Debian'
+  become: yes
+  ansible.builtin.apt_key:
+    url: https://packagecloud.io/emqx/emqx/gpgkey
+    keyring: /etc/apt/trusted.gpg.d/emqx.gpg
+    state: present
+
+- name: Add EMQX repo gpg key
+  when: ansible_os_family == 'RedHat'
+  become: yes
+  ansible.builtin.get_url:
+    url: https://packagecloud.io/emqx/emqx/gpgkey
+    dest: /etc/pki/rpm-gpg/emqx.gpg
+    mode: '0644'
+
+- name: Add EMQX repo
+  when: ansible_os_family == 'Debian'
+  become: yes
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/etc/apt/trusted.gpg.d/emqx.gpg] https://packagecloud.io/emqx/emqx/{{ ansible_distribution|lower }} {{ ansible_distribution_release|lower }} main
+    state: present
+
+- name: Add EMQX repo
+  when: ansible_os_family == 'RedHat'
+  become: yes
+  ansible.builtin.yum_repository:
+    name: emqx
+    description: EMQX
+    baseurl: https://packagecloud.io/emqx/emqx/el/{{ ansible_distribution_major_version }}/{{ ansible_architecture }}
+    gpgkey: https://packagecloud.io/emqx/emqx/gpgkey
+    gpgcheck: yes
+    enabled: yes

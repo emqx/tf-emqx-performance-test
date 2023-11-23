@@ -1,0 +1,58 @@
+- name: Get latest emqtt-bench release
+  when: emqtt_bench_version == 'latest' and emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == ''
+  uri:
+    url: https://api.github.com/repos/emqx/emqtt-bench/releases/latest
+    body_format: json
+    return_content: yes
+  register: emqtt_bench_assets
+
+- name: Download emqtt-bench tgz
+  when: emqtt_bench_tgz_download_url != ''
+  ansible.builtin.get_url:
+    url: emqtt_bench_tgz_download_url
+    dest: /tmp/emqtt_bench.tar.gz
+    mode: '0644'
+
+- name: Set the match url fact
+  when: emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == ''
+  set_fact:
+    file_name_match: "{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}"
+
+- name: Download emqtt-bench tgz
+  when: emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == '' and file_name_match in item.browser_download_url
+  ansible.builtin.get_url:
+    url: "{{ item.browser_download_url }}"
+    dest: "/tmp/emqtt_bench.tar.gz"
+    mode: '0644'
+  loop: "{{ emqtt_bench_assets.json.assets }}"
+
+- name: Upload tgz
+  when: emqtt_bench_tgz_file_path != ''
+  ansible.builtin.copy:
+    src: "{{ emqtt_bench_tgz_file_path }}"
+    dest: "/tmp/emqtt_bench.tar.gz"
+
+- name: Create emqtt-bench directory
+  become: yes
+  ansible.builtin.file:
+    path: "/opt/emqtt-bench"
+    state: directory
+    mode: '0755'
+
+- name: Unarchive emqtt-bench
+  become: yes
+  ansible.builtin.unarchive:
+    src: "/tmp/emqtt_bench.tar.gz"
+    dest: "/opt/emqtt-bench"
+    copy: no
+      
+- name: Render emqtt-bench systemd unit file
+  become: yes
+  ansible.builtin.template:
+    src: emqtt-bench.service.j2
+    dest: /etc/systemd/system/emqtt-bench.service
+    mode: '0644'
+
+- name: Run daemon-reload
+  become: yes
+  ansible.builtin.command: systemctl daemon-reload

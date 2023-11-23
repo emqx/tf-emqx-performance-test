@@ -1,0 +1,54 @@
+node {
+  name = "{{ emqx_node_name }}"
+  cookie = "{{ emqx_node_cookie | default('emqxperformancetest') }}"
+  role = "{{ emqx_node_role | default('core') }}"
+  data_dir = "{{ emqx_data_dir | default('/var/lib/emqx') }}"
+  process_limit = {{ emqx_process_limit | default(2097152) }}
+  max_ports = {{ emqx_max_ports | default(1048576) }}
+}
+
+cluster {
+  name = "{{ emqx_cluster_name | default('emqxcl') }}"
+  discovery_strategy = "{{ emqx_cluster_discovery_strategy }}"
+{% if emqx_cluster_discovery_strategy == "static" %}
+  static {
+    seeds = {{ emqx_cluster_static_seeds | to_json }}
+  }
+{% endif -%}
+{% if emqx_cluster_discovery_strategy == "dns" -%}
+  dns {
+    name = "{{ emqx_cluster_dns_name }}"
+    record_type = "{{ emqx_cluster_dns_record_type }}"
+  }
+{% endif -%}
+}
+
+log {
+  console_handler {
+    level = "{{ emqx_log_console_level | default('info') }}"
+  }
+  file_handlers {
+    default {
+      level = "{{ emqx_log_file_level | default('info') }}"
+    }
+  }
+}
+
+{% if emqx_prometheus_enabled -%}
+prometheus {
+  enable = true
+{% if emqx_prometheus_push_gateway_server | length > 0 -%}
+  push_gateway_server = "{{ emqx_prometheus_push_gateway_server }}"
+{% endif -%}
+}
+{% endif -%}
+
+dashboard {
+  listeners.http {
+    bind = 18083
+  }
+}
+
+api_key {
+  bootstrap_file = "{{ emqx_api_key_bootstrap_file | default('/etc/emqx/bootstrap-api') }}"
+}

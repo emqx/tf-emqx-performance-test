@@ -1,0 +1,3 @@
+{% for item in emqx_bootstrap_api_keys %}
+{{ item.key }}:{{ item.secret }}
+{% endfor %}

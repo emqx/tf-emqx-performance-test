@@ -1,0 +1,5 @@
+emqttb_install_source: tgz # git
+emqttb_version: latest
+emqttb_tgz_download_url: ''
+emqttb_tgz_file_path: ''
+prometheus_push_gw_url: ''

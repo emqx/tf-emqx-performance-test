@@ -6,7 +6,3 @@ variable "sg_id" {
 variable "cidr_ipv4" {
   type = string
 }
-
-variable "secondary_cidr_ipv4" {
-  type = string
-}

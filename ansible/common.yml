@@ -1,0 +1,10 @@
+- hosts: all
+  vars:
+    docker_users:
+      - "{{ ansible_user_id }}"
+    pip_install_packages:
+      - name: docker
+      - name: docker-compose
+  roles:
+    - { role: geerlingguy.docker, become: yes }
+    - { role: geerlingguy.pip, become: yes }

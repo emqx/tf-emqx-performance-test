@@ -1,0 +1,19 @@
+region: eu-west-1
+instance_type: t4g.large
+os_name: ubuntu-jammy
+os_version: 22.04
+cpu_arch: arm64
+use_spot_instances: true
+emqx:
+  prometheus_enable: true
+  nodes:
+    - role: core
+      instance_count: 3
+emqtt_bench:
+  instance_type: t3.large
+  cpu_arch: amd64
+  nodes:
+    - scenario: "pub -c 100 -I 10 -t bench/%i -s 256"
+      instance_count: 1
+    - scenario: "sub -c 100 -i 100 -t bench/%i -q 1"
+      instance_count: 1

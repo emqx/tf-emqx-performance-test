@@ -1,3 +1,10 @@
 .terraform.lock.hcl
 .terraform/
 terraform.tfstate*
+/.terraform.tfstate.lock.info
+/ansible/roles/geerlingguy.docker/
+/ansible/roles/geerlingguy.pip/
+/ansible/group_vars/
+/ansible/host_vars/
+/ansible.cfg
+/ansible/inventory.ini

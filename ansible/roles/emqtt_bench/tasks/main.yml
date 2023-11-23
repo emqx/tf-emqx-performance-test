@@ -1,0 +1,2 @@
+- include: install-tgz.yml
+  when: emqtt_bench_install_source == 'tgz'

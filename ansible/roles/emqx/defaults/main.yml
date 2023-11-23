@@ -1,0 +1,10 @@
+emqx_install_source: package # git | zip | docker | package
+emqx_package_download_url: '' # https://github.com/emqx/emqx/releases/download/v5.3.1/emqx-5.3.1-ubuntu22.04-arm64.deb
+emqx_package_file_path: '' # emqx-5.3.1-ubuntu22.04-arm64.deb
+emqx_cluster_discovery_strategy: 'manual' # manual | static | dns | etcd | k8s
+emqx_prometheus_enabled: true
+emqx_prometheus_push_gateway_server: ''
+emqx_api_key_bootstrap_file: '/etc/emqx/bootstrap-api'
+emqx_bootstrap_api_keys:
+  - key: emqx
+    secret: emqx

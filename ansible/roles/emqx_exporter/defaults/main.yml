@@ -1,0 +1,56 @@
+grafana_dashboards:
+  - id: 17446
+    revision: 1
+  - id: 1860
+    revision: 33
+
+prometheus_config_dir: /etc/prometheus
+
+prometheus_global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+
+prometheus_remote_write: []
+# prometheus_remote_write:
+#   - url: https://dev.kausal.co/prom/push
+#     basic_auth:
+#       password: FOO
+
+prometheus_remote_read: []
+# prometheus_remote_read:
+#   - url: https://prometheus.demo.do.prometheus.io:9201/read
+#     basic_auth:
+#       password: FOO
+
+prometheus_node_exporter_targets: []
+prometheus_emqx_targets: []
+
+prometheus_scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets:
+        - "localhost:9090"
+  - job_name: "pushgateway"
+    honor_labels: true
+    static_configs:
+      - targets:
+        - "localhost:9091"
+  - job_name: 'emqx'
+    metrics_path: /api/v5/prometheus/stats
+    scrape_interval: 5s
+    honor_labels: true
+    static_configs:
+      # a list of addresses of all EMQX nodes
+      - targets: "{{ prometheus_emqx_targets }}"
+        labels:
+          cluster: perftest
+          from: emqx
+    relabel_configs:
+      - source_labels: [ "__address__" ]
+        target_label: "instance"
+        regex: (.*):.*
+        replacement: $1
+  - job_name: "node"
+    static_configs:
+      - targets: "{{ ['localhost:9100'] + prometheus_node_exporter_targets }}"

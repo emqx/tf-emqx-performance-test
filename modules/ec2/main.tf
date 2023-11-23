@@ -1,4 +1,14 @@
-data "aws_ami" "ubuntu" {
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.1"
+    }
+  }
+  required_version = ">= 1.2.0"
+}
+
+data "aws_ami" "ami" {
   most_recent = true
   owners      = ["amazon"]
 
@@ -19,8 +29,7 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "ec2" {
-  count                  = var.instance_count
-  ami                    = data.aws_ami.ubuntu.id
+  ami                    = data.aws_ami.ami.id
   instance_type          = var.instance_type
   vpc_security_group_ids = var.sg_ids
   iam_instance_profile   = var.iam_profile
@@ -28,29 +37,37 @@ resource "aws_instance" "ec2" {
   subnet_id              = var.subnet_id
   user_data              = templatefile("${path.module}/templates/user_data.tpl",
     {
-      s3_bucket_name = var.s3_bucket_name
       extra          = var.extra_user_data
-      launch_index   = count.index + 1
-      hostname       = "${var.instance_name}-${count.index + 1}.${var.route53_zone_name}"
+      hostname       = var.hostname
     })
 
   tags = {
-    Name = "${var.instance_name}-${count.index + 1}"
+    Name = "${var.instance_name}"
   }
 
   root_block_device {
-    iops        = 3000
-    throughput  = 125
-    volume_size = 50
+    volume_size = var.root_volume_size
     volume_type = "gp3"
   }
+
+  dynamic "instance_market_options" {
+    for_each = var.use_spot_instances ? [1] : []
+    content {
+      market_type = "spot"
+      spot_options {
+        spot_instance_type = "one-time"
+        instance_interruption_behavior = "terminate"
+      }
+    }
+  }
+
+  provider = aws
 }
 
 resource "aws_route53_record" "dns" {
-  count    = var.instance_count
   zone_id  = var.route53_zone_id
-  name     = "${aws_instance.ec2[count.index].tags_all["Name"]}.${var.route53_zone_name}"
+  name     = var.hostname
   type     = "A"
   ttl      = 30
-  records  = [aws_instance.ec2[count.index].private_ip]
+  records  = [aws_instance.ec2.private_ip]
 }

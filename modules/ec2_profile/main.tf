@@ -1,5 +1,15 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.1"
+    }
+  }
+  required_version = ">= 1.2.0"
+}
+
 resource "aws_iam_policy" "ec2_policy" {
-  name        = "${var.namespace}-ec2-policy"
+  name        = "${var.prefix}-ec2-policy"
   path        = "/"
   description = "Policy to provide permission to EC2"
 
@@ -10,21 +20,7 @@ resource "aws_iam_policy" "ec2_policy" {
         "Effect": "Allow",
         "Action": [
           "s3:GetObject",
-          "s3:PutObject",
           "s3:List*"
-        ],
-        "Resource": [
-          "arn:aws:s3:::${var.s3_bucket_name}/*"
-        ]
-      },
-      {
-        "Effect": "Allow",
-        "Action": [
-          "aps:GetLabels",
-          "aps:GetMetricMetadata",
-          "aps:GetSeries",
-          "aps:QueryMetrics",
-          "aps:RemoteWrite"
         ],
         "Resource": [
           "*"
@@ -35,7 +31,7 @@ resource "aws_iam_policy" "ec2_policy" {
 }
 
 resource "aws_iam_role" "ec2_role" {
-  name = "${var.namespace}-ec2-role"
+  name = "${var.prefix}-ec2-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -53,13 +49,13 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_iam_policy_attachment" "ec2_policy_role" {
-  name       = "${var.namespace}-ec2-attachment"
+  name       = "${var.prefix}-ec2-attachment"
   roles      = [aws_iam_role.ec2_role.name]
   policy_arn = aws_iam_policy.ec2_policy.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.namespace}-ec2-profile"
+  name = "${var.prefix}-ec2-profile"
   role = aws_iam_role.ec2_role.name
 }
 
