@@ -1,0 +1,34 @@
+region: eu-west-1
+instance_type: m6g.large
+os_name: ubuntu-jammy
+os_version: 22.04
+cpu_arch: arm64
+use_spot_instances: true
+emqx:
+  nodes:
+    - role: core
+      region: eu-west-1
+      instance_count: 1
+    - role: replicant
+      region: eu-west-1
+      instance_count: 1
+    - role: core
+      region: us-west-1
+      instance_count: 1
+    - role: replicant
+      region: us-west-1
+      instance_count: 1
+    - role: core
+      region: us-east-1
+      instance_count: 1
+    - role: replicant
+      region: us-east-1
+      instance_count: 1
+emqttb:
+  instance_type: m5.large
+  cpu_arch: amd64
+  nodes:
+    - scenario: "@pub --topic 't/%n' --conninterval 10ms --pubinterval 10ms --num-clients 100 --size 1kb"
+      instance_count: 3
+    - scenario: "@sub --topic 't/#' --conninterval 10ms --num-clients 10"
+      instance_count: 3

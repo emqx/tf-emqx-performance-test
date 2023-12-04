@@ -5,7 +5,6 @@ os_version: 22.04
 cpu_arch: arm64
 use_spot_instances: true
 emqx:
-  prometheus_enable: true
   nodes:
     - role: core
       instance_count: 3

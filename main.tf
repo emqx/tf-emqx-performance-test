@@ -258,7 +258,7 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_cluster_static_seeds = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds),
     emqx_cluster_dns_name = local.cluster_dns_name,
     emqx_cluster_dns_record_type = try(local.spec.emqx.cluster_dns_record_type, "srv"),
-    emqx_prometheus_enable = try(local.spec.emqx.prometheus_enable, true),
+    emqx_prometheus_enabled = try(local.spec.emqx.prometheus_enabled, true),
     # emqx_prometheus_push_gateway_server = "http://${local.monitoring_hostname}:9091",
     emqx_log_console_handler_level = try(local.spec.emqx.log_console_handler_level, "info"),
     emqx_log_file_handlers_default_level = try(local.spec.emqx.log_file_handlers_default_level, "info"),
