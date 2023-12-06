@@ -12,7 +12,7 @@ This creates an EMQX cluster with configurable number of core and replicant node
 
 ```bash
 terraform init
-terraform apply -parallelism 24
+terraform apply -parallelism 48
 # this will take a while, wait until terraform finishes
 # if something fails during ansible provisioning, try to re-run corresponding playbook
 env no_proxy='*' ansible-playbook ansible/emqx.yml
@@ -22,7 +22,7 @@ env no_proxy='*' ansible-playbook ansible/emqtt_bench.yml
 ansible emqttb -m command -a 'systemctl start emqttb' --become
 # (optionally) open emqx dashboard and/or grafana to watch metrics
 # cleanup when done
-terraform destroy -parallelism 24
+terraform destroy -parallelism 48
 ```
 
 Default emqx dashboard credentials are `admin:public`, grafana credentials are `admin:admin`.
@@ -81,6 +81,7 @@ Processing of test spec is implemented in `locals.tf`.
 - load balancer serving emqx dashboard, grafana UI and prometheus UI is deployed to the default region, which means
   - at least one emqx node should be deployed to the default region
   - monitoring node with grafana and prometheus is deployed to the default region
+- scenario for emqttb and emqtt-bench goes directly into rendered systemd unit file, hence, for example, percent symbol should be escaped as `%%`
 
 Example test spec:
 
@@ -112,9 +113,9 @@ emqx:                      # emqx related settings
 emqttb:                   # emqttb related settings
   instance_type: m5.large # emqttb instance type
   cpu_arch: amd64         # emqttb cpu architecture
-  nodes:
-    - scenario: "@pub --topic 't/%n' --conninterval 10ms --pubinterval 10ms --num-clients 100 --size 1kb"
+  nodes:                  # mind the '%%' in the scenario - it's quoting for systemd unit file
+    - scenario: "@pub --topic t/%%n --conninterval 10ms --pubinterval 10ms --num-clients 100 --size 1kb"
       instance_count: 3
-    - scenario: "@sub --topic 't/#' --conninterval 10ms --num-clients 10"
+    - scenario: "@sub --topic t/%%n --conninterval 10ms --num-clients 10"
       instance_count: 3
 ```

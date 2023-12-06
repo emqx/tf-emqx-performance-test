@@ -3,9 +3,10 @@ Description=EMQTT bench daemon
 After=network.target
 
 [Service]
-ExecStart=:/opt/emqttb/bin/emqttb --grafana --restapi --pushgw --pushgw-url {{ prometheus_push_gw_url }} {{ emqttb_scenario }} @g --host {{ emqttb_targets | join(',') }}
+ExecStart=:/opt/emqttb/bin/emqttb --grafana  --restapi --pushgw --pushgw-url {{ prometheus_push_gw_url }} {{ emqttb_scenario }} @g --host {{ emqttb_targets | join(',') }}
 LimitNOFILE=2097152
 Restart=on-failure
+EnvironmentFile=-/etc/emqttb/env
 
 [Install]
 WantedBy=multi-user.target
