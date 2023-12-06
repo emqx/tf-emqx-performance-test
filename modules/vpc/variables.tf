@@ -13,3 +13,7 @@ variable "vpc_region" {
 variable "public_key" {
   type = string
 }
+
+variable "provider_alias" {
+  type = string
+}

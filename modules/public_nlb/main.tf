@@ -48,13 +48,6 @@ resource "aws_lb_target_group" "emqx" {
   vpc_id   = var.vpc_id
 }
 
-resource "aws_lb_target_group_attachment" "emqx" {
-  count = length(var.emqx_instance_ips)
-  target_group_arn = aws_lb_target_group.emqx.arn
-  target_id        = var.emqx_instance_ips[count.index]
-  port             = 18083
-}
-
 resource "aws_lb_target_group" "grafana" {
   name     = "${var.prefix}-grafana-tg"
   port     = 3000
@@ -63,24 +56,12 @@ resource "aws_lb_target_group" "grafana" {
   vpc_id   = var.vpc_id
 }
 
-resource "aws_lb_target_group_attachment" "grafana" {
-  target_group_arn = aws_lb_target_group.grafana.arn
-  target_id        = var.monitoring_instance_ip
-  port             = 3000
-}
-
 resource "aws_lb_target_group" "prometheus" {
-  name     = "${var.prefix}-prometheus-tg"
+  name     = "${var.prefix}-prometheus"
   port     = 9090
   protocol = "TCP"
   target_type = "ip"
   vpc_id   = var.vpc_id
-}
-
-resource "aws_lb_target_group_attachment" "prometheus" {
-  target_group_arn = aws_lb_target_group.prometheus.arn
-  target_id        = var.monitoring_instance_ip
-  port             = 9090
 }
 
 resource "aws_security_group" "nlb_sg" {

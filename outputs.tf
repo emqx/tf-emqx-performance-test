@@ -25,23 +25,15 @@ output "grafana_credentials" {
 
 output "emqx_nodes" {
   description = "EMQX nodes"
-  value       = concat(
-    [for node in module.emqx-default: "${node.public_ip} ${node.fqdn}"],
-    [for node in module.emqx-region2: "${node.public_ip} ${node.fqdn}"],
-    [for node in module.emqx-region3: "${node.public_ip} ${node.fqdn}"]
-  )
+  value       = [for node in module.emqx: format("%-16s %s", node.public_ips[0], node.fqdn)]
 }
 
 output "emqttb_nodes" {
   description = "emqttb nodes"
-  value       = concat(
-    [for node in module.emqttb-default: "${node.public_ip} ${node.fqdn}"]
-  )
+  value       = [for node in module.emqttb: format("%-16s %s", node.public_ips[0], node.fqdn)]
 }
 
 output "emqtt_bench_nodes" {
   description = "emqtt-bench nodes"
-  value       = concat(
-    [for node in module.emqtt-bench-default: "${node.public_ip} ${node.fqdn}"]
-  )
+  value       = [for node in module.emqtt-bench: format("%-16s %s", node.public_ips[0], node.fqdn)]
 }

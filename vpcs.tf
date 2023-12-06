@@ -1,19 +1,27 @@
 locals {
-  vpc_subnets = merge(
-    {
-      "${local.default_region}" = {
-        "public" = {
-          "cidr" = cidrsubnet(var.vpc_cidr, 8, 0)
-        }
+  vpc_subnets = {
+    (local.default_region) = {
+      "public" = {
+        "cidr" = cidrsubnet(var.vpc_cidr, 8, 0)
       }
     },
-    {for i, r in local.regions_no_default:
-      (r) => {
-        "public" = {
-          "cidr" = cidrsubnet(var.vpc_cidr, 8, i+1)
-        }
+    (local.region2) = {
+      "public" = {
+        "cidr" = cidrsubnet(var.vpc_cidr, 8, 1)
       }
-    })
+    },
+    (local.region3) = {
+      "public" = {
+        "cidr" = cidrsubnet(var.vpc_cidr, 8, 2)
+      }
+    }
+  }
+
+  vpcs = {
+      (local.default_region) = module.vpc-default
+      (local.region2) = local.region2 == "region2-stub" ? null : module.vpc-region2[0]
+      (local.region3) = local.region3 == "region3-stub" ? null : module.vpc-region3[0]
+  }
 }
 
 resource "tls_private_key" "pk" {
@@ -31,6 +39,7 @@ resource "local_sensitive_file" "pem_file" {
 module "vpc-default" {
   source = "./modules/vpc"
   vpc_region = local.default_region
+  provider_alias = "default"
   cidr = local.vpc_subnets[local.default_region]["public"]["cidr"]
   prefix = local.prefix
   public_key = tls_private_key.pk.public_key_openssh
@@ -41,8 +50,9 @@ module "vpc-default" {
 
 module "vpc-region2" {
   source = "./modules/vpc"
-  count  = local.region2 != null ? 1 : 0
+  count  = local.region2 != "region2-stub" ? 1 : 0
   vpc_region = local.region2
+  provider_alias = "region2"
   cidr = local.vpc_subnets[local.region2]["public"]["cidr"]
   prefix = local.prefix
   public_key = tls_private_key.pk.public_key_openssh
@@ -53,8 +63,9 @@ module "vpc-region2" {
 
 module "vpc-region3" {
   source = "./modules/vpc"
-  count  = local.region3 != null ? 1 : 0
+  count  = local.region3 != "region3-stub" ? 1 : 0
   vpc_region = local.region3
+  provider_alias = "region3"
   cidr = local.vpc_subnets[local.region3]["public"]["cidr"]
   prefix = local.prefix
   public_key = tls_private_key.pk.public_key_openssh
@@ -65,7 +76,7 @@ module "vpc-region3" {
 
 module "vpc-peering-default-to-region2" {
   source = "./modules/vpc_peering"
-  count  = local.region2 != null ? 1 : 0
+  count  = local.region2 != "region2-stub" ? 1 : 0
   vpc_id = module.vpc-default.vpc_id
   route_table_id = module.vpc-default.main_route_table_id
   cidr_block = local.vpc_subnets[local.default_region]["public"]["cidr"]
@@ -81,7 +92,7 @@ module "vpc-peering-default-to-region2" {
 
 module "vpc-peering-default-to-region3" {
   source = "./modules/vpc_peering"
-  count  = local.region3 != null ? 1 : 0
+  count  = local.region3 != "region3-stub" ? 1 : 0
   vpc_id = module.vpc-default.vpc_id
   route_table_id = module.vpc-default.main_route_table_id
   cidr_block = local.vpc_subnets[local.default_region]["public"]["cidr"]
@@ -97,7 +108,7 @@ module "vpc-peering-default-to-region3" {
 
 module "vpc-peering-region2-to-region3" {
   source = "./modules/vpc_peering"
-  count  = local.region2 != null && local.region3 != null ? 1 : 0
+  count  = local.region2 != "region2-stub" && local.region3 != "region3-stub" ? 1 : 0
   vpc_id = module.vpc-region2[0].vpc_id
   route_table_id = module.vpc-region2[0].main_route_table_id
   cidr_block = local.vpc_subnets[local.region2]["public"]["cidr"]
@@ -111,15 +122,6 @@ module "vpc-peering-region2-to-region3" {
   }
 }
 
-module "sg-rules-default" {
-  source = "./modules/security_group_rules"
-  sg_id = module.vpc-default.security_group_id
-  cidr_ipv4 = var.vpc_cidr
-  providers = {
-    aws = aws.default
-  }
-}
-
 resource "aws_security_group_rule" "allow_access_from_public_nlb" {
   type = "ingress"
   security_group_id = module.vpc-default.security_group_id
@@ -127,51 +129,5 @@ resource "aws_security_group_rule" "allow_access_from_public_nlb" {
   protocol = "-1"
   from_port = 0
   to_port = 0
-}
-
-module "sg-rules-region2" {
-  source = "./modules/security_group_rules"
-  count  = local.region2 != null ? 1 : 0
-  sg_id = module.vpc-region2[0].security_group_id
-  cidr_ipv4 = var.vpc_cidr
-  providers = {
-    aws = aws.region2
-  }
-}
-
-module "sg-rules-region3" {
-  source = "./modules/security_group_rules"
-  count  = local.region3 != null ? 1 : 0
-  sg_id = module.vpc-region3[0].security_group_id
-  cidr_ipv4 = var.vpc_cidr
-  providers = {
-    aws = aws.region3
-  }
-}
-
-module "ec2-profile-default" {
-  source         = "./modules/ec2_profile"
-  prefix         = "${local.prefix}-${local.default_region}"
-  providers = {
-    aws = aws.default
-  }
-}
-
-module "ec2-profile-region2" {
-  source         = "./modules/ec2_profile"
-  count          = local.region2 != null ? 1 : 0
-  prefix         = "${local.prefix}-${local.region2}"
-  providers = {
-    aws = aws.region2
-  }
-}
-
-module "ec2-profile-region3" {
-  source         = "./modules/ec2_profile"
-  count          = local.region3 != null ? 1 : 0
-  prefix         = "${local.prefix}-${local.region3}"
-  providers = {
-    aws = aws.region3
-  }
 }
 

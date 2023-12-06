@@ -12,22 +12,26 @@ This creates an EMQX cluster with configurable number of core and replicant node
 
 ```bash
 terraform init
-terraform apply
+terraform apply -parallelism 24
 # this will take a while, wait until terraform finishes
-# if something fails during ansible provisioning, try to re-run ansible playbooks
-env no_proxy='*' ansible-playbook ansible/playbook.yml
+# if something fails during ansible provisioning, try to re-run corresponding playbook
+env no_proxy='*' ansible-playbook ansible/emqx.yml
+env no_proxy='*' ansible-playbook ansible/emqttb.yml
+env no_proxy='*' ansible-playbook ansible/emqtt_bench.yml
 # start emqttb benchmark
 ansible emqttb -m command -a 'systemctl start emqttb' --become
 # (optionally) open emqx dashboard and/or grafana to watch metrics
 # cleanup when done
-terraform destroy
+terraform destroy -parallelism 24
 ```
 
 Default emqx dashboard credentials are `admin:public`, grafana credentials are `admin:admin`.
 
 ## Operations
 
-After provisioning infrastructure with terraform, you can use ansible to start/stop loadgens, manage emqx nodes, etc.
+Terraform creates infrastructure and provisions ansible inventory and variables, and as the final step invokes ansible playbooks to install emqx, emqttb, emqtt-bench, prometheus and grafana.
+To start the test, you need to start loadgen manually (as indicated above, and in the examples below).
+After terraform run you can use ansible separately to start/stop loadgens, manage emqx nodes, etc.
 
 Some examples:
     
@@ -57,7 +61,7 @@ To ssh directly into instances, use terraform output to get IP addresses, and ge
 ```bash
 ssh 52.53.191.91 -l ubuntu -i ~/.ssh/perftest-5xfd5zz7.pem
 ```
-Key name is generated as `perftest-<random string>.pem`.
+Key name is generated as `perftest-<id>.pem`.
 
 You can also modify ansible variables directly under `ansible/group_vars` and `ansible/host_vars` directories, and re-run ansible playbooks without recreating terraform infrastructure.
 
@@ -65,15 +69,23 @@ You can also modify ansible variables directly under `ansible/group_vars` and `a
 
 ## Test spec
 
-Test specs are yaml files under `test` directory. By default `test/default.yml` is used. You can specify a different test spec file by adding `-var spec_file=...` parameter when running terraform. Processing of test spec is implemented in `locals.tf`.
+Test specs are yaml files under `tests` directory. By default `tests/default.yml` is used. You can specify a different test spec file by adding `-var spec_file=<absolute file path or file path relative to the current directory>` parameter when running terraform.
 
-Below is an example test spec.
-One can use any combination of regions for the infrastructure with some restrictions:
-- emqttb and emqtt-bench nodes can only be deployed to the default region (for now)
-- emqx nodes can be deployed to any region, but one can use maximum of 3 different regions per test
-- grafana and prometheus nodes are deployed to the default region
+*IMPORTANT*: this variable must also be used when you run `terraform destroy` to cleanup the infrastructure.
+
+Processing of test spec is implemented in `locals.tf`.
+
+- most specific settings override less specific ones
+- one can use any combination of regions for the infrastructure as long as there are total of 3 regions or less
+- emqx, emqttb and emqtt-bench nodes can be deployed to any region
+- load balancer serving emqx dashboard, grafana UI and prometheus UI is deployed to the default region, which means
+  - at least one emqx node should be deployed to the default region
+  - monitoring node with grafana and prometheus is deployed to the default region
+
+Example test spec:
 
 ```yaml
+id: foobar                 # mandatory field, used as a prefix for all resources, must be unique, but not very long
 region: eu-west-1          # default region
 instance_type: m6g.large   # default instance type
 os_name: ubuntu-jammy      # default os name for base AMI
@@ -89,19 +101,14 @@ emqx:                      # emqx related settings
       instance_type: m6g.large # here as well one can override default parameters just for this node
     - role: replicant
       region: eu-west-1
-      instance_count: 1
     - role: core
       region: us-west-1
-      instance_count: 1
     - role: replicant
       region: us-west-1
-      instance_count: 1
     - role: core
       region: us-east-1
-      instance_count: 1
     - role: replicant
       region: us-east-1
-      instance_count: 1
 emqttb:                   # emqttb related settings
   instance_type: m5.large # emqttb instance type
   cpu_arch: amd64         # emqttb cpu architecture

@@ -5,11 +5,6 @@ terraform {
       version = "~> 5.1"
     }
   }
-  required_version = ">= 1.2.0"
-}
-
-locals {
-  ssh_key_name = var.prefix
 }
 
 data "aws_availability_zones" "available" {
@@ -74,7 +69,71 @@ resource "aws_security_group" "vpc_sg" {
 }
 
 resource "aws_key_pair" "kp" {
-  key_name   = local.ssh_key_name
+  key_name   = var.prefix
   public_key = var.public_key
   provider = aws
+}
+
+resource "aws_iam_policy" "ec2_policy" {
+  name        = "${var.prefix}-${var.vpc_region}"
+  path        = "/"
+  description = "Policy to provide permission to EC2"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:GetObject",
+          "s3:List*"
+        ],
+        "Resource": [
+          "*"
+        ]
+      }
+    ]
+  })
+  provider = aws
+}
+
+resource "aws_iam_role" "ec2_role" {
+  name = "${var.prefix}-${var.vpc_region}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+  provider = aws
+}
+
+resource "aws_iam_policy_attachment" "ec2_policy_role" {
+  name       = "${var.prefix}-${var.vpc_region}"
+  roles      = [aws_iam_role.ec2_role.name]
+  policy_arn = aws_iam_policy.ec2_policy.arn
+  provider = aws
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "${var.prefix}-${var.vpc_region}"
+  role = aws_iam_role.ec2_role.name
+  provider = aws
+}
+
+module "security_group_rules" {
+  source = "./../security_group_rules"
+  cidr_ipv4 = "10.0.0.0/8"
+  security_group_id = aws_security_group.vpc_sg.id
+  providers = {
+    aws = aws
+  }
 }

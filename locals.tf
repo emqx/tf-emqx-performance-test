@@ -1,11 +1,10 @@
 locals {
-  bench_id     = (var.bench_id == null ? random_string.random.id : var.bench_id)
-  prefix       = "${var.namespace}-${local.bench_id}"
+  spec = yamldecode(file(var.spec_file))
+  bench_id = local.spec.id
+  prefix = local.bench_id
   route53_zone_name = replace("${local.prefix}.emqx.io", "/", "-")
   ssh_key_name = local.prefix
   ssh_key_path = pathexpand(format("~/.ssh/%s.pem", replace(local.ssh_key_name, "/", "-")))
-
-  spec = yamldecode(file(var.spec_file))
 
   default_region = try(local.spec.region, "eu-west-1")
   default_instance_type = try(local.spec.instance_type, "t3.large")
@@ -24,8 +23,14 @@ locals {
 
   regions_no_default = tolist(setsubtract(local.regions, [local.default_region]))
   regions_no_default_no_region2 = tolist(setsubtract(local.regions_no_default, [local.region2]))
-  region2 = length(local.regions_no_default) > 0 ? local.regions_no_default[0] : null
-  region3 = length(local.regions_no_default_no_region2) > 0 ? local.regions_no_default_no_region2[0] : null
+  region2 = length(local.regions_no_default) > 0 ? local.regions_no_default[0] : "region2-stub"
+  region3 = length(local.regions_no_default_no_region2) > 0 ? local.regions_no_default_no_region2[0] : "region3-stub"
+
+  region_aliases = {
+      (local.default_region) = "default"
+      (local.region2) = "region2"
+      (local.region3) = "region3"
+  }
 
   # emqx
   emqx_region     = try(local.spec.emqx.region, local.default_region)
@@ -60,7 +65,7 @@ locals {
     ])
   }
   # all nodes as flat list
-  emqx_nodes = flatten([
+  emqx_nodes_list = flatten([
     for r, nodes in local.emqx_nodes_by_region: [
       for i,n in nodes: {
         instance_type = try(n.instance_type, local.emqx_instance_type)
@@ -71,6 +76,7 @@ locals {
         ami_filter = try(n.ami_filter, local.emqx_ami_filter)
       }
     ]])
+  emqx_nodes = { for node in local.emqx_nodes_list: node.hostname => node }
 
   emqx_static_seeds = [for node in local.emqx_nodes : "emqx@${node.hostname}" if node.role == "core"]
 
@@ -94,7 +100,7 @@ locals {
     ])
   }
   # all nodes as flat list
-  emqttb_nodes = flatten([
+  emqttb_nodes_list = flatten([
     for r, nodes in local.emqttb_nodes_by_region: [
       for i,n in nodes: {
         instance_type = try(n.instance_type, local.emqttb_instance_type)
@@ -105,6 +111,7 @@ locals {
         scenario = try(n.scenario, local.emqttb_scenario)
       }
     ]])
+  emqttb_nodes = { for node in local.emqttb_nodes_list: node.hostname => node }
 
   # emqtt_bench
   emqtt_bench_region     = try(local.spec.emqtt_bench.region, local.default_region)
@@ -126,7 +133,7 @@ locals {
     ])
   }
   # all nodes as flat list
-  emqtt_bench_nodes = flatten([
+  emqtt_bench_nodes_list = flatten([
     for r, nodes in local.emqtt_bench_nodes_by_region: [
       for i,n in nodes: {
         instance_type = try(n.instance_type, local.emqtt_bench_instance_type)
@@ -137,6 +144,7 @@ locals {
         scenario = try(n.scenario, local.emqtt_bench_scenario)
       }
     ]])
+  emqtt_bench_nodes = { for node in local.emqtt_bench_nodes_list: node.hostname => node }
 
   # monitoring
   monitoring_os_name    = try(local.spec.monitoring.os_name, local.default_os_name)

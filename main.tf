@@ -1,191 +1,128 @@
-module "emqx-default" {
-  for_each = {for node in local.emqx_nodes: node.name => node if node.region == local.default_region}
-  source            = "./modules/ec2"
-  instance_name     = each.key
-  instance_type     = each.value.instance_type
-  hostname          = each.value.hostname
-  route53_zone_id   = aws_route53_zone.vpc.zone_id
-  ami_filter        = local.emqx_ami_filter
-  use_spot_instances = local.emqx_use_spot_instances
-  root_volume_size  = local.emqx_root_volume_size
-  namespace         = var.namespace
-  iam_profile       = module.ec2-profile-default.iam_profile
-  key_name          = module.vpc-default.key_name
-  subnet_id         = module.vpc-default.public_subnet_ids[0]
-  sg_ids            = [module.vpc-default.security_group_id]
-  providers = {
-    aws = aws.default
-  }
-}
-
-module "emqx-region2" {
-  for_each = {for node in local.emqx_nodes: node.name => node if node.region == local.region2}
-  source            = "./modules/ec2"
-  instance_name     = each.key
-  instance_type     = each.value.instance_type
-  hostname          = each.value.hostname
-  route53_zone_id   = aws_route53_zone.vpc.zone_id
-  ami_filter        = local.emqx_ami_filter
-  use_spot_instances = local.emqx_use_spot_instances
-  root_volume_size  = local.emqx_root_volume_size
-  namespace         = var.namespace
-  iam_profile       = module.ec2-profile-region2[0].iam_profile
-  key_name          = module.vpc-region2[0].key_name
-  subnet_id         = module.vpc-region2[0].public_subnet_ids[0]
-  sg_ids            = [module.vpc-region2[0].security_group_id]
-  providers = {
-    aws = aws.region2
-  }
-}
-
-module "emqx-region3" {
-  for_each = {for node in local.emqx_nodes: node.name => node if node.region == local.region3}
-  source            = "./modules/ec2"
-  instance_name     = each.key
-  instance_type     = each.value.instance_type
-  hostname          = each.value.hostname
-  route53_zone_id   = aws_route53_zone.vpc.zone_id
-  ami_filter        = local.emqx_ami_filter
-  use_spot_instances = local.emqx_use_spot_instances
-  root_volume_size  = local.emqx_root_volume_size
-  namespace         = var.namespace
-  iam_profile       = module.ec2-profile-region3[0].iam_profile
-  key_name          = module.vpc-region3[0].key_name
-  subnet_id         = module.vpc-region3[0].public_subnet_ids[0]
-  sg_ids            = [module.vpc-region3[0].security_group_id]
-  providers = {
-    aws = aws.region3
-  }
-}
-
-
-# module "emqx_mqtt_int_nlb" {
-#   count               = var.internal_mqtt_nlb_count
-#   source              = "./modules/emqx_mqtt_int_nlb"
-#   vpc_id              = module.vpc.vpc_id
-#   namespace           = var.namespace
-#   nlb_name            = "${var.namespace}-nlb-${count.index}"
-#   tg_name             = "${var.namespace}-tg-${count.index}"
-#   region              = var.region
-#   subnet_ids          = module.vpc.public_subnet_ids
-#   instance_count      = var.emqx_nodes
-#   instance_ids        = module.emqx_core.instance_ids
-#   route53_zone_id     = aws_route53_zone.int.zone_id
-#   route53_zone_name   = local.int_route53_zone_name
-# }
-
 module "public_nlb" {
-  source              = "./modules/public_nlb"
-  vpc_id              = module.vpc-default.vpc_id
-  prefix              = local.prefix
-  subnet_ids          = module.vpc-default.public_subnet_ids
-  emqx_instance_ips   = [for x in module.emqx-default: x.private_ip]
-  monitoring_instance_ip = module.monitoring.private_ip
+  source     = "./modules/public_nlb"
+  prefix     = local.prefix
+  vpc_id     = local.vpcs[local.default_region].vpc_id
+  subnet_ids = local.vpcs[local.default_region].public_subnet_ids
 }
 
-# module "emqttb" {
-#   source            = "./modules/emqttb"
-#   ami_filter        = local.ami_filter
-#   s3_bucket_name    = var.s3_bucket_name
-#   bench_id          = local.bench_id
-#   package_url       = var.emqttb_package_url
-#   namespace         = var.namespace
-#   instance_type     = var.emqttb_instance_type
-#   instance_count    = var.emqttb_nodes
-#   scenario          = var.emqttb_scenario
-#   sg_ids            = [module.vpc-eu-west-1.security_group_id]
-#   emqx_hosts        = concat(module.emqx_core.private_ips, module.emqx_replicant.private_ips)
-#   iam_profile       = module.ec2_profile.iam_profile
-#   route53_zone_id   = aws_route53_zone.int.zone_id
-#   route53_zone_name = local.int_route53_zone_name
-#   test_duration     = var.duration
-#   key_name          = module.vpc-eu-west-1.key_name
-#   subnet_id         = module.vpc-eu-west-1.public_subnet_ids[0]
-#   grafana_url       = module.monitoring.grafana_url
-#   prometheus_push_gw_url = module.monitoring.push_gw_url
-#   start_n_multiplier = var.emqttb_start_n_multiplier
-#   providers = {
-#     aws = aws.eu-west-1
-#   }
-# }
+module "emqx" {
+  for_each = {for k,v in local.emqx_nodes: k => v}
+  source             = "./modules/ec2"
+  region             = each.value.region
+  instance_name      = each.value.name
+  instance_type      = each.value.instance_type
+  hostname           = each.value.hostname
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  security_group_id  = local.vpcs[each.value.region].security_group_id
+  ami_filter         = local.emqx_ami_filter
+  use_spot_instances = local.emqx_use_spot_instances
+  root_volume_size   = local.emqx_root_volume_size
+  prefix             = local.prefix
+  region_aliases     = local.region_aliases
+  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  providers = {
+    aws.default = aws.default
+    aws.region2 = aws.region2
+    aws.region3 = aws.region3
+  }
+  depends_on = [
+    aws_route53_zone_association.region2,
+    aws_route53_zone_association.region3
+  ]
+}
 
-module "emqttb-default" {
-  for_each = {for node in local.emqttb_nodes: node.name => node if node.region == local.default_region}
-  source            = "./modules/ec2"
-  instance_name     = each.key
-  instance_type     = each.value.instance_type
-  hostname          = each.value.hostname
-  route53_zone_id   = aws_route53_zone.vpc.zone_id
-  ami_filter        = local.emqttb_ami_filter
+resource "aws_lb_target_group_attachment" "emqx" {
+  for_each = {for i, node in module.emqx: i => node if node.region == local.default_region}
+  target_group_arn = module.public_nlb.emqx_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = 18083
+}
+
+module "emqttb" {
+  for_each = {for k,v in local.emqttb_nodes: k => v}
+  source             = "./modules/ec2"
+  region             = each.value.region
+  instance_name      = each.value.name
+  instance_type      = each.value.instance_type
+  hostname           = each.value.hostname
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  security_group_id  = local.vpcs[each.value.region].security_group_id
+  ami_filter         = local.emqttb_ami_filter
   use_spot_instances = local.emqttb_use_spot_instances
-  namespace         = var.namespace
-  iam_profile       = module.ec2-profile-default.iam_profile
-  key_name          = module.vpc-default.key_name
-  subnet_id         = module.vpc-default.public_subnet_ids[0]
-  sg_ids            = [module.vpc-default.security_group_id]
+  prefix             = local.prefix
+  region_aliases     = local.region_aliases
+  route53_zone_id    = aws_route53_zone.vpc.zone_id
   providers = {
-    aws = aws.default
+    aws.default = aws.default
+    aws.region2 = aws.region2
+    aws.region3 = aws.region3
   }
+  depends_on = [
+    aws_route53_zone_association.region2,
+    aws_route53_zone_association.region3
+  ]
 }
 
-module "emqtt-bench-default" {
-  for_each = {for node in local.emqtt_bench_nodes: node.name => node if node.region == local.default_region}
-  source            = "./modules/ec2"
-  instance_name     = each.key
-  instance_type     = each.value.instance_type
-  hostname          = each.value.hostname
-  route53_zone_id   = aws_route53_zone.vpc.zone_id
-  ami_filter        = local.emqtt_bench_ami_filter
+module "emqtt-bench" {
+  for_each = {for k,v in local.emqtt_bench_nodes: k => v}
+  source             = "./modules/ec2"
+  region             = each.value.region
+  instance_name      = each.value.name
+  instance_type      = each.value.instance_type
+  hostname           = each.value.hostname
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  security_group_id  = local.vpcs[each.value.region].security_group_id
+  ami_filter         = local.emqtt_bench_ami_filter
   use_spot_instances = local.emqtt_bench_use_spot_instances
-  namespace         = var.namespace
-  iam_profile       = module.ec2-profile-default.iam_profile
-  key_name          = module.vpc-default.key_name
-  subnet_id         = module.vpc-default.public_subnet_ids[0]
-  sg_ids            = [module.vpc-default.security_group_id]
+  prefix             = local.prefix
+  region_aliases     = local.region_aliases
+  route53_zone_id    = aws_route53_zone.vpc.zone_id
   providers = {
-    aws = aws.default
+    aws.default = aws.default
+    aws.region2 = aws.region2
+    aws.region3 = aws.region3
   }
+  depends_on = [
+    aws_route53_zone_association.region2,
+    aws_route53_zone_association.region3
+  ]
 }
-
-# module "emqx_mqtt_int_nlb" {
-#   count               = var.internal_mqtt_nlb_count
-#   source              = "./modules/emqx_mqtt_int_nlb"
-#   vpc_id              = module.vpc.vpc_id
-#   namespace           = var.namespace
-#   nlb_name            = "${var.namespace}-nlb-${count.index}"
-#   tg_name             = "${var.namespace}-tg-${count.index}"
-#   region              = var.region
-#   subnet_ids          = module.vpc.public_subnet_ids
-#   instance_count      = var.emqx_nodes
-#   instance_ids        = module.emqx_core.instance_ids
-#   route53_zone_id     = aws_route53_zone.int.zone_id
-#   route53_zone_name   = local.int_route53_zone_name
-# }
 
 module "monitoring" {
-  source            = "./modules/ec2"
-  instance_name     = "monitoring"
-  instance_type     = local.monitoring_instance_type
-  hostname          = local.monitoring_hostname
-  route53_zone_id   = aws_route53_zone.vpc.zone_id
-  ami_filter        = local.monitoring_ami_filter
+  source             = "./modules/ec2"
+  region             = local.default_region
+  instance_name      = "monitoring"
+  instance_type      = local.monitoring_instance_type
+  hostname           = local.monitoring_hostname
+  subnet_id          = local.vpcs[local.default_region].public_subnet_ids[0]
+  security_group_id  = local.vpcs[local.default_region].security_group_id
+  ami_filter         = local.monitoring_ami_filter
   use_spot_instances = local.monitoring_use_spot_instances
-  root_volume_size  = local.monitoring_root_volume_size
-  namespace         = var.namespace
-  iam_profile       = module.ec2-profile-default.iam_profile
-  key_name          = module.vpc-default.key_name
-  subnet_id         = module.vpc-default.public_subnet_ids[0]
-  sg_ids            = [aws_security_group.monitoring-sg.id]
-
+  root_volume_size   = local.monitoring_root_volume_size
+  prefix             = local.prefix
+  region_aliases     = local.region_aliases
+  route53_zone_id    = aws_route53_zone.vpc.zone_id
   providers = {
-    aws = aws.default
+    aws.default = aws.default
+    aws.region2 = aws.region2
+    aws.region3 = aws.region3
   }
+  depends_on = [
+    aws_route53_zone_association.region2,
+    aws_route53_zone_association.region3
+  ]
 }
 
-resource "random_string" "random" {
-  length  = 8
-  special = false
-  upper   = false
+resource "aws_lb_target_group_attachment" "grafana" {
+  target_group_arn = module.public_nlb.grafana_target_group_arn
+  target_id        = module.monitoring.private_ips[0]
+  port             = 3000
+}
+
+resource "aws_lb_target_group_attachment" "prometheus" {
+  target_group_arn = module.public_nlb.prometheus_target_group_arn
+  target_id        = module.monitoring.private_ips[0]
+  port             = 9090
 }
 
 resource "local_file" "ansible_cfg" {
@@ -200,18 +137,10 @@ resource "local_file" "ansible_cfg" {
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.ini.tpl",
     {
-      emqx_nodes = concat(
-        [for node in module.emqx-default: "${node.fqdn} ansible_host=${node.public_ip}"],
-        [for node in module.emqx-region2: "${node.fqdn} ansible_host=${node.public_ip}"],
-        [for node in module.emqx-region3: "${node.fqdn} ansible_host=${node.public_ip}"]
-      )
-      emqttb_nodes = concat(
-        [for node in module.emqttb-default: "${node.fqdn} ansible_host=${node.public_ip}"]
-      )
-      emqtt_bench_nodes = concat(
-        [for node in module.emqtt-bench-default: "${node.fqdn} ansible_host=${node.public_ip}"]
-      )
-      monitoring_nodes = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ip}"]
+      emqx_nodes = [for node in module.emqx: "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      emqttb_nodes = [for node in module.emqttb: "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      emqtt_bench_nodes = [for node in module.emqtt-bench: "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      monitoring_nodes = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ips[0]} private_ip=${module.monitoring.private_ips[0]}"]
     })
   filename = "${path.module}/ansible/inventory.ini"
 }
@@ -258,8 +187,8 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_cluster_static_seeds = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds),
     emqx_cluster_dns_name = local.cluster_dns_name,
     emqx_cluster_dns_record_type = try(local.spec.emqx.cluster_dns_record_type, "srv"),
-    emqx_prometheus_enabled = try(local.spec.emqx.prometheus_enabled, true),
-    # emqx_prometheus_push_gateway_server = "http://${local.monitoring_hostname}:9091",
+    emqx_prometheus_enabled = try(local.spec.emqx.prometheus_enabled, false),
+    emqx_prometheus_push_gateway_server = "http://${local.monitoring_hostname}:9091",
     emqx_log_console_handler_level = try(local.spec.emqx.log_console_handler_level, "info"),
     emqx_log_file_handlers_default_level = try(local.spec.emqx.log_file_handlers_default_level, "info"),
     emqx_dashboard_default_password = local.emqx_dashboard_default_password,
@@ -271,23 +200,19 @@ resource "local_file" "ansible_emqx_group_vars" {
 }
 
 resource "local_file" "ansible_emqx_host_vars" {
-  for_each = {for node in local.emqx_nodes: node.name => node}
+  for_each = {for i, node in module.emqx: i => node}
   content = yamlencode({
-    emqx_node_name = "emqx@${each.value.hostname}",
-    emqx_node_role = each.value.role
+    emqx_node_name = "emqx@${each.value.fqdn}",
+    emqx_node_role = local.emqx_nodes[each.value.fqdn].role,
   })
-  filename = "${path.module}/ansible/host_vars/${each.value.hostname}.yml"
+  filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
 
 resource "local_file" "ansible_emqttb_group_vars" {
   content = yamlencode({
     emqttb_package_download_url = try(local.spec.emqttb.package_download_url, ""),
     emqttb_package_file_path = try(local.spec.emqttb.package_file_path, ""),
-    emqttb_targets = concat(
-        [for node in module.emqx-default: node.fqdn],
-        [for node in module.emqx-region2: node.fqdn],
-        [for node in module.emqx-region3: node.fqdn]
-      )
+    emqttb_targets = [for node in module.emqx: node.fqdn]
     grafana_url = "http://${module.monitoring.fqdn}:3000"
     prometheus_push_gw_url = "http://${module.monitoring.fqdn}:9091"
   })
@@ -295,32 +220,28 @@ resource "local_file" "ansible_emqttb_group_vars" {
 }
 
 resource "local_file" "ansible_emqttb_host_vars" {
-  for_each = {for node in local.emqttb_nodes: node.name => node}
+  for_each = {for i, node in module.emqttb: i => node}
   content = yamlencode({
-    emqttb_scenario = each.value.scenario
+    emqttb_scenario = local.emqttb_nodes[each.value.fqdn].scenario,
   })
-  filename = "${path.module}/ansible/host_vars/${each.value.hostname}.yml"
+  filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
 
 resource "local_file" "ansible_emqtt_bench_group_vars" {
   content = yamlencode({
     emqtt_bench_package_download_url = try(local.spec.emqtt_bench.package_download_url, ""),
     emqtt_bench_package_file_path = try(local.spec.emqtt_bench.package_file_path, ""),
-    emqtt_bench_targets = concat(
-        [for node in module.emqx-default: node.fqdn],
-        [for node in module.emqx-region2: node.fqdn],
-        [for node in module.emqx-region3: node.fqdn]
-      )
+    emqtt_bench_targets = [for node in module.emqx: node.fqdn]
   })
   filename = "${path.module}/ansible/group_vars/emqtt_bench.yml"
 }
 
 resource "local_file" "ansible_emqtt_bench_host_vars" {
-  for_each = {for node in local.emqtt_bench_nodes: node.name => node}
+  for_each = {for i, node in module.emqtt-bench: i => node}
   content = yamlencode({
-    emqtt_bench_scenario = each.value.scenario
+    emqtt_bench_scenario = local.emqtt_bench_nodes[each.value.fqdn].scenario,
   })
-  filename = "${path.module}/ansible/host_vars/${each.value.hostname}.yml"
+  filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
 
 resource "local_file" "ansible_monitoring_group_vars" {
@@ -337,11 +258,9 @@ resource "local_file" "ansible_monitoring_group_vars" {
 
 resource "null_resource" "ansible_playbook" {
   depends_on = [
-    module.emqx-default,
-    module.emqx-region2,
-    module.emqx-region3,
-    module.emqttb-default,
-    module.emqtt-bench-default,
+    module.emqx,
+    module.emqttb,
+    module.emqtt-bench,
     module.monitoring,
     local_file.ansible_inventory,
     local_file.ansible_cfg,
@@ -365,8 +284,8 @@ resource "null_resource" "ansible_playbook" {
 }
 
 resource "aws_security_group" "monitoring-sg" {
-  name        = "${local.prefix}-monitoring-instance-sg"
-  description = "Allow all inbound traffic within sg, within VPC, external SSH access and all outbound traffic"
+  name        = "${local.prefix}-monitoring-sg"
+  description = "Security group for Prometheus and Grafana"
   vpc_id      = module.vpc-default.vpc_id
 
   ingress {
@@ -405,6 +324,13 @@ resource "aws_security_group" "monitoring-sg" {
     protocol         = "TCP"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
+  }
+
+  ingress {
+    security_groups = [module.public_nlb.security_group_id]
+    protocol = "-1"
+    from_port = 0
+    to_port = 0
   }
 
   egress {

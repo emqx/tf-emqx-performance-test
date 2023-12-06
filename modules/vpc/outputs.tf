@@ -2,6 +2,10 @@ output "vpc_id" {
   value = aws_vpc.vpc.id
 }
 
+output "region" {
+  value = var.vpc_region
+}
+
 output "vpc_cidr_block" {
   value = aws_vpc.vpc.cidr_block
 }
@@ -20,4 +24,8 @@ output "security_group_id" {
 
 output "key_name" {
   value = aws_key_pair.kp.key_name
+}
+
+output "provider_alias" {
+  value = var.provider_alias
 }
