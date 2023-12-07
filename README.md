@@ -40,8 +40,8 @@ Some examples:
 ansible emqttb -m command -a 'systemctl start emqttb' --become
 ansible emqttb -m command -a 'systemctl stop emqttb' --become
 # start/stop benchmark with emqtt-bench
-ansible emqtt-bench -m command -a 'systemctl start emqtt-bench' --become
-ansible emqtt-bench -m command -a 'systemctl stop emqtt-bench' --become
+ansible emqtt_bench -m command -a 'systemctl start emqtt-bench' --become
+ansible emqtt_bench -m command -a 'systemctl stop emqtt-bench' --become
 # start/stop/restart emqx on all nodes
 ansible emqx -m command -a 'systemctl start emqx' --become
 ansible emqx -m command -a 'systemctl stop emqx' --become

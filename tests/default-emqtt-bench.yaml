@@ -13,5 +13,5 @@ emqtt_bench:
   instance_type: t3.large
   cpu_arch: amd64
   nodes:
-    - scenario: "pub -c 100 -I 10 -t bench/%i -s 256"
-    - scenario: "sub -c 100 -i 100 -t bench/%i -q 1"
+    - scenario: "pub -c 100 -I 10 -t bench/%%i -s 256"
+    - scenario: "sub -c 100 -i 100 -t bench/%%i -q 1"

@@ -89,7 +89,7 @@ locals {
   emqttb_ami_filter = "*/${local.emqttb_os_name}-${local.emqttb_os_version}-${local.emqttb_cpu_arch}-server-*"
   emqttb_instance_type = try(local.spec.emqttb.instance_type, local.default_instance_type)
   emqttb_use_spot_instances = try(local.spec.use_spot_instances, local.default_use_spot_instances)
-  emqttb_scenario = try(local.spec.emqttb.scenario, "@pub -t 't/%n' -I 10ms -i 10ms -N 100 -s 1kb @sub -t 't/#' -I 10ms -N 10")
+  emqttb_scenario = try(local.spec.emqttb.scenario, "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb @sub --topic t/%%n --conninterval 100ms --num-clients 100")
   # group by region
   emqttb_nodes_by_region = {
     for r in local.regions :
@@ -122,7 +122,7 @@ locals {
   emqtt_bench_ami_filter = "*/${local.emqtt_bench_os_name}-${local.emqtt_bench_os_version}-${local.emqtt_bench_cpu_arch}-server-*"
   emqtt_bench_instance_type = try(local.spec.emqtt_bench.instance_type, local.default_instance_type)
   emqtt_bench_use_spot_instances = try(local.spec.use_spot_instances, local.default_use_spot_instances)
-  emqtt_bench_scenario = try(local.spec.emqtt_bench.scenario, "pub -c 100 -I 10 -t bench/%i -s 256")
+  emqtt_bench_scenario = try(local.spec.emqtt_bench.scenario, "pub -c 100 -I 10 -t bench/%%i -s 256")
   # group by region
   emqtt_bench_nodes_by_region = {
     for r in local.regions :
