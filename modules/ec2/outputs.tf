@@ -1,15 +1,19 @@
-output "public_ip" {
-  value = aws_instance.ec2.*.public_ip
+output "public_ips" {
+  value = concat(aws_instance.default.*.public_ip, aws_instance.region2.*.public_ip, aws_instance.region3.*.public_ip)
 }
 
-output "private_ip" {
-  value = aws_instance.ec2.*.private_ip
+output "private_ips" {
+  value = concat(aws_instance.default.*.private_ip, aws_instance.region2.*.private_ip, aws_instance.region3.*.private_ip)
 }
 
-output "instance_id" {
-  value = aws_instance.ec2.*.id
+output "instance_ids" {
+  value = concat(aws_instance.default.*.id, aws_instance.region2.*.id, aws_instance.region3.*.id)
 }
 
-output "internal_fqdn" {
-  value = aws_route53_record.dns.*.fqdn
+output "fqdn" {
+  value = aws_route53_record.dns.fqdn
+}
+
+output "region" {
+  value = var.region
 }

@@ -1,0 +1,25 @@
+- hosts: all
+  vars:
+    docker_users:
+      - "{{ ansible_user_id }}"
+    pip_install_packages:
+      - name: docker
+      - name: docker-compose
+  roles:
+    - { role: geerlingguy.docker, become: yes }
+    - { role: geerlingguy.pip, become: yes }
+  tasks:
+    - name: Add entries to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        search_string: "{{ item }}"
+        line: "{{ hostvars[item].private_ip }}\t{{ item }}"
+      become: yes
+      loop: "{{ ansible_play_hosts }}"
+
+    - name: Add entries to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        search_string: "{{ inventory_hostname }}"
+        line: "127.0.0.1\t{{ inventory_hostname }}"
+      become: yes

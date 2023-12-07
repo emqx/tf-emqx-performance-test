@@ -1,0 +1,14 @@
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: wait_for_connection
+      wait_for_connection:
+        delay: 0
+        timeout: 300
+      tags:
+       - always
+    - name: Gather facts
+      become: yes
+      ansible.builtin.setup:
+      tags:
+       - always

@@ -1,0 +1,11 @@
+[Unit]
+Description=EMQTT bench
+After=network.target
+
+[Service]
+ExecStart=:/opt/emqtt-bench/bin/emqtt_bench {{ emqtt_bench_scenario }} -h {{ emqtt_bench_targets | join(',') }}
+LimitNOFILE=2097152
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

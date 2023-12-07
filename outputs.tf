@@ -1,57 +1,39 @@
-output "emqx_core_public_ips" {
-  description = "public ip of emqx core nodes"
-  value       = module.emqx_core.public_ips
-}
-
-output "emqx_replicant_public_ips" {
-  description = "public ip of emqx replicant nodes"
-  value       = module.emqx_replicant.public_ips
-}
-
-output "emqttb_public_ips" {
-  description = "public ip of emqttb instances"
-  value       = module.emqttb.*.public_ips
-}
-
-output "emqtt_bench_public_ips" {
-  description = "public ip of emqtt_bench instances"
-  value       = module.emqtt_bench.*.public_ips
-}
-
-# output "emqx_mqtt_public_nlb_dns_name" {
-#   description = "The DNS name of the MQTT Public NLB"
-#   value       = module.emqx_mqtt_public_nlb.*.mqtt_lb_dns_name
-# }
-
 output "emqx_dashboard_url" {
   description = "EMQX Dashboard URL"
-  value       = "http://${module.emqx_dashboard_lb.dashboard_dns_name}"
-}
-
-output "emqx_dashboard_credentials" {
-  description = "EMQX Dashboard Credentials"
-  value       = "admin:admin"
+  value       = "${module.public_nlb.dns_name}:18083"
 }
 
 output "grafana_url" {
   description = "Grafana URL"
-  value       = "http://${module.prometheus.public_ip}:3000"
-}
-
-output "grafana_credentials" {
-  description = "Grafana Credentials"
-  value       = "admin:admin"
+  value       = "${module.public_nlb.dns_name}:3000"
 }
 
 output "prometheus_url" {
-  description = "Grafana URL"
-  value       = "http://${module.prometheus.public_ip}:9090"
+  description = "Prometheus URL"
+  value       = "${module.public_nlb.dns_name}:9090"
 }
 
-output "s3_bucket_name" {
-  value = var.s3_bucket_name
+output "emqx_dashboard_credentials" {
+  description = "EMQX Dashboard credentials"
+  value       = "admin:${local.emqx_dashboard_default_password}"
 }
 
-output "bench_id" {
-  value = var.bench_id
+output "grafana_credentials" {
+  description = "Grafana credentials"
+  value       = "admin:admin"
+}
+
+output "emqx_nodes" {
+  description = "EMQX nodes"
+  value       = [for node in module.emqx: format("%-16s %s", node.public_ips[0], node.fqdn)]
+}
+
+output "emqttb_nodes" {
+  description = "emqttb nodes"
+  value       = [for node in module.emqttb: format("%-16s %s", node.public_ips[0], node.fqdn)]
+}
+
+output "emqtt_bench_nodes" {
+  description = "emqtt-bench nodes"
+  value       = [for node in module.emqtt-bench: format("%-16s %s", node.public_ips[0], node.fqdn)]
 }

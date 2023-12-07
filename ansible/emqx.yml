@@ -1,0 +1,4 @@
+- hosts: emqx
+  roles:
+    - emqx
+    - emqx_exporter

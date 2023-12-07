@@ -1,4 +1,8 @@
-variable "namespace" {
+variable "region" {
+  type = string
+}
+
+variable "prefix" {
   type = string
 }
 
@@ -6,51 +10,47 @@ variable "ami_filter" {
   type = string
 }
 
-variable "sg_ids" {
-  type = list(string)
-}
-
 variable "instance_type" {
-  type = string
-}
-
-variable "s3_bucket_name" {
   type = string
 }
 
 variable "extra_user_data" {
   type = string
-}
-
-variable "iam_profile" {
-  type = string
+  default = ""
 }
 
 variable "instance_name" {
   type = string
 }
 
-variable "instance_count" {
-  type = number
-  default = 1
-}
-
-variable "route53_zone_name" {
-  description = "Route53 Zone Name"
-  type        = string
-}
-
 variable "route53_zone_id" {
-  description = "Route53 Zone ID"
-  type        = string
+  type = string
 }
 
-variable "key_name" {
-  description = "SSH Key Name"
-  type        = string
+variable "hostname" {
+  type = string
 }
 
 variable "subnet_id" {
-  description = "Subnet ID"
-  type        = string
+  type = string
+}
+
+variable "security_group_id" {
+  type = string
+}
+
+variable "region_aliases" {
+  type = map(string)
+}
+
+variable "use_spot_instances" {
+  description = "If true, use spot instances. On-demand otherwise."
+  type        = bool
+  default     = true
+}
+
+variable "root_volume_size" {
+  description = "Root volume size"
+  type        = number
+  default     = 20
 }

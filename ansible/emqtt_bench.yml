@@ -1,0 +1,3 @@
+- hosts: emqtt_bench
+  roles:
+    - emqtt_bench

@@ -1,0 +1,29 @@
+- name: Copy files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_user_dir }}/{{ item }}"
+  loop:
+    - docker-compose.yaml
+    - datasource.yaml
+    - dashboards.yaml
+
+- name: Render prometheus.yml
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: prometheus.yml
+
+- name: Ensure dashboards dir
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/dashboards"
+    state: directory
+
+- name: Copy dashboards
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_user_dir }}/dashboards/{{ item | basename }}"
+  with_fileglob:
+    - "*.json"
+
+- name: Create and start services
+  community.docker.docker_compose:
+    project_src: "{{ ansible_user_dir }}"
