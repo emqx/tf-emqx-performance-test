@@ -6,7 +6,7 @@ module "public_nlb" {
 }
 
 module "emqx" {
-  for_each = {for k,v in local.emqx_nodes: k => v}
+  for_each           = { for k, v in local.emqx_nodes : k => v }
   source             = "./modules/ec2"
   region             = each.value.region
   instance_name      = each.value.name
@@ -32,14 +32,14 @@ module "emqx" {
 }
 
 resource "aws_lb_target_group_attachment" "emqx" {
-  for_each = {for i, node in module.emqx: i => node if node.region == local.default_region}
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
   target_group_arn = module.public_nlb.emqx_target_group_arn
   target_id        = each.value.private_ips[0]
   port             = 18083
 }
 
 module "emqttb" {
-  for_each = {for k,v in local.emqttb_nodes: k => v}
+  for_each           = { for k, v in local.emqttb_nodes : k => v }
   source             = "./modules/ec2"
   region             = each.value.region
   instance_name      = each.value.name
@@ -64,7 +64,7 @@ module "emqttb" {
 }
 
 module "emqtt-bench" {
-  for_each = {for k,v in local.emqtt_bench_nodes: k => v}
+  for_each           = { for k, v in local.emqtt_bench_nodes : k => v }
   source             = "./modules/ec2"
   region             = each.value.region
   instance_name      = each.value.name
@@ -129,19 +129,19 @@ resource "local_file" "ansible_cfg" {
   content = templatefile("${path.module}/templates/ansible.cfg.tpl",
     {
       private_key_file = local.ssh_key_path
-      remote_user = "ubuntu"
-    })
+      remote_user      = "ubuntu"
+  })
   filename = "${path.module}/ansible.cfg"
 }
 
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.ini.tpl",
     {
-      emqx_nodes = [for node in module.emqx: "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      emqttb_nodes = [for node in module.emqttb: "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      emqtt_bench_nodes = [for node in module.emqtt-bench: "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      monitoring_nodes = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ips[0]} private_ip=${module.monitoring.private_ips[0]}"]
-    })
+      emqx_nodes        = [for node in module.emqx : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      emqttb_nodes      = [for node in module.emqttb : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      emqtt_bench_nodes = [for node in module.emqtt-bench : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      monitoring_nodes  = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ips[0]} private_ip=${module.monitoring.private_ips[0]}"]
+  })
   filename = "${path.module}/ansible/inventory.ini"
 }
 
@@ -168,11 +168,11 @@ resource "local_file" "ansible_common_group_vars" {
       "vmstat"
     ]
     deb_architecture_map = {
-      "armv6l": "armhf",
-      "armv7l": "armhf",
-      "aarch64": "arm64",
-      "x86_64": "amd64",
-      "i386": "i386"
+      "armv6l" : "armhf",
+      "armv7l" : "armhf",
+      "aarch64" : "arm64",
+      "x86_64" : "amd64",
+      "i386" : "i386"
     }
   })
   filename = "${path.module}/ansible/group_vars/all.yml"
@@ -180,27 +180,27 @@ resource "local_file" "ansible_common_group_vars" {
 
 resource "local_file" "ansible_emqx_group_vars" {
   content = yamlencode({
-    emqx_install_source = local.emqx_install_source,
-    emqx_package_download_url = try(local.spec.emqx.package_download_url, ""),
-    emqx_package_file_path = try(local.spec.emqx.package_file_path, ""),
-    emqx_cluster_discovery_strategy = try(local.spec.emqx.cluster_discovery_strategy, "static"),
-    emqx_cluster_static_seeds = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds),
-    emqx_cluster_dns_name = local.cluster_dns_name,
-    emqx_cluster_dns_record_type = try(local.spec.emqx.cluster_dns_record_type, "srv"),
-    emqx_prometheus_enabled = try(local.spec.emqx.prometheus_enabled, false),
-    emqx_prometheus_push_gateway_server = "http://${local.monitoring_hostname}:9091",
-    emqx_log_console_handler_level = try(local.spec.emqx.log_console_handler_level, "info"),
+    emqx_install_source                  = local.emqx_install_source,
+    emqx_package_download_url            = try(local.spec.emqx.package_download_url, ""),
+    emqx_package_file_path               = try(local.spec.emqx.package_file_path, ""),
+    emqx_cluster_discovery_strategy      = try(local.spec.emqx.cluster_discovery_strategy, "static"),
+    emqx_cluster_static_seeds            = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds),
+    emqx_cluster_dns_name                = local.cluster_dns_name,
+    emqx_cluster_dns_record_type         = try(local.spec.emqx.cluster_dns_record_type, "srv"),
+    emqx_prometheus_enabled              = try(local.spec.emqx.prometheus_enabled, false),
+    emqx_prometheus_push_gateway_server  = "http://${local.monitoring_hostname}:9091",
+    emqx_log_console_handler_level       = try(local.spec.emqx.log_console_handler_level, "info"),
     emqx_log_file_handlers_default_level = try(local.spec.emqx.log_file_handlers_default_level, "info"),
-    emqx_dashboard_default_password = local.emqx_dashboard_default_password,
-    emqx_api_key = local.emqx_api_key,
-    emqx_api_secret = local.emqx_api_secret,
-    emqx_bootstrap_api_keys = local.emqx_bootstrap_api_keys,
+    emqx_dashboard_default_password      = local.emqx_dashboard_default_password,
+    emqx_api_key                         = local.emqx_api_key,
+    emqx_api_secret                      = local.emqx_api_secret,
+    emqx_bootstrap_api_keys              = local.emqx_bootstrap_api_keys,
   })
   filename = "${path.module}/ansible/group_vars/emqx.yml"
 }
 
 resource "local_file" "ansible_emqx_host_vars" {
-  for_each = {for i, node in module.emqx: i => node}
+  for_each = { for i, node in module.emqx : i => node }
   content = yamlencode({
     emqx_node_name = "emqx@${each.value.fqdn}",
     emqx_node_role = local.emqx_nodes[each.value.fqdn].role,
@@ -211,16 +211,16 @@ resource "local_file" "ansible_emqx_host_vars" {
 resource "local_file" "ansible_emqttb_group_vars" {
   content = yamlencode({
     emqttb_package_download_url = try(local.spec.emqttb.package_download_url, ""),
-    emqttb_package_file_path = try(local.spec.emqttb.package_file_path, ""),
-    emqttb_targets = [for node in module.emqx: node.fqdn]
-    grafana_url = "http://${module.monitoring.fqdn}:3000"
-    prometheus_push_gw_url = "http://${module.monitoring.fqdn}:9091"
+    emqttb_package_file_path    = try(local.spec.emqttb.package_file_path, ""),
+    emqttb_targets              = [for node in module.emqx : node.fqdn]
+    grafana_url                 = "http://${module.monitoring.fqdn}:3000"
+    prometheus_push_gw_url      = "http://${module.monitoring.fqdn}:9091"
   })
   filename = "${path.module}/ansible/group_vars/emqttb.yml"
 }
 
 resource "local_file" "ansible_emqttb_host_vars" {
-  for_each = {for i, node in module.emqttb: i => node}
+  for_each = { for i, node in module.emqttb : i => node }
   content = yamlencode({
     emqttb_scenario = local.emqttb_nodes[each.value.fqdn].scenario,
   })
@@ -230,14 +230,14 @@ resource "local_file" "ansible_emqttb_host_vars" {
 resource "local_file" "ansible_emqtt_bench_group_vars" {
   content = yamlencode({
     emqtt_bench_package_download_url = try(local.spec.emqtt_bench.package_download_url, ""),
-    emqtt_bench_package_file_path = try(local.spec.emqtt_bench.package_file_path, ""),
-    emqtt_bench_targets = [for node in module.emqx: node.fqdn]
+    emqtt_bench_package_file_path    = try(local.spec.emqtt_bench.package_file_path, ""),
+    emqtt_bench_targets              = [for node in module.emqx : node.fqdn]
   })
   filename = "${path.module}/ansible/group_vars/emqtt_bench.yml"
 }
 
 resource "local_file" "ansible_emqtt_bench_host_vars" {
-  for_each = {for i, node in module.emqtt-bench: i => node}
+  for_each = { for i, node in module.emqtt-bench : i => node }
   content = yamlencode({
     emqtt_bench_scenario = local.emqtt_bench_nodes[each.value.fqdn].scenario,
   })
@@ -247,11 +247,11 @@ resource "local_file" "ansible_emqtt_bench_host_vars" {
 resource "local_file" "ansible_monitoring_group_vars" {
   content = yamlencode({
     prometheus_node_exporter_targets = concat(
-      [for node in local.emqx_nodes: "${node.hostname}:9100"],
-      [for node in local.emqttb_nodes: "${node.hostname}:9100"],
-      [for node in local.emqtt_bench_nodes: "${node.hostname}:9100"]
-      ),
-    prometheus_emqx_targets = [for node in local.emqx_nodes: "${node.hostname}:18083"]
+      [for node in local.emqx_nodes : "${node.hostname}:9100"],
+      [for node in local.emqttb_nodes : "${node.hostname}:9100"],
+      [for node in local.emqtt_bench_nodes : "${node.hostname}:9100"]
+    ),
+    prometheus_emqx_targets = [for node in local.emqx_nodes : "${node.hostname}:18083"]
   })
   filename = "${path.module}/ansible/group_vars/monitoring.yml"
 }
@@ -289,17 +289,17 @@ resource "aws_security_group" "monitoring-sg" {
   vpc_id      = module.vpc-default.vpc_id
 
   ingress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    self             = true
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    self      = true
   }
 
   ingress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = [var.vpc_cidr]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.vpc_cidr]
   }
 
   ingress {
@@ -328,9 +328,9 @@ resource "aws_security_group" "monitoring-sg" {
 
   ingress {
     security_groups = [module.public_nlb.security_group_id]
-    protocol = "-1"
-    from_port = 0
-    to_port = 0
+    protocol        = "-1"
+    from_port       = 0
+    to_port         = 0
   }
 
   egress {

@@ -25,15 +25,15 @@ output "grafana_credentials" {
 
 output "emqx_nodes" {
   description = "EMQX nodes"
-  value       = [for node in module.emqx: format("%-16s %s", node.public_ips[0], node.fqdn)]
+  value       = [for node in module.emqx : format("%-16s %s", node.public_ips[0], node.fqdn)]
 }
 
 output "emqttb_nodes" {
   description = "emqttb nodes"
-  value       = [for node in module.emqttb: format("%-16s %s", node.public_ips[0], node.fqdn)]
+  value       = [for node in module.emqttb : format("%-16s %s", node.public_ips[0], node.fqdn)]
 }
 
 output "emqtt_bench_nodes" {
   description = "emqtt-bench nodes"
-  value       = [for node in module.emqtt-bench: format("%-16s %s", node.public_ips[0], node.fqdn)]
+  value       = [for node in module.emqtt-bench : format("%-16s %s", node.public_ips[0], node.fqdn)]
 }
