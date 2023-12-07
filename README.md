@@ -59,9 +59,9 @@ ansible-playbook ansible/emqtt-bench.yml
 To ssh directly into instances, use terraform output to get IP addresses, and generated ssh private key in `.ssh` directory, for example:
 
 ```bash
-ssh 52.53.191.91 -l ubuntu -i ~/.ssh/perftest-5xfd5zz7.pem
+ssh 52.53.191.91 -l ubuntu -i ~/.ssh/foobar.pem
 ```
-Key name is generated as `perftest-<id>.pem`.
+Key name is generated as `<id>.pem` (`id` is from test spec file).
 
 You can also modify ansible variables directly under `ansible/group_vars` and `ansible/host_vars` directories, and re-run ansible playbooks without recreating terraform infrastructure.
 
