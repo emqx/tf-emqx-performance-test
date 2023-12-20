@@ -1,0 +1,28 @@
+id: emqx4
+region: eu-west-1
+os_name: ubuntu-jammy
+os_version: 22.04
+use_spot_instances: false
+emqx:
+  instance_type: t4g.large
+  cpu_arch: arm64
+  version_family: 4
+  license_file: ~/Downloads/emqx4.lic
+  emqx_dashboard_default_password: public123
+  nodes:
+    - instance_count: 3
+emqtt_bench:
+  instance_type: t3.large
+  cpu_arch: amd64
+  nodes:
+    - scenario: "sub -c 1000 -i 100 -t bench/%%i -q 1"
+locust:
+  instance_type: t4g.large
+  cpu_arch: arm64
+  version: latest
+  plan_entrypoint: locustfile.py
+  nodes:
+    - instance_count: 1
+      role: leader
+    - instance_count: 1
+      role: worker

@@ -1,0 +1,6 @@
+emqx_install_source: package # git | zip | docker | package
+emqx_package_download_url: ''
+emqx_package_file_path: ''
+emqx_cluster_discovery: 'manual' # manual | static | dns | etcd | k8s
+emqx_prometheus_push_gateway_server: ''
+emqx_license_file: ''

@@ -19,3 +19,7 @@ output "grafana_target_group_arn" {
 output "prometheus_target_group_arn" {
   value = aws_lb_target_group.prometheus.arn
 }
+
+output "locust_target_group_arn" {
+  value = aws_lb_target_group.locust.arn
+}

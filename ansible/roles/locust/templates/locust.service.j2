@@ -1,0 +1,16 @@
+[Unit]
+Description=Locust
+After=network.target
+
+[Service]
+{% if locust_role == "leader" -%}
+ExecStart=:/usr/bin/python3 -m locust --locustfile {{ locust_entrypoint }} --host '{{ locust_base_url }}' --master --web-port={{ locust_web_port }} --autostart
+{% else %}
+ExecStart=:/usr/bin/python3 -m locust --locustfile {{ locust_entrypoint }} --host '{{ locust_base_url }}' --worker --master-host={{ locust_leader_ip }} --autostart
+{% endif %}
+User=locust
+Group=locust
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

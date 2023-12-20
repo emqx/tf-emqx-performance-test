@@ -5,6 +5,14 @@ module "public_nlb" {
   subnet_ids = local.vpcs[local.default_region].public_subnet_ids
 }
 
+module "internal_nlb" {
+  source     = "./modules/internal_nlb"
+  prefix     = local.prefix
+  vpc_id     = local.vpcs[local.default_region].vpc_id
+  subnet_ids = local.vpcs[local.default_region].public_subnet_ids
+  http_api_port = local.emqx_http_api_port
+}
+
 module "emqx" {
   for_each           = { for k, v in local.emqx_nodes : k => v }
   source             = "./modules/ec2"
@@ -36,6 +44,20 @@ resource "aws_lb_target_group_attachment" "emqx" {
   target_group_arn = module.public_nlb.emqx_target_group_arn
   target_id        = each.value.private_ips[0]
   port             = 18083
+}
+
+resource "aws_lb_target_group_attachment" "int-mqtt" {
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  target_group_arn = module.internal_nlb.mqtt_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = 1883
+}
+
+resource "aws_lb_target_group_attachment" "int-httpapi" {
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  target_group_arn = module.internal_nlb.httpapi_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = local.emqx_http_api_port
 }
 
 module "emqttb" {
@@ -88,6 +110,31 @@ module "emqtt-bench" {
   ]
 }
 
+module "locust" {
+  for_each           = { for k, v in local.locust_nodes : k => v }
+  source             = "./modules/ec2"
+  region             = each.value.region
+  instance_name      = each.value.name
+  instance_type      = each.value.instance_type
+  hostname           = each.value.hostname
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  security_group_id  = local.vpcs[each.value.region].security_group_id
+  ami_filter         = local.locust_ami_filter
+  use_spot_instances = local.locust_use_spot_instances
+  prefix             = local.prefix
+  region_aliases     = local.region_aliases
+  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  providers = {
+    aws.default = aws.default
+    aws.region2 = aws.region2
+    aws.region3 = aws.region3
+  }
+  depends_on = [
+    aws_route53_zone_association.region2,
+    aws_route53_zone_association.region3
+  ]
+}
+
 module "monitoring" {
   source             = "./modules/ec2"
   region             = local.default_region
@@ -125,6 +172,13 @@ resource "aws_lb_target_group_attachment" "prometheus" {
   port             = 9090
 }
 
+resource "aws_lb_target_group_attachment" "locust" {
+  for_each         = { for i, node in module.locust : i => node if local.locust_nodes[node.fqdn].role == "leader"}
+  target_group_arn = module.public_nlb.locust_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = 8080
+}
+
 resource "local_file" "ansible_cfg" {
   content = templatefile("${path.module}/templates/ansible.cfg.tpl",
     {
@@ -140,7 +194,9 @@ resource "local_file" "ansible_inventory" {
       emqx_nodes        = [for node in module.emqx : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
       emqttb_nodes      = [for node in module.emqttb : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
       emqtt_bench_nodes = [for node in module.emqtt-bench : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      locust_nodes      = [for node in module.locust : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
       monitoring_nodes  = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ips[0]} private_ip=${module.monitoring.private_ips[0]}"]
+      emqx_version_family = local.emqx_version_family
   })
   filename = "${path.module}/ansible/inventory.ini"
 }
@@ -195,8 +251,9 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_api_key                         = local.emqx_api_key,
     emqx_api_secret                      = local.emqx_api_secret,
     emqx_bootstrap_api_keys              = local.emqx_bootstrap_api_keys,
+    emqx_license_file                    = local.emqx_license_file,
   })
-  filename = "${path.module}/ansible/group_vars/emqx.yml"
+  filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
 
 resource "local_file" "ansible_emqx_host_vars" {
@@ -244,14 +301,33 @@ resource "local_file" "ansible_emqtt_bench_host_vars" {
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
 
+resource "local_file" "ansible_locust_group_vars" {
+  content = yamlencode({
+    locust_package_download_url = try(local.spec.locust.package_download_url, ""),
+    locust_package_file_path    = try(local.spec.locust.package_file_path, ""),
+    locust_base_url             = "http://${module.internal_nlb.dns_name}:${local.emqx_http_api_port}/api/${local.emqx_api_version}"
+    locust_version              = local.locust_version
+  })
+  filename = "${path.module}/ansible/group_vars/locust.yml"
+}
+
+locals {
+  locust_leader = [for node in module.locust : node if local.locust_nodes[node.fqdn].role == "leader"]
+}
+
+resource "local_file" "ansible_locust_host_vars" {
+  for_each = { for i, node in module.locust : i => node }
+  content = yamlencode({
+    locust_plan_entrypoint = local.locust_nodes[each.value.fqdn].plan_entrypoint,
+    locust_role            = local.locust_nodes[each.value.fqdn].role,
+    locust_leader_ip       = local.locust_leader[0].private_ips[0],
+  })
+  filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
+}
+
 resource "local_file" "ansible_monitoring_group_vars" {
   content = yamlencode({
-    prometheus_node_exporter_targets = concat(
-      [for node in local.emqx_nodes : "${node.hostname}:9100"],
-      [for node in local.emqttb_nodes : "${node.hostname}:9100"],
-      [for node in local.emqtt_bench_nodes : "${node.hostname}:9100"]
-    ),
-    prometheus_emqx_targets = [for node in local.emqx_nodes : "${node.hostname}:18083"]
+    emqx_version_family = local.emqx_version_family
   })
   filename = "${path.module}/ansible/group_vars/monitoring.yml"
 }
@@ -261,6 +337,7 @@ resource "null_resource" "ansible_playbook" {
     module.emqx,
     module.emqttb,
     module.emqtt-bench,
+    module.locust,
     module.monitoring,
     local_file.ansible_inventory,
     local_file.ansible_cfg,
@@ -269,7 +346,9 @@ resource "null_resource" "ansible_playbook" {
     local_file.ansible_emqttb_group_vars,
     local_file.ansible_emqttb_host_vars,
     local_file.ansible_emqtt_bench_group_vars,
-    local_file.ansible_emqtt_bench_host_vars
+    local_file.ansible_emqtt_bench_host_vars,
+    local_file.ansible_locust_group_vars,
+    local_file.ansible_locust_host_vars
   ]
 
   provisioner "local-exec" {
@@ -286,61 +365,3 @@ resource "null_resource" "ansible_playbook" {
   }
 }
 
-resource "aws_security_group" "monitoring-sg" {
-  name        = "${local.prefix}-monitoring-sg"
-  description = "Security group for Prometheus and Grafana"
-  vpc_id      = module.vpc-default.vpc_id
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = [var.vpc_cidr]
-  }
-
-  ingress {
-    from_port        = 3000
-    to_port          = 3000
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 9090
-    to_port          = 9090
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 22
-    to_port          = 22
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    security_groups = [module.public_nlb.security_group_id]
-    protocol        = "-1"
-    from_port       = 0
-    to_port         = 0
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-}

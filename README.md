@@ -12,7 +12,7 @@ This creates an EMQX cluster with configurable number of core and replicant node
 
 ```bash
 terraform init
-terraform apply -parallelism 48
+terraform apply -parallelism 48 -var spec_file=tests/default.yml
 # this will take a while, wait until terraform finishes
 # if something fails during ansible provisioning, try to re-run corresponding playbook
 env no_proxy='*' ansible-playbook ansible/emqx.yml
@@ -49,6 +49,7 @@ ansible emqx -m command -a 'systemctl restart emqx' --become
 # get emqx cluster status on all nodes
 ansible emqx -m command -a 'emqx ctl cluster status' --become
 # reinstall emqx
+ansible emqx -m shell -a 'apt-get purge emqx -y' --become
 ansible-playbook ansible/emqx.yml
 # reinstall emqttb
 ansible-playbook ansible/emqttb.yml

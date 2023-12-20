@@ -1,0 +1,5 @@
+locust_version: latest
+locust_web_port: 8080
+locust_home_dir: "/var/lib/locust"
+locust_plan_entrypoint: locustfile.py
+locust_entrypoint: "{{ locust_home_dir }}/{{ locust_plan_entrypoint }}"
