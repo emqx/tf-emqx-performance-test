@@ -5,7 +5,7 @@
   when: emqx_package_file_path != ''
   ansible.builtin.copy:
     src: "{{ emqx_package_file_path }}"
-    dest: "/tmp/emqx.{{ ansible_os_family == 'Debian' | ternary('deb', 'rpm') }}"
+    dest: "/tmp/emqx.{{ (ansible_os_family == 'Debian') | ternary('deb', 'rpm') }}"
 
 - name: Install emqx
   become: yes
