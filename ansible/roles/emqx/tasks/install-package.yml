@@ -1,4 +1,4 @@
-- include: install-repo.yml
+- include_tasks: install-repo.yml
   when: emqx_package_download_url == '' and emqx_package_file_path == ''
 
 - name: Upload package
@@ -83,7 +83,7 @@
     dest: /etc/systemd/system/emqx.service.d/override.conf
     mode: '0644'
   register: _override
-  
+
 - name: Start emqx
   become: yes
   ansible.builtin.systemd:
@@ -118,4 +118,3 @@
   until: _result.status == 200
   retries: 12
   delay: 5
-    

@@ -1,2 +1,2 @@
-- include: install-tgz.yml
+- include_tasks: install-tgz.yml
   when: emqtt_bench_install_source == 'tgz'
