@@ -18,6 +18,17 @@ resource "aws_lb_listener" "emqx" {
   }
 }
 
+resource "aws_lb_listener" "emqx-api" {
+  load_balancer_arn = aws_lb.nlb.arn
+  port              = "8081"
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.emqx-api.arn
+  }
+}
+
 resource "aws_lb_listener" "grafana" {
   load_balancer_arn = aws_lb.nlb.arn
   port              = "3000"
@@ -59,6 +70,14 @@ resource "aws_lb_target_group" "emqx" {
   vpc_id   = var.vpc_id
 }
 
+resource "aws_lb_target_group" "emqx-api" {
+  name     = "${var.prefix}-emqx-api"
+  port     = 8081
+  protocol = "TCP"
+  target_type = "ip"
+  vpc_id   = var.vpc_id
+}
+
 resource "aws_lb_target_group" "grafana" {
   name     = "${var.prefix}-grafana"
   port     = 3000
@@ -91,6 +110,14 @@ resource "aws_security_group" "nlb_sg" {
   ingress {
     from_port        = 18083
     to_port          = 18083
+    protocol         = "TCP"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  ingress {
+    from_port        = 8081
+    to_port          = 8081
     protocol         = "TCP"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]

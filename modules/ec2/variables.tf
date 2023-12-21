@@ -54,3 +54,15 @@ variable "root_volume_size" {
   type        = number
   default     = 20
 }
+
+variable "ip_alias_subnet_prefix" {
+  description = "The subnet prefix for IP aliases"
+  type        = string
+  default     = ""
+}
+
+variable "ip_alias_count" {
+  description = "The number of IP aliases"
+  type        = number
+  default     = 0
+}

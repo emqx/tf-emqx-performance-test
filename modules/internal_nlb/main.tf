@@ -27,6 +27,26 @@ resource "aws_lb_listener" "httpapi" {
   }
 }
 
+resource "aws_lb_listener" "http-extra" {
+  load_balancer_arn = aws_lb.nlb.arn
+  port              = 8089
+  protocol          = "TCP"
+  default_action {
+    target_group_arn = aws_lb_target_group.httpapi.arn
+    type             = "forward"
+  }
+}
+
+resource "aws_lb_listener" "mgmt" {
+  load_balancer_arn = aws_lb.nlb.arn
+  port              = 18083
+  protocol          = "TCP"
+  default_action {
+    target_group_arn = aws_lb_target_group.mgmt.arn
+    type             = "forward"
+  }
+}
+
 resource "aws_lb_target_group" "mqtt" {
   name        = "${var.prefix}-mqtt"
   port        = 1883
@@ -57,6 +77,21 @@ resource "aws_lb_target_group" "httpapi" {
   }
 }
 
+resource "aws_lb_target_group" "mgmt" {
+  name        = "${var.prefix}-mgmt"
+  port        = 18083
+  protocol    = "TCP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+  health_check {
+    interval            = 30
+    port                = 18083
+    protocol            = "TCP"
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+  }
+}
+
 resource "aws_security_group" "nlb_sg" {
   name_prefix = var.prefix
   description = "Access to MQTT port"
@@ -73,6 +108,14 @@ resource "aws_security_group" "nlb_sg" {
   ingress {
     from_port        = var.http_api_port
     to_port          = var.http_api_port
+    protocol         = "TCP"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  ingress {
+    from_port        = 18083
+    to_port          = 18083
     protocol         = "TCP"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]

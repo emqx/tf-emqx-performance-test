@@ -19,6 +19,26 @@
     createhome: yes
     home: "{{ locust_home_dir }}"
     
+- name: Ensure /etc/locust directory exists
+  become: yes
+  ansible.builtin.file:
+    path: /etc/locust
+    state: directory
+
+- name: Render /etc/locust/locust.conf
+  become: yes
+  ansible.builtin.template:
+    src: locust.conf.j2
+    dest: /etc/locust/locust.conf
+    mode: '0644'
+
+- name: Render /etc/locust/locust.env
+  become: yes
+  ansible.builtin.template:
+    src: locust.env.j2
+    dest: /etc/locust/locust.env
+    mode: '0644'
+
 - name: Render locust systemd unit file
   become: yes
   ansible.builtin.template:

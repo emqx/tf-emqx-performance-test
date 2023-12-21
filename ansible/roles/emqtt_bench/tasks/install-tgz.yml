@@ -6,25 +6,32 @@
     return_content: yes
   register: emqtt_bench_assets
 
+- name: Set the match url fact
+  when: emqtt_bench_version == 'latest' and emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == ''
+  set_fact:
+    file_name_match: "{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}"
+
+- name: Download emqtt-bench tgz
+  when: emqtt_bench_version == 'latest' and emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == '' and file_name_match in item.browser_download_url
+  ansible.builtin.get_url:
+    url: "{{ item.browser_download_url }}"
+    dest: "/tmp/emqtt_bench.tar.gz"
+    mode: '0644'
+  loop: "{{ emqtt_bench_assets.json.assets }}"
+
+- name: Download emqtt-bench release
+  when: emqtt_bench_version != 'latest' and emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == ''
+  ansible.builtin.get_url:
+    url: "https://github.com/emqx/emqtt-bench/releases/download/v{{ emqtt_bench_version }}/emqtt-bench-{{ emqtt_bench_version }}-{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}.tar.gz"
+    dest: "/tmp/emqtt_bench.tar.gz"
+    mode: '0644'
+
 - name: Download emqtt-bench tgz
   when: emqtt_bench_tgz_download_url != ''
   ansible.builtin.get_url:
     url: emqtt_bench_tgz_download_url
     dest: /tmp/emqtt_bench.tar.gz
     mode: '0644'
-
-- name: Set the match url fact
-  when: emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == ''
-  set_fact:
-    file_name_match: "{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}"
-
-- name: Download emqtt-bench tgz
-  when: emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == '' and file_name_match in item.browser_download_url
-  ansible.builtin.get_url:
-    url: "{{ item.browser_download_url }}"
-    dest: "/tmp/emqtt_bench.tar.gz"
-    mode: '0644'
-  loop: "{{ emqtt_bench_assets.json.assets }}"
 
 - name: Upload tgz
   when: emqtt_bench_tgz_file_path != ''

@@ -1,3 +1,11 @@
 - hosts: emqtt_bench
+  vars:
+    ip_aliases: ["{{ ansible_default_ipv4.address }}"]
+  pre_tasks:
+    - name: Generate IP addresses
+      when: (emqtt_bench_ip_alias_subnet_prefix is defined) and (emqtt_bench_ip_alias_subnet_prefix | length > 0) and (emqtt_bench_ip_alias_count is defined) and (emqtt_bench_ip_alias_count > 0)
+      set_fact:
+        ip_aliases: "{{ ip_aliases + [(emqtt_bench_ip_alias_subnet_prefix + '.' + (item|string))] }}"
+      loop: "{{ range(2, emqtt_bench_ip_alias_count) }}"
   roles:
     - emqtt_bench

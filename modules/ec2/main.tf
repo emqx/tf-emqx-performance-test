@@ -51,8 +51,10 @@ resource "aws_instance" "default" {
   key_name               = var.prefix
   user_data              = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra          = var.extra_user_data
-      hostname       = var.hostname
+      extra                  = var.extra_user_data
+      hostname               = var.hostname
+      ip_alias_subnet_prefix = var.ip_alias_subnet_prefix
+      ip_alias_count         = var.ip_alias_count
     })
 
   tags = {
@@ -87,8 +89,10 @@ resource "aws_instance" "region2" {
   key_name               = var.prefix
   user_data              = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra          = var.extra_user_data
-      hostname       = var.hostname
+      extra                  = var.extra_user_data
+      hostname               = var.hostname
+      ip_alias_subnet_prefix = var.ip_alias_subnet_prefix
+      ip_alias_count         = var.ip_alias_count
     })
 
   tags = {
@@ -123,8 +127,10 @@ resource "aws_instance" "region3" {
   key_name               = var.prefix
   user_data              = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra          = var.extra_user_data
-      hostname       = var.hostname
+      extra                  = var.extra_user_data
+      hostname               = var.hostname
+      ip_alias_subnet_prefix = var.ip_alias_subnet_prefix
+      ip_alias_count         = var.ip_alias_count
     })
 
   tags = {

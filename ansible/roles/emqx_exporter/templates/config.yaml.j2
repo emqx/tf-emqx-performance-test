@@ -1,5 +1,9 @@
 metrics:
+{% if emqx_version_family == 4 %}
+  target: 127.0.0.1:8081
+{% else %}
   target: 127.0.0.1:18083
+{% endif %}
   api_key: {{ emqx_api_key }}
   api_secret: {{ emqx_api_secret }}
 probes:

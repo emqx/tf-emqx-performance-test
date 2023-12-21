@@ -14,3 +14,7 @@ output "mqtt_target_group_arn" {
 output "httpapi_target_group_arn" {
   value = aws_lb_target_group.httpapi.arn
 }
+
+output "mgmt_target_group_arn" {
+  value = aws_lb_target_group.mgmt.arn
+}

@@ -43,6 +43,15 @@ resource "aws_security_group_rule" "allow_access_on_18083" {
   to_port     = 18083
 }
 
+resource "aws_security_group_rule" "allow_access_on_8081" {
+  type = "ingress"
+  security_group_id = var.security_group_id
+  cidr_blocks = ["0.0.0.0/0"]
+  protocol    = "TCP"
+  from_port   = 8081
+  to_port     = 8081
+}
+
 resource "aws_security_group_rule" "allow_all_outbound_ipv4" {
   type = "egress"
   security_group_id = var.security_group_id

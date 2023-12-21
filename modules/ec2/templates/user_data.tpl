@@ -2,6 +2,9 @@
 
 set -x
 
+apt-get update -y
+apt-get install curl unzip net-tools -y
+
 cat >> /etc/sysctl.d/99-sysctl.conf <<EOF
 net.core.netdev_max_backlog=16384
 net.core.optmem_max=16777216
@@ -34,8 +37,15 @@ EOF
 [ -n "${hostname}" ] && hostnamectl set-hostname ${hostname}
 
 cd /opt
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip -q awscliv2.zip
 ./aws/install
+
+if [[ -n "${ip_alias_subnet_prefix}" && "${ip_alias_count}" != "0" ]]; then
+  netdev=$(ip route show default | cut -d' ' -f5)
+  for x in $(seq 2 ${ip_alias_count}); do
+      ip addr add ${ip_alias_subnet_prefix}.$x dev $netdev
+  done
+fi
 
 ${extra}

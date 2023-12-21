@@ -48,8 +48,8 @@ locals {
   emqx_install_source             = try(local.spec.emqx.install_source, "package")
   emqx_dashboard_default_password = try(local.spec.emqx.dashboard_default_password, "public")
 
-  emqx_api_key    = "perftest"
-  emqx_api_secret = local.bench_id
+  emqx_api_key    = try(local.spec.emqx.api_key, "perftest")
+  emqx_api_secret = try(local.spec.emqx.api_secret, "perftest")
   emqx_bootstrap_api_keys = [
     {
       key    = local.emqx_api_key
@@ -113,6 +113,8 @@ locals {
         hostname      = "emqttb-${lookup(var.regions_abbrev_map, r)}-${i + 1}.${local.route53_zone_name}",
         ami_filter    = try(n.ami_filter, local.emqttb_ami_filter)
         scenario      = try(n.scenario, local.emqttb_scenario)
+        ip_alias_subnet_prefix = try(n.ip_alias_subnet_prefix, "")
+        ip_alias_count  = try(n.ip_alias_count, 0)
       }
   ]])
   emqttb_nodes = { for node in local.emqttb_nodes_list : node.hostname => node }
@@ -146,6 +148,8 @@ locals {
         hostname      = "emqtt-bench-${lookup(var.regions_abbrev_map, r)}-${i + 1}.${local.route53_zone_name}",
         ami_filter    = try(n.ami_filter, local.emqtt_bench_ami_filter)
         scenario      = try(n.scenario, local.emqtt_bench_scenario)
+        ip_alias_subnet_prefix = try(n.ip_alias_subnet_prefix, "")
+        ip_alias_count  = try(n.ip_alias_count, 0)
       }
   ]])
   emqtt_bench_nodes = { for node in local.emqtt_bench_nodes_list : node.hostname => node }
@@ -161,6 +165,12 @@ locals {
   locust_use_spot_instances = try(local.spec.locust.use_spot_instances, local.default_use_spot_instances)
   locust_plan_entrypoint    = try(local.spec.locust.plan_entrypoint, "locustfile.py")
   locust_version            = try(local.spec.locust.version, "latest")
+  locust_topics_count       = local.spec.locust.topics_count
+  locust_unsubscribe_client_batch_size = local.spec.locust.unsubscribe_client_batch_size
+  locust_max_client_id      = local.spec.locust.max_client_id
+  locust_client_prefix_list = local.spec.locust.client_prefix_list
+  locust_users              = try(local.spec.locust.users, 10)
+  locust_payload_size       = try(local.spec.locust.payload_size, 256)
   # group by region
   locust_nodes_by_region = {
     for r in local.regions :
@@ -180,7 +190,7 @@ locals {
         hostname      = "locust-${lookup(var.regions_abbrev_map, r)}-${i + 1}.${local.route53_zone_name}",
         ami_filter    = try(n.ami_filter, local.locust_ami_filter)
         role          = try(n.role, "leader")
-        plan_entrypoint = try(n.scenario, local.locust_plan_entrypoint)
+        plan_entrypoint = try(n.plan_entrypoint, local.locust_plan_entrypoint)
       }
   ]])
   locust_nodes = { for node in local.locust_nodes_list : node.hostname => node }

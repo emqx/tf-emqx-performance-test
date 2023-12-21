@@ -115,20 +115,15 @@
   become: yes
   ansible.builtin.shell: "emqx ctl license reload /tmp/emqx.lic"
 
-- name: Change default password
+- name: Render set-credentials.sh script
   become: yes
-  run_once: yes
-  ansible.builtin.shell: "emqx ctl admins passwd admin {{ emqx_dashboard_default_password }}"
+  ansible.builtin.template:
+    src: set-credentials.sh.j2
+    dest: /usr/local/bin/set-credentials.sh
+    mode: '0755'
 
-- name: Add perftest app
+- name: Run set-credentials.sh script
   become: yes
+  become_user: emqx
   run_once: yes
-  ansible.builtin.uri:
-    url: "http://localhost:18083/api/v4/apps"
-    method: POST
-    user: admin
-    password: "{{ emqx_dashboard_default_password }}"
-    force_basic_auth: true
-    body: '{"app_id": "perftest", "name": "perftest", "secret": "perftest", "status": true}'
-    body_format: json
-    status_code: 200
+  ansible.builtin.shell: /usr/local/bin/set-credentials.sh
