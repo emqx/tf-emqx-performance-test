@@ -184,7 +184,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(emqttb_group_n_workers{}[5s])",
+          "expr": "rate(emqttb_group_n_workers{}[30s])",
           "interval": "",
           "legendFormat": "{{group}}",
           "refId": "A"
@@ -266,7 +266,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(emqttb_published_messages{}[5s])",
+          "expr": "rate(emqttb_published_messages{}[30s])",
           "interval": "",
           "legendFormat": "{{group}}",
           "refId": "A"
@@ -348,7 +348,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "rate(emqttb_received_messages{}[5s])",
+          "expr": "rate(emqttb_received_messages{}[30s])",
           "interval": "",
           "legendFormat": "{{group}}",
           "refId": "A"
