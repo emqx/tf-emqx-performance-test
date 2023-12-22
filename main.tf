@@ -276,6 +276,9 @@ resource "null_resource" "ansible_playbook" {
     command = "ansible-galaxy collection install -r ansible/requirements.yml"
   }
   provisioner "local-exec" {
+    command = "ansible-galaxy role install -r ansible/requirements.yml"
+  }
+  provisioner "local-exec" {
     command = "ansible-playbook ansible/playbook.yml"
     environment = {
       no_proxy = "*"
