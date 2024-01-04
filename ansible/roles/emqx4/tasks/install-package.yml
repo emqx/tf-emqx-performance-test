@@ -1,4 +1,4 @@
-- include: install-repo.yml
+- include_tasks: install-repo.yml
   when: emqx_package_download_url == '' and emqx_package_file_path == ''
 
 - name: Upload package

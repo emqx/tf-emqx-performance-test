@@ -1,9 +1,9 @@
 resource "aws_lb" "nlb" {
-  name               = "${var.prefix}-public-lb"
-  internal           = false
-  load_balancer_type = "network"
-  subnets            = var.subnet_ids
-  security_groups    = [aws_security_group.nlb_sg.id]
+  name                             = "${var.prefix}-public-lb"
+  internal                         = false
+  load_balancer_type               = "network"
+  subnets                          = var.subnet_ids
+  security_groups                  = [aws_security_group.nlb_sg.id]
   enable_cross_zone_load_balancing = true
 }
 
@@ -63,43 +63,43 @@ resource "aws_lb_listener" "locust" {
 }
 
 resource "aws_lb_target_group" "emqx" {
-  name     = "${var.prefix}-emqx"
-  port     = 18083
-  protocol = "TCP"
+  name        = "${var.prefix}-emqx"
+  port        = 18083
+  protocol    = "TCP"
   target_type = "ip"
-  vpc_id   = var.vpc_id
+  vpc_id      = var.vpc_id
 }
 
 resource "aws_lb_target_group" "emqx-api" {
-  name     = "${var.prefix}-emqx-api"
-  port     = 8081
-  protocol = "TCP"
+  name        = "${var.prefix}-emqx-api"
+  port        = 8081
+  protocol    = "TCP"
   target_type = "ip"
-  vpc_id   = var.vpc_id
+  vpc_id      = var.vpc_id
 }
 
 resource "aws_lb_target_group" "grafana" {
-  name     = "${var.prefix}-grafana"
-  port     = 3000
-  protocol = "TCP"
+  name        = "${var.prefix}-grafana"
+  port        = 3000
+  protocol    = "TCP"
   target_type = "ip"
-  vpc_id   = var.vpc_id
+  vpc_id      = var.vpc_id
 }
 
 resource "aws_lb_target_group" "prometheus" {
-  name     = "${var.prefix}-prometheus"
-  port     = 9090
-  protocol = "TCP"
+  name        = "${var.prefix}-prometheus"
+  port        = 9090
+  protocol    = "TCP"
   target_type = "ip"
-  vpc_id   = var.vpc_id
+  vpc_id      = var.vpc_id
 }
 
 resource "aws_lb_target_group" "locust" {
-  name     = "${var.prefix}-locust"
-  port     = 8080
-  protocol = "TCP"
+  name        = "${var.prefix}-locust"
+  port        = 8080
+  protocol    = "TCP"
   target_type = "ip"
-  vpc_id   = var.vpc_id
+  vpc_id      = var.vpc_id
 }
 
 resource "aws_security_group" "nlb_sg" {
@@ -148,9 +148,9 @@ resource "aws_security_group" "nlb_sg" {
   }
 
   egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }

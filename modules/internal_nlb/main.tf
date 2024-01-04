@@ -1,9 +1,9 @@
 resource "aws_lb" "nlb" {
-  name               = "${var.prefix}-internal-lb"
-  internal           = true
-  load_balancer_type = "network"
-  subnets            = var.subnet_ids
-  security_groups    = [aws_security_group.nlb_sg.id]
+  name                             = "${var.prefix}-internal-lb"
+  internal                         = true
+  load_balancer_type               = "network"
+  subnets                          = var.subnet_ids
+  security_groups                  = [aws_security_group.nlb_sg.id]
   enable_cross_zone_load_balancing = true
 }
 
@@ -38,6 +38,7 @@ resource "aws_lb_listener" "http-extra" {
 }
 
 resource "aws_lb_listener" "mgmt" {
+  count             = var.http_api_port != 18083 ? 1 : 0
   load_balancer_arn = aws_lb.nlb.arn
   port              = 18083
   protocol          = "TCP"
@@ -122,9 +123,9 @@ resource "aws_security_group" "nlb_sg" {
   }
 
   egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }

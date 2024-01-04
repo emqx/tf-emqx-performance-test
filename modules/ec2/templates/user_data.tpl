@@ -41,11 +41,4 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip -q awscliv2.zip
 ./aws/install
 
-if [[ -n "${ip_alias_subnet_prefix}" && "${ip_alias_count}" != "0" ]]; then
-  netdev=$(ip route show default | cut -d' ' -f5)
-  for x in $(seq 2 ${ip_alias_count}); do
-      ip addr add ${ip_alias_subnet_prefix}.$x dev $netdev
-  done
-fi
-
 ${extra}

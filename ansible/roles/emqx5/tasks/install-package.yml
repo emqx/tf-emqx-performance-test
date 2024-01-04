@@ -39,9 +39,17 @@
 
 - name: Install emqx
   become: yes
-  when: emqx_package_download_url == '' and emqx_package_file_path == ''
+  when: emqx_package_download_url == '' and emqx_package_file_path == '' and emqx_package_version == 'latest'
   ansible.builtin.apt:
     name: emqx
+    state: present
+    update_cache: yes
+
+- name: Install emqx
+  become: yes
+  when: emqx_package_download_url == '' and emqx_package_file_path == '' and emqx_package_version != 'latest'
+  ansible.builtin.apt:
+    name: "emqx={{ emqx_package_version }}"
     state: present
     update_cache: yes
 

@@ -1,11 +1,3 @@
 - hosts: emqttb
-  vars:
-    ip_aliases: ["{{ ansible_default_ipv4.address }}"]
-  pre_tasks:
-    - name: Generate IP addresses
-      when: (ip_alias_subnet_prefix is defined) and (ip_alias_subnet_prefix | length > 0) and (ip_alias_count is defined) and (ip_alias_count > 0)
-      set_fact:
-        ip_aliases: "{{ ip_aliases + [(ip_alias_subnet_prefix + item)] }}"
-      loop: "{{ range(0, ip_alias_count) }}"
   roles:
     - emqttb

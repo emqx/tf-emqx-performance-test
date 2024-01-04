@@ -8,33 +8,33 @@ terraform {
 }
 
 data "aws_availability_zones" "available" {
-  state = "available"
+  state    = "available"
   provider = aws
 }
 
 resource "aws_vpc" "vpc" {
-  cidr_block = var.cidr
+  cidr_block           = var.cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
-  provider = aws
+  provider             = aws
   tags = {
     Name = var.prefix
   }
 }
 
 resource "aws_subnet" "public" {
-  vpc_id = aws_vpc.vpc.id
-  cidr_block = cidrsubnet(var.cidr, 8, 0)
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = cidrsubnet(var.cidr, 8, 0)
   map_public_ip_on_launch = true
-  availability_zone = data.aws_availability_zones.available.names[0]
-  provider = aws
+  availability_zone       = data.aws_availability_zones.available.names[0]
+  provider                = aws
   tags = {
     Name = var.prefix
   }
 }
 
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.vpc.id
+  vpc_id   = aws_vpc.vpc.id
   provider = aws
   tags = {
     Name = var.prefix
@@ -42,36 +42,36 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_route" "igw" {
-  route_table_id = aws_vpc.vpc.main_route_table_id
-  gateway_id     = aws_internet_gateway.igw.id
+  route_table_id         = aws_vpc.vpc.main_route_table_id
+  gateway_id             = aws_internet_gateway.igw.id
   destination_cidr_block = "0.0.0.0/0"
-  provider = aws
+  provider               = aws
 }
 
 resource "aws_route" "igw_ipv6" {
-  route_table_id = aws_vpc.vpc.main_route_table_id
-  gateway_id     = aws_internet_gateway.igw.id
+  route_table_id              = aws_vpc.vpc.main_route_table_id
+  gateway_id                  = aws_internet_gateway.igw.id
   destination_ipv6_cidr_block = "::/0"
-  provider = aws
+  provider                    = aws
 }
 
 resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_vpc.vpc.main_route_table_id
-  provider = aws
+  provider       = aws
 }
 
 resource "aws_security_group" "vpc_sg" {
   name        = "${var.prefix}-vpc-sg"
   description = "VPC security group"
   vpc_id      = aws_vpc.vpc.id
-  provider = aws
+  provider    = aws
 }
 
 resource "aws_key_pair" "kp" {
   key_name   = var.prefix
   public_key = var.public_key
-  provider = aws
+  provider   = aws
 }
 
 resource "aws_iam_policy" "ec2_policy" {
@@ -83,12 +83,12 @@ resource "aws_iam_policy" "ec2_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        "Effect": "Allow",
-        "Action": [
+        "Effect" : "Allow",
+        "Action" : [
           "s3:GetObject",
           "s3:List*"
         ],
-        "Resource": [
+        "Resource" : [
           "*"
         ]
       }
@@ -120,18 +120,18 @@ resource "aws_iam_policy_attachment" "ec2_policy_role" {
   name       = "${var.prefix}-${var.vpc_region}"
   roles      = [aws_iam_role.ec2_role.name]
   policy_arn = aws_iam_policy.ec2_policy.arn
-  provider = aws
+  provider   = aws
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.prefix}-${var.vpc_region}"
-  role = aws_iam_role.ec2_role.name
+  name     = "${var.prefix}-${var.vpc_region}"
+  role     = aws_iam_role.ec2_role.name
   provider = aws
 }
 
 module "security_group_rules" {
-  source = "./../security_group_rules"
-  cidr_ipv4 = "10.0.0.0/8"
+  source            = "./../security_group_rules"
+  cidr_ipv4         = "10.0.0.0/8"
   security_group_id = aws_security_group.vpc_sg.id
   providers = {
     aws = aws

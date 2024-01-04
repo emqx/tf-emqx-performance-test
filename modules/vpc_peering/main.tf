@@ -1,9 +1,9 @@
 terraform {
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.1"
-      configuration_aliases = [ aws.primary, aws.peer ]
+      source                = "hashicorp/aws"
+      version               = "~> 5.1"
+      configuration_aliases = [aws.primary, aws.peer]
     }
   }
   required_version = ">= 1.2.0"
@@ -23,13 +23,13 @@ resource "aws_vpc_peering_connection" "peer" {
 }
 
 resource "aws_vpc_peering_connection_accepter" "peer" {
-  provider = aws.peer
+  provider                  = aws.peer
   vpc_peering_connection_id = aws_vpc_peering_connection.peer.id
-  auto_accept = true
+  auto_accept               = true
 }
 
 resource "aws_vpc_peering_connection_options" "requester" {
-  provider = aws.primary
+  provider                  = aws.primary
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
 
   requester {
@@ -38,7 +38,7 @@ resource "aws_vpc_peering_connection_options" "requester" {
 }
 
 resource "aws_vpc_peering_connection_options" "accepter" {
-  provider = aws.peer
+  provider                  = aws.peer
   vpc_peering_connection_id = aws_vpc_peering_connection_accepter.peer.id
 
   accepter {
@@ -47,15 +47,15 @@ resource "aws_vpc_peering_connection_options" "accepter" {
 }
 
 resource "aws_route" "route_primary_to_peer" {
-  provider = aws.primary
-  route_table_id = var.route_table_id
-  destination_cidr_block = var.peer_cidr_block
+  provider                  = aws.primary
+  route_table_id            = var.route_table_id
+  destination_cidr_block    = var.peer_cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.peer.id
 }
 
 resource "aws_route" "route_peer_to_primary" {
-  provider = aws.peer
-  route_table_id = var.peer_route_table_id
-  destination_cidr_block = var.cidr_block
+  provider                  = aws.peer
+  route_table_id            = var.peer_route_table_id
+  destination_cidr_block    = var.cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.peer.id
 }

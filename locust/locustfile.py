@@ -16,7 +16,12 @@ class Emqx(HttpUser):
 
     @task(10)
     def query_subscriptions(self):
-        self.client.get("/subscriptions/dummy", auth=('perftest', 'perftest'))
+        client_prefix_list = os.getenv('CLIENT_PREFIX_LIST', 'a,b,c,d,e').split(',')
+        multiplier = int(os.getenv('MULTIPLIER', 65000))
+        prefix = random.choice(client_prefix_list)
+        start_n = client_prefix_list.index(prefix) * multiplier
+        client_id = random.randint(start_n, start_n + multiplier)
+        self.client.get(f"/subscriptions/{prefix}{client_id}", auth=('perftest', 'perftest'), name="query_subscriptions")
 
     @task(10)
     def unsubscribe(self):
@@ -26,7 +31,7 @@ class Emqx(HttpUser):
         client_prefix_list = os.getenv('CLIENT_PREFIX_LIST', 'a,b,c,d,e').split(',')
 
         topic = f"bench/{random.randint(1, topics_count)}"
-        client_id = random.choice(client_prefix_list) + str(random.randint(1, max_client_id))
+        client_id = nrandom.choice(client_prefix_list) + str(random.randint(1, max_client_id))
         json = [{"topic": topic, "clientid": client_id} for i in range(client_batch_size)]
         self.client.post("/mqtt/unsubscribe_batch", json=json, auth=('perftest', 'perftest'))
 
