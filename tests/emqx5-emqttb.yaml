@@ -1,4 +1,4 @@
-id: emqtt-bench
+id: emqttb
 region: eu-west-1
 os_name: ubuntu-jammy
 os_version: 22.04
@@ -6,12 +6,13 @@ use_spot_instances: false
 emqx:
   instance_type: t4g.large
   cpu_arch: arm64
+  dashboard_default_password: admin
   nodes:
     - role: core
       instance_count: 3
-emqtt_bench:
+emqttb:
   instance_type: t3.large
   cpu_arch: amd64
   nodes:
-    - scenario: "pub -c 100 -I 10 -t bench/%%i -s 256"
-    - scenario: "sub -c 100 -i 100 -t bench/%%i -q 1"
+    - scenario: "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb"
+    - scenario: "@sub --topic t/%%n --conninterval 100ms --num-clients 100"

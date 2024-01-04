@@ -13,6 +13,11 @@ output "prometheus_url" {
   value       = "${module.public_nlb.dns_name}:9090"
 }
 
+output "locust_url" {
+  description = "Locust URL"
+  value       = "${module.public_nlb.dns_name}:8080"
+}
+
 output "emqx_dashboard_credentials" {
   description = "EMQX Dashboard credentials"
   value       = "admin:${local.emqx_dashboard_default_password}"

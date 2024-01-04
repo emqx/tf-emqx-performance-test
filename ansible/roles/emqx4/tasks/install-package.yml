@@ -5,7 +5,7 @@
   when: emqx_package_file_path != ''
   ansible.builtin.copy:
     src: "{{ emqx_package_file_path }}"
-    dest: "/tmp/emqx.{{ (ansible_os_family == 'Debian') | ternary('deb', 'rpm') }}"
+    dest: "/tmp/emqx.{{ ansible_os_family == 'Debian' | ternary('deb', 'rpm') }}"
 
 - name: Install emqx
   become: yes
@@ -41,25 +41,9 @@
   become: yes
   when: emqx_package_download_url == '' and emqx_package_file_path == ''
   ansible.builtin.apt:
-    name: emqx
+    name: emqx-ee
     state: present
     update_cache: yes
-
-- name: Render /etc/emqx/emqx.conf
-  become: yes
-  ansible.builtin.template:
-    src: emqx.conf.j2
-    dest: /etc/emqx/emqx.conf
-    mode: '0644'
-  register: _emqx_conf
-
-- name: Render boostrap api keys file
-  become: yes
-  ansible.builtin.template:
-    src: bootstrap-api.j2
-    dest: "{{ emqx_api_key_bootstrap_file }}"
-    mode: '0644'
-  register: _bootstrap_api
 
 - name: Render environment overrides
   become: yes
@@ -84,20 +68,20 @@
     mode: '0644'
   register: _override
 
+- name: Restart emqx
+  become: yes
+  when: _env.changed or _override.changed
+  ansible.builtin.systemd:
+    name: emqx.service
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
 - name: Start emqx
   become: yes
   ansible.builtin.systemd:
     name: emqx.service
     state: started
-    enabled: yes
-    daemon_reload: yes
-
-- name: Restart emqx
-  become: yes
-  when: _emqx_conf.changed or _bootstrap_api.changed or _env.changed or _override.changed
-  ansible.builtin.systemd:
-    name: emqx.service
-    state: restarted
     enabled: yes
     daemon_reload: yes
 
@@ -111,10 +95,35 @@
 
 - name: Wait until /status responds with 200
   ansible.builtin.uri:
-    url: "http://127.0.0.1:18083/status"
+    url: "http://127.0.0.1:8081/status"
     follow_redirects: none
     method: GET
   register: _result
   until: _result.status == 200
   retries: 12
   delay: 5
+
+- name: Deploy license file
+  when: emqx_license_file != ''
+  ansible.builtin.copy:
+    src: "{{ emqx_license_file }}"
+    dest: /tmp/emqx.lic
+    mode: '0644'
+  
+- name: Reload license
+  when: emqx_license_file != ''
+  become: yes
+  ansible.builtin.shell: "emqx ctl license reload /tmp/emqx.lic"
+
+- name: Render set-credentials.sh script
+  become: yes
+  ansible.builtin.template:
+    src: set-credentials.sh.j2
+    dest: /usr/local/bin/set-credentials.sh
+    mode: '0755'
+
+- name: Run set-credentials.sh script
+  become: yes
+  become_user: emqx
+  run_once: yes
+  ansible.builtin.shell: /usr/local/bin/set-credentials.sh

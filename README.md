@@ -12,17 +12,16 @@ This creates an EMQX cluster with configurable number of core and replicant node
 
 ```bash
 terraform init
-terraform apply -parallelism 48
+terraform apply
 # this will take a while, wait until terraform finishes
 # if something fails during ansible provisioning, try to re-run corresponding playbook
 env no_proxy='*' ansible-playbook ansible/emqx.yml
 env no_proxy='*' ansible-playbook ansible/emqttb.yml
-env no_proxy='*' ansible-playbook ansible/emqtt_bench.yml
 # start emqttb benchmark
 ansible emqttb -m command -a 'systemctl start emqttb' --become
 # (optionally) open emqx dashboard and/or grafana to watch metrics
 # cleanup when done
-terraform destroy -parallelism 48
+terraform destroy
 ```
 
 Default emqx dashboard credentials are `admin:public`, grafana credentials are `admin:admin`.
@@ -49,6 +48,7 @@ ansible emqx -m command -a 'systemctl restart emqx' --become
 # get emqx cluster status on all nodes
 ansible emqx -m command -a 'emqx ctl cluster status' --become
 # reinstall emqx
+ansible emqx -m shell -a 'apt-get purge emqx -y' --become
 ansible-playbook ansible/emqx.yml
 # reinstall emqttb
 ansible-playbook ansible/emqttb.yml
@@ -59,7 +59,7 @@ ansible-playbook ansible/emqtt-bench.yml
 To ssh directly into instances, use terraform output to get IP addresses, and generated ssh private key in `.ssh` directory, for example:
 
 ```bash
-ssh 52.53.191.91 -l ubuntu -i ~/.ssh/foobar.pem
+ssh -l ubuntu -i ~/.ssh/foobar.pem 52.53.191.91
 ```
 Key name is generated as `<id>.pem` (`id` is from test spec file).
 
@@ -69,7 +69,7 @@ You can also modify ansible variables directly under `ansible/group_vars` and `a
 
 ## Test spec
 
-Test specs are yaml files under `tests` directory. By default `tests/default.yml` is used. You can specify a different test spec file by adding `-var spec_file=<absolute file path or file path relative to the current directory>` parameter when running terraform.
+Test specs are yaml files under `tests` directory. By default `tests/default.yml` is used. You can specify a different test spec file by adding `-var spec_file=tests/myspec.yaml` parameter when running terraform.
 
 *IMPORTANT*: this variable must also be used when you run `terraform destroy` to cleanup the infrastructure.
 
@@ -97,13 +97,13 @@ emqx:                      # emqx related settings
   instance_type: m6g.large # one can override default parameters here for all emqx nodes
   nodes:                   # list of emqx nodes
     - role: core           # role of the node, can be core or replicant (default is core)
-      region: eu-west-1    # region of the node
+      region: eu-west-1
       instance_count: 1    # number of instances to launch (default is 1)
-      instance_type: m6g.large # here as well one can override default parameters just for this node
     - role: replicant
       region: eu-west-1
     - role: core
-      region: us-west-1
+      region: us-west-1        # override region for this node
+      instance_type: m7g.large # override instance type for this node
     - role: replicant
       region: us-west-1
     - role: core

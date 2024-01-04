@@ -3,7 +3,7 @@ Description=EMQTT bench
 After=network.target
 
 [Service]
-ExecStart=:/opt/emqtt-bench/bin/emqtt_bench {{ emqtt_bench_scenario }} -h {{ emqtt_bench_targets | join(',') }}
+ExecStart=:/opt/emqtt-bench/bin/emqtt_bench {{ emqtt_bench_scenario }} -h {{ emqtt_bench_targets | join(',') }} --ifaddr {{ ansible_all_ipv4_addresses | join(',') }}
 LimitNOFILE=2097152
 Restart=on-failure
 

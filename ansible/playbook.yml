@@ -5,3 +5,4 @@
 - import_playbook: emqx.yml
 - import_playbook: emqttb.yml
 - import_playbook: emqtt_bench.yml
+- import_playbook: locust.yml

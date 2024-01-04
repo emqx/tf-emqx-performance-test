@@ -1,0 +1,2 @@
+- include_tasks: install-package.yml
+  when: emqx_install_source == 'package'

@@ -5,6 +5,14 @@ module "public_nlb" {
   subnet_ids = local.vpcs[local.default_region].public_subnet_ids
 }
 
+module "internal_nlb" {
+  source        = "./modules/internal_nlb"
+  prefix        = local.prefix
+  vpc_id        = local.vpcs[local.default_region].vpc_id
+  subnet_ids    = local.vpcs[local.default_region].public_subnet_ids
+  http_api_port = local.emqx_http_api_port
+}
+
 module "emqx" {
   for_each           = { for k, v in local.emqx_nodes : k => v }
   source             = "./modules/ec2"
@@ -12,6 +20,7 @@ module "emqx" {
   instance_name      = each.value.name
   instance_type      = each.value.instance_type
   hostname           = each.value.hostname
+  vpc_id             = local.vpcs[each.value.region].vpc_id
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   ami_filter         = local.emqx_ami_filter
@@ -38,6 +47,34 @@ resource "aws_lb_target_group_attachment" "emqx" {
   port             = 18083
 }
 
+resource "aws_lb_target_group_attachment" "emqx-api" {
+  for_each         = local.emqx_version_family == 4 ? { for i, node in module.emqx : i => node if node.region == local.default_region } : {}
+  target_group_arn = module.public_nlb.emqx_api_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = 8081
+}
+
+resource "aws_lb_target_group_attachment" "int-mqtt" {
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  target_group_arn = module.internal_nlb.mqtt_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = 1883
+}
+
+resource "aws_lb_target_group_attachment" "int-httpapi" {
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  target_group_arn = module.internal_nlb.httpapi_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = local.emqx_http_api_port
+}
+
+resource "aws_lb_target_group_attachment" "int-mgmt" {
+  for_each         = local.emqx_version_family == 4 ? { for i, node in module.emqx : i => node if node.region == local.default_region } : {}
+  target_group_arn = module.internal_nlb.mgmt_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = 18083
+}
+
 module "emqttb" {
   for_each           = { for k, v in local.emqttb_nodes : k => v }
   source             = "./modules/ec2"
@@ -45,6 +82,7 @@ module "emqttb" {
   instance_name      = each.value.name
   instance_type      = each.value.instance_type
   hostname           = each.value.hostname
+  vpc_id             = local.vpcs[each.value.region].vpc_id
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   ami_filter         = local.emqttb_ami_filter
@@ -70,6 +108,8 @@ module "emqtt-bench" {
   instance_name      = each.value.name
   instance_type      = each.value.instance_type
   hostname           = each.value.hostname
+  ip_alias_count     = try(each.value.ip_alias_count, 0)
+  vpc_id             = local.vpcs[each.value.region].vpc_id
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   ami_filter         = local.emqtt_bench_ami_filter
@@ -88,12 +128,46 @@ module "emqtt-bench" {
   ]
 }
 
+module "locust" {
+  for_each           = { for k, v in local.locust_nodes : k => v }
+  source             = "./modules/ec2"
+  region             = each.value.region
+  instance_name      = each.value.name
+  instance_type      = each.value.instance_type
+  hostname           = each.value.hostname
+  vpc_id             = local.vpcs[each.value.region].vpc_id
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  security_group_id  = local.vpcs[each.value.region].security_group_id
+  ami_filter         = local.locust_ami_filter
+  use_spot_instances = local.locust_use_spot_instances
+  prefix             = local.prefix
+  region_aliases     = local.region_aliases
+  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  providers = {
+    aws.default = aws.default
+    aws.region2 = aws.region2
+    aws.region3 = aws.region3
+  }
+  depends_on = [
+    aws_route53_zone_association.region2,
+    aws_route53_zone_association.region3
+  ]
+}
+
+resource "aws_lb_target_group_attachment" "locust" {
+  for_each         = { for i, node in module.locust : i => node if node.region == local.default_region }
+  target_group_arn = module.public_nlb.locust_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = 8080
+}
+
 module "monitoring" {
   source             = "./modules/ec2"
   region             = local.default_region
   instance_name      = "monitoring"
   instance_type      = local.monitoring_instance_type
   hostname           = local.monitoring_hostname
+  vpc_id             = local.vpcs[local.default_region].vpc_id
   subnet_id          = local.vpcs[local.default_region].public_subnet_ids[0]
   security_group_id  = local.vpcs[local.default_region].security_group_id
   ami_filter         = local.monitoring_ami_filter
@@ -137,10 +211,12 @@ resource "local_file" "ansible_cfg" {
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.ini.tpl",
     {
-      emqx_nodes        = [for node in module.emqx : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      emqttb_nodes      = [for node in module.emqttb : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      emqtt_bench_nodes = [for node in module.emqtt-bench : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      monitoring_nodes  = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ips[0]} private_ip=${module.monitoring.private_ips[0]}"]
+      emqx_nodes          = [for node in module.emqx : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      emqttb_nodes        = [for node in module.emqttb : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      emqtt_bench_nodes   = [for node in module.emqtt-bench : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      locust_nodes        = [for node in module.locust : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      monitoring_nodes    = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ips[0]} private_ip=${module.monitoring.private_ips[0]}"]
+      emqx_version_family = local.emqx_version_family
   })
   filename = "${path.module}/ansible/inventory.ini"
 }
@@ -195,8 +271,11 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_api_key                         = local.emqx_api_key,
     emqx_api_secret                      = local.emqx_api_secret,
     emqx_bootstrap_api_keys              = local.emqx_bootstrap_api_keys,
+    emqx_license_file                    = local.emqx_license_file,
+    emqx_version_family                  = local.emqx_version_family,
+    emqx_package_version                 = local.emqx_package_version,
   })
-  filename = "${path.module}/ansible/group_vars/emqx.yml"
+  filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
 
 resource "local_file" "ansible_emqx_host_vars" {
@@ -244,14 +323,39 @@ resource "local_file" "ansible_emqtt_bench_host_vars" {
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
 
+resource "local_file" "ansible_locust_group_vars" {
+  count = length(module.locust)
+  content = yamlencode({
+    locust_version                       = local.locust_version
+    locust_leader_ip                     = local.locust_leader[0].private_ips[0],
+    locust_topics_count                  = local.locust_topics_count
+    locust_unsubscribe_client_batch_size = local.locust_unsubscribe_client_batch_size
+    locust_max_client_id                 = local.locust_max_client_id
+    locust_client_prefix_list            = local.locust_client_prefix_list
+    locust_users                         = local.locust_users
+    locust_payload_size                  = local.locust_payload_size
+    locust_base_url                      = "http://${module.internal_nlb.dns_name}:${local.emqx_http_api_port}/api/${local.emqx_api_version}"
+    locust_emqx_dashboard_url            = "http://${module.public_nlb.dns_name}:18083"
+  })
+  filename = "${path.module}/ansible/group_vars/locust.yml"
+}
+
+locals {
+  locust_leader = [for node in module.locust : node if local.locust_nodes[node.fqdn].role == "leader"]
+}
+
+resource "local_file" "ansible_locust_host_vars" {
+  for_each = { for i, node in module.locust : i => node }
+  content = yamlencode({
+    locust_plan_entrypoint = local.locust_nodes[each.value.fqdn].plan_entrypoint,
+    locust_role            = local.locust_nodes[each.value.fqdn].role,
+  })
+  filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
+}
+
 resource "local_file" "ansible_monitoring_group_vars" {
   content = yamlencode({
-    prometheus_node_exporter_targets = concat(
-      [for node in local.emqx_nodes : "${node.hostname}:9100"],
-      [for node in local.emqttb_nodes : "${node.hostname}:9100"],
-      [for node in local.emqtt_bench_nodes : "${node.hostname}:9100"]
-    ),
-    prometheus_emqx_targets = [for node in local.emqx_nodes : "${node.hostname}:18083"]
+    emqx_version_family = local.emqx_version_family
   })
   filename = "${path.module}/ansible/group_vars/monitoring.yml"
 }
@@ -261,6 +365,7 @@ resource "null_resource" "ansible_playbook" {
     module.emqx,
     module.emqttb,
     module.emqtt-bench,
+    module.locust,
     module.monitoring,
     local_file.ansible_inventory,
     local_file.ansible_cfg,
@@ -269,7 +374,9 @@ resource "null_resource" "ansible_playbook" {
     local_file.ansible_emqttb_group_vars,
     local_file.ansible_emqttb_host_vars,
     local_file.ansible_emqtt_bench_group_vars,
-    local_file.ansible_emqtt_bench_host_vars
+    local_file.ansible_emqtt_bench_host_vars,
+    local_file.ansible_locust_group_vars,
+    local_file.ansible_locust_host_vars
   ]
 
   provisioner "local-exec" {
@@ -286,61 +393,3 @@ resource "null_resource" "ansible_playbook" {
   }
 }
 
-resource "aws_security_group" "monitoring-sg" {
-  name        = "${local.prefix}-monitoring-sg"
-  description = "Security group for Prometheus and Grafana"
-  vpc_id      = module.vpc-default.vpc_id
-
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
-  }
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = [var.vpc_cidr]
-  }
-
-  ingress {
-    from_port        = 3000
-    to_port          = 3000
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 9090
-    to_port          = 9090
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 22
-    to_port          = 22
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    security_groups = [module.public_nlb.security_group_id]
-    protocol        = "-1"
-    from_port       = 0
-    to_port         = 0
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-}

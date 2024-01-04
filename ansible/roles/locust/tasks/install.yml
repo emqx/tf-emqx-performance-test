@@ -1,0 +1,66 @@
+- name: Install locust
+  become: yes
+  when: locust_version == 'latest'
+  ansible.builtin.pip:
+    name: locust
+
+- name: Install locust
+  become: yes
+  when: locust_version != 'latest'
+  ansible.builtin.pip:
+    name: "locust=={{ locust_version }}"
+
+- name: Create locust system user
+  become: yes
+  ansible.builtin.user:
+    name: locust
+    shell: /bin/bash
+    system: yes
+    createhome: yes
+    home: "{{ locust_home_dir }}"
+    
+- name: Ensure /etc/locust directory exists
+  become: yes
+  ansible.builtin.file:
+    path: /etc/locust
+    state: directory
+
+- name: Render /etc/locust/locust.conf
+  become: yes
+  ansible.builtin.template:
+    src: locust.conf.j2
+    dest: /etc/locust/locust.conf
+    mode: '0644'
+
+- name: Render /etc/locust/locust.env
+  become: yes
+  ansible.builtin.template:
+    src: locust.env.j2
+    dest: /etc/locust/locust.env
+    mode: '0644'
+
+- name: Render locust systemd unit file
+  become: yes
+  ansible.builtin.template:
+    src: locust.service.j2
+    dest: /etc/systemd/system/locust.service
+    mode: '0644'
+
+- name: Copy locust files
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ locust_home_dir }}"
+    mode: '0644'
+  with_fileglob:
+    - "{{ playbook_dir }}/../locust/*.py"
+    - "{{ playbook_dir }}/../locust/requirements.txt"
+
+- name: Install dependencies
+  become: yes
+  ansible.builtin.command: |
+    pip install -r {{ locust_home_dir }}/requirements.txt
+
+- name: Run daemon-reload
+  become: yes
+  ansible.builtin.command: systemctl daemon-reload

@@ -2,6 +2,10 @@ variable "region" {
   type = string
 }
 
+variable "vpc_id" {
+  type = string
+}
+
 variable "prefix" {
   type = string
 }
@@ -15,7 +19,7 @@ variable "instance_type" {
 }
 
 variable "extra_user_data" {
-  type = string
+  type    = string
   default = ""
 }
 
@@ -53,4 +57,10 @@ variable "root_volume_size" {
   description = "Root volume size"
   type        = number
   default     = 20
+}
+
+variable "ip_alias_count" {
+  description = "The number of IP aliases to add to the instance"
+  type        = number
+  default     = 0
 }

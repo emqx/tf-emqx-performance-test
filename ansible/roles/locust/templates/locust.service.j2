@@ -1,0 +1,13 @@
+[Unit]
+Description=Locust
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -m locust --config /etc/locust/locust.conf
+EnvironmentFile=-/etc/locust/locust.env
+User=locust
+Group=locust
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

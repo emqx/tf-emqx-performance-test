@@ -1,3 +1,4 @@
+emqx_version_family: "5"
 grafana_dashboards:
   - id: 17446
     revision: 1
@@ -36,12 +37,12 @@ prometheus_scrape_configs:
     static_configs:
       - targets:
         - "localhost:9091"
-  - job_name: 'emqx'
+  - job_name: 'emqx5'
     metrics_path: /api/v5/prometheus/stats
     scrape_interval: 5s
     honor_labels: true
     static_configs:
-      - targets: "{{ groups['emqx'] | map('regex_replace', '$', ':18083') | list }}"
+      - targets: "{{ groups['emqx5'] | map('regex_replace', '$', ':18083') | list }}"
         labels:
           cluster: perftest
           from: emqx
@@ -50,11 +51,31 @@ prometheus_scrape_configs:
         target_label: "instance"
         regex: (.*):.*
         replacement: $1
-  - job_name: 'emqx-exporter'
+  - job_name: 'emqx5-exporter'
     metrics_path: /metrics
     scrape_interval: 5s
     static_configs:
-      - targets: "{{ groups['emqx'] | map('regex_replace', '$', ':8085') | list }}"
+      - targets: "{{ groups['emqx5'] | map('regex_replace', '$', ':8085') | list }}"
+        labels:
+          cluster: perftest
+          from: exporter
+  - job_name: 'emqx4'
+    metrics_path: /api/v4/emqx_prometheus
+    params:
+      type:
+        - prometheus
+    scrape_interval: 5s
+    honor_labels: true
+    static_configs:
+      - targets: "{{ groups['emqx4'] | map('regex_replace', '$', ':18083') | list }}"
+        labels:
+          cluster: perftest
+          from: emqx
+  - job_name: 'emqx4-exporter'
+    metrics_path: /metrics
+    scrape_interval: 5s
+    static_configs:
+      - targets: "{{ groups['emqx4'] | map('regex_replace', '$', ':8085') | list }}"
         labels:
           cluster: perftest
           from: exporter

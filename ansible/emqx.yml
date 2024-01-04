@@ -1,4 +1,2 @@
-- hosts: emqx
-  roles:
-    - emqx
-    - emqx_exporter
+- import_playbook: emqx4.yml
+- import_playbook: emqx5.yml

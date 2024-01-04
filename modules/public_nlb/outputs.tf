@@ -12,10 +12,18 @@ output "emqx_target_group_arn" {
   value = aws_lb_target_group.emqx.arn
 }
 
+output "emqx_api_target_group_arn" {
+  value = aws_lb_target_group.emqx-api.arn
+}
+
 output "grafana_target_group_arn" {
   value = aws_lb_target_group.grafana.arn
 }
 
 output "prometheus_target_group_arn" {
   value = aws_lb_target_group.prometheus.arn
+}
+
+output "locust_target_group_arn" {
+  value = aws_lb_target_group.locust.arn
 }

@@ -6,25 +6,20 @@ use_spot_instances: false
 emqx:
   instance_type: t4g.large
   cpu_arch: arm64
+  dashboard_default_password: admin
   nodes:
     - role: core
       region: eu-west-1
-      instance_count: 1
     - role: replicant
       region: eu-west-1
-      instance_count: 1
     - role: core
       region: us-west-1
-      instance_count: 1
     - role: replicant
       region: us-west-1
-      instance_count: 1
     - role: core
       region: us-east-1
-      instance_count: 1
     - role: replicant
       region: us-east-1
-      instance_count: 1
 emqttb:
   instance_type: t3.large
   cpu_arch: amd64
