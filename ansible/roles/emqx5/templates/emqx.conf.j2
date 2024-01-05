@@ -4,7 +4,7 @@ node {
   role = "{{ emqx_node_role | default('core') }}"
   data_dir = "{{ emqx_data_dir | default('/var/lib/emqx') }}"
   process_limit = {{ emqx_process_limit | default(2097152) }}
-  max_ports = {{ emqx_max_ports | default(1048576) }}
+  max_ports = {{ emqx_max_ports | default(2097152) }}
 }
 
 cluster {

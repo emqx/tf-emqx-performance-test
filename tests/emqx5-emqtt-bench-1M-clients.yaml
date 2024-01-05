@@ -1,0 +1,29 @@
+id: 1m
+region: eu-west-1
+os_name: ubuntu-jammy
+os_version: 22.04
+use_spot_instances: true
+emqx:
+  instance_type: m7g.large
+  cpu_arch: arm64
+  dashboard_default_password: admin
+  nodes:
+    - role: core
+      instance_count: 3
+    - role: replicant
+      instance_count: 3
+emqtt_bench:
+  cpu_arch: amd64
+  nodes:
+    - scenario: "sub -c 256000 -i 1 -t bench/%%i -q 1 --shortids --prefix a --startnumber 0"
+      instance_type: c7i.2xlarge
+      ip_alias_count: 3
+    - scenario: "sub -c 256000 -i 1 -t bench/%%i -q 1 --shortids --prefix b --startnumber 256000"
+      instance_type: c7i.2xlarge
+      ip_alias_count: 3
+    - scenario: "sub -c 256000 -i 1 -t bench/%%i -q 1 --shortids --prefix c --startnumber 512000"
+      instance_type: c7i.2xlarge
+      ip_alias_count: 3
+    - scenario: "sub -c 256000 -i 1 -t bench/%%i -q 1 --shortids --prefix d --startnumber 768000"
+      instance_type: c7i.2xlarge
+      ip_alias_count: 3
