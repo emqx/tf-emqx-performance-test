@@ -2,8 +2,19 @@
 
 set -x
 
-apt-get update -y
-apt-get install curl unzip net-tools -y
+if which apt >/dev/null 2>&1; then
+    apt update -y
+    apt install -y curl wget zip unzip net-tools dnsutils ca-certificates gnupg lsb-release jq git
+
+    systemctl stop apt-daily.timer
+    systemctl disable apt-daily.timer
+    systemctl disable apt-daily.service
+    systemctl stop apt-daily-upgrade.timer
+    systemctl disable apt-daily-upgrade.timer
+    systemctl disable apt-daily-upgrade.service
+
+    apt-get purge -y unattended-upgrades
+fi
 
 # https://docs.emqx.com/en/enterprise/latest/performance/tune.html
 cat >> /etc/sysctl.d/99-sysctl.conf <<EOF
@@ -29,19 +40,15 @@ EOF
 
 sysctl --load=/etc/sysctl.d/99-sysctl.conf
 
-ulimit -n 2097152
-
-echo 'DefaultLimitNOFILE=2097152' >> /etc/systemd/system.conf
-echo >> /etc/security/limits.conf << EOF
+cat >> /etc/security/limits.conf << EOF
 *      soft   nofile      2097152
 *      hard   nofile      2097152
 EOF
 
-[ -n "${hostname}" ] && hostnamectl set-hostname ${hostname}
+echo 'DefaultLimitNOFILE=2097152' >> /etc/systemd/system.conf
 
-cd /opt
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip -q awscliv2.zip
-./aws/install
+ulimit -n 2097152
+
+[ -n "${hostname}" ] && hostnamectl set-hostname ${hostname}
 
 ${extra}

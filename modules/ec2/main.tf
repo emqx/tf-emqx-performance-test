@@ -46,6 +46,7 @@ resource "aws_network_interface" "default" {
   subnet_id         = var.subnet_id
   security_groups   = [var.security_group_id]
   private_ips_count = var.ip_alias_count
+  provider          = aws.default
 }
 
 resource "aws_instance" "default" {
@@ -91,6 +92,7 @@ resource "aws_network_interface" "region2" {
   subnet_id         = var.subnet_id
   security_groups   = [var.security_group_id]
   private_ips_count = var.ip_alias_count
+  provider          = aws.region2
 }
 
 resource "aws_instance" "region2" {
@@ -101,7 +103,7 @@ resource "aws_instance" "region2" {
   key_name             = var.prefix
   network_interface {
     device_index         = 0
-    network_interface_id = aws_network_interface.default[0].id
+    network_interface_id = aws_network_interface.region2[0].id
   }
   user_data = templatefile("${path.module}/templates/user_data.tpl",
     {
@@ -136,6 +138,7 @@ resource "aws_network_interface" "region3" {
   subnet_id         = var.subnet_id
   security_groups   = [var.security_group_id]
   private_ips_count = var.ip_alias_count
+  provider          = aws.region3
 }
 
 resource "aws_instance" "region3" {
@@ -146,7 +149,7 @@ resource "aws_instance" "region3" {
   key_name             = var.prefix
   network_interface {
     device_index         = 0
-    network_interface_id = aws_network_interface.default[0].id
+    network_interface_id = aws_network_interface.region3[0].id
   }
   user_data = templatefile("${path.module}/templates/user_data.tpl",
     {
