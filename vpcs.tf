@@ -129,5 +129,6 @@ resource "aws_security_group_rule" "allow_access_from_public_nlb" {
   protocol                 = "-1"
   from_port                = 0
   to_port                  = 0
+  provider                 = aws.default
 }
 

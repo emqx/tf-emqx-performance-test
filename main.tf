@@ -3,6 +3,9 @@ module "public_nlb" {
   prefix     = local.prefix
   vpc_id     = local.vpcs[local.default_region].vpc_id
   subnet_ids = local.vpcs[local.default_region].public_subnet_ids
+  providers = {
+    aws = aws.default
+  }
 }
 
 module "internal_nlb" {
@@ -11,6 +14,9 @@ module "internal_nlb" {
   vpc_id        = local.vpcs[local.default_region].vpc_id
   subnet_ids    = local.vpcs[local.default_region].public_subnet_ids
   http_api_port = local.emqx_http_api_port
+  providers = {
+    aws = aws.default
+  }
 }
 
 module "emqx" {
@@ -45,6 +51,7 @@ resource "aws_lb_target_group_attachment" "emqx" {
   target_group_arn = module.public_nlb.emqx_target_group_arn
   target_id        = each.value.private_ips[0]
   port             = 18083
+  provider         = aws.default
 }
 
 resource "aws_lb_target_group_attachment" "emqx-api" {
@@ -52,6 +59,7 @@ resource "aws_lb_target_group_attachment" "emqx-api" {
   target_group_arn = module.public_nlb.emqx_api_target_group_arn
   target_id        = each.value.private_ips[0]
   port             = 8081
+  provider         = aws.default
 }
 
 resource "aws_lb_target_group_attachment" "int-mqtt" {
@@ -59,6 +67,7 @@ resource "aws_lb_target_group_attachment" "int-mqtt" {
   target_group_arn = module.internal_nlb.mqtt_target_group_arn
   target_id        = each.value.private_ips[0]
   port             = 1883
+  provider         = aws.default
 }
 
 resource "aws_lb_target_group_attachment" "int-httpapi" {
@@ -66,6 +75,7 @@ resource "aws_lb_target_group_attachment" "int-httpapi" {
   target_group_arn = module.internal_nlb.httpapi_target_group_arn
   target_id        = each.value.private_ips[0]
   port             = local.emqx_http_api_port
+  provider         = aws.default
 }
 
 resource "aws_lb_target_group_attachment" "int-mgmt" {
@@ -73,6 +83,7 @@ resource "aws_lb_target_group_attachment" "int-mgmt" {
   target_group_arn = module.internal_nlb.mgmt_target_group_arn
   target_id        = each.value.private_ips[0]
   port             = 18083
+  provider         = aws.default
 }
 
 module "emqttb" {
@@ -159,6 +170,7 @@ resource "aws_lb_target_group_attachment" "locust" {
   target_group_arn = module.public_nlb.locust_target_group_arn
   target_id        = each.value.private_ips[0]
   port             = 8080
+  provider         = aws.default
 }
 
 module "http" {
@@ -217,12 +229,14 @@ resource "aws_lb_target_group_attachment" "grafana" {
   target_group_arn = module.public_nlb.grafana_target_group_arn
   target_id        = module.monitoring.private_ips[0]
   port             = 3000
+  provider         = aws.default
 }
 
 resource "aws_lb_target_group_attachment" "prometheus" {
   target_group_arn = module.public_nlb.prometheus_target_group_arn
   target_id        = module.monitoring.private_ips[0]
   port             = 9090
+  provider         = aws.default
 }
 
 resource "local_file" "ansible_cfg" {

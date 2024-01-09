@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.1"
+    }
+  }
+}
+
 resource "aws_lb" "nlb" {
   name                             = "${var.prefix}-public-lb"
   internal                         = false
