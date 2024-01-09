@@ -64,3 +64,9 @@ variable "ip_alias_count" {
   type        = number
   default     = 0
 }
+
+variable "extra_volume_size" {
+  description = "Extra volume size in GB"
+  type        = number
+  default     = 0
+}

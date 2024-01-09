@@ -2,6 +2,34 @@
 
 set -x
 
+if [ -b /dev/nvme1n1 ]; then
+    echo "Found extra data volume, format and mount to /data"
+    mount
+    lsblk
+    if ! mkfs.xfs -f -L data /dev/nvme1n1; then
+        echo "Failed to format /dev/nvme1n1"
+    else
+        mkdir -p /data
+        # create systemd mount unit
+        cat > /etc/systemd/system/data.mount <<EOF
+[Unit]
+Description=Mount /dev/nvme1n1 to /data
+
+[Mount]
+What=/dev/nvme1n1
+Where=/data
+Type=xfs
+Options=defaults
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        systemctl daemon-reload
+        systemctl enable data.mount
+        systemctl start data.mount
+    fi
+fi
+
 if which apt >/dev/null 2>&1; then
     apt update -y
     apt install -y curl wget zip unzip net-tools dnsutils ca-certificates gnupg lsb-release jq git

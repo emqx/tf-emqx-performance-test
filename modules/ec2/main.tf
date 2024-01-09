@@ -8,6 +8,21 @@ terraform {
   }
 }
 
+data "aws_availability_zones" "default" {
+  state    = "available"
+  provider = aws.default
+}
+
+data "aws_availability_zones" "region2" {
+  state    = "available"
+  provider = aws.region2
+}
+
+data "aws_availability_zones" "region3" {
+  state    = "available"
+  provider = aws.region3
+}
+
 data "aws_ami" "default" {
   most_recent = true
   owners      = ["amazon"]
@@ -47,6 +62,20 @@ resource "aws_network_interface" "default" {
   security_groups   = [var.security_group_id]
   private_ips_count = var.ip_alias_count
   provider          = aws.default
+}
+
+resource "aws_ebs_volume" "default" {
+  count             = lookup(var.region_aliases, var.region) == "default" && var.extra_volume_size > 0 ? 1 : 0
+  availability_zone = data.aws_availability_zones.default.names[0]
+  size              = var.extra_volume_size
+  provider          = aws.default
+}
+
+resource "aws_volume_attachment" "default" {
+  count       = lookup(var.region_aliases, var.region) == "default" && var.extra_volume_size > 0 ? 1 : 0
+  device_name = "/dev/sdf"
+  volume_id   = aws_ebs_volume.default[0].id
+  instance_id = aws_instance.default[0].id
 }
 
 resource "aws_instance" "default" {
@@ -95,6 +124,20 @@ resource "aws_network_interface" "region2" {
   provider          = aws.region2
 }
 
+resource "aws_ebs_volume" "region2" {
+  count             = lookup(var.region_aliases, var.region) == "region2" && var.extra_volume_size > 0 ? 1 : 0
+  availability_zone = data.aws_availability_zones.region2.names[0]
+  size              = var.extra_volume_size
+  provider          = aws.region2
+}
+
+resource "aws_volume_attachment" "region2" {
+  count       = lookup(var.region_aliases, var.region) == "region2" && var.extra_volume_size > 0 ? 1 : 0
+  device_name = "/dev/sdf"
+  volume_id   = aws_ebs_volume.region2[0].id
+  instance_id = aws_instance.region2[0].id
+}
+
 resource "aws_instance" "region2" {
   count                = lookup(var.region_aliases, var.region) == "region2" ? 1 : 0
   ami                  = data.aws_ami.region2.id
@@ -139,6 +182,20 @@ resource "aws_network_interface" "region3" {
   security_groups   = [var.security_group_id]
   private_ips_count = var.ip_alias_count
   provider          = aws.region3
+}
+
+resource "aws_ebs_volume" "region3" {
+  count             = lookup(var.region_aliases, var.region) == "region3" && var.extra_volume_size > 0 ? 1 : 0
+  availability_zone = data.aws_availability_zones.region3.names[0]
+  size              = var.extra_volume_size
+  provider          = aws.region3
+}
+
+resource "aws_volume_attachment" "region3" {
+  count       = lookup(var.region_aliases, var.region) == "region3" && var.extra_volume_size > 0 ? 1 : 0
+  device_name = "/dev/sdf"
+  volume_id   = aws_ebs_volume.region3[0].id
+  instance_id = aws_instance.region3[0].id
 }
 
 resource "aws_instance" "region3" {

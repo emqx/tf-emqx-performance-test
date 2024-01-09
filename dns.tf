@@ -25,6 +25,7 @@ resource "aws_route53_zone_association" "region3" {
 
 # https://www.emqx.io/docs/en/v5.0/deploy/cluster/create-cluster.html#autocluster-by-dns-records
 resource "aws_route53_record" "emqx-cluster" {
+  count   = length(local.emqx_nodes) > 1 ? 1 : 0
   zone_id = aws_route53_zone.vpc.zone_id
   name    = local.cluster_dns_name
   type    = "SRV"

@@ -16,9 +16,11 @@ locals {
   # collect all regions from spec
   regions = distinct(concat(
     [local.default_region],
-    [for node in local.spec.emqx.nodes : try(node.region, local.default_region)],
+    [for node in try(local.spec.emqx.nodes, []) : try(node.region, local.default_region)],
     [for node in try(local.spec.emqttb.nodes, []) : try(node.region, local.default_region)],
-    [for node in try(local.spec.emqtt_bench.nodes, []) : try(node.region, local.default_region)]
+    [for node in try(local.spec.emqtt_bench.nodes, []) : try(node.region, local.default_region)],
+    [for node in try(local.spec.locust.nodes, []) : try(node.region, local.default_region)],
+    [for node in try(local.spec.http.nodes, []) : try(node.region, local.default_region)]
   ))
 
   regions_no_default            = tolist(setsubtract(local.regions, [local.default_region]))
@@ -65,7 +67,7 @@ locals {
   emqx_nodes_by_region = {
     for r in local.regions :
     r => flatten([
-      for node in local.spec.emqx.nodes : try(node.region, local.emqx_region) == r ?
+      for node in try(local.spec.emqx.nodes, []) : try(node.region, local.emqx_region) == r ?
       [for i in range(0, try(node.instance_count, 1)) : node]
       : []
     ])
