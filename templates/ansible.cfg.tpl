@@ -5,7 +5,6 @@ private_key_file=${private_key_file}
 remote_user=${remote_user}
 host_key_checking=False
 use_persistent_connections=True
-strategy=free
 forks=48
 
 [connection]

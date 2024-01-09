@@ -48,6 +48,7 @@
 
 - name: Copy locust files
   become: yes
+  become_user: locust
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ locust_home_dir }}"

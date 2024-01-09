@@ -17,7 +17,7 @@ if which apt >/dev/null 2>&1; then
 fi
 
 # https://docs.emqx.com/en/enterprise/latest/performance/tune.html
-cat >> /etc/sysctl.d/99-sysctl.conf <<EOF
+cat > /etc/sysctl.d/perftest.conf <<EOF
 net.core.somaxconn=32768
 net.ipv4.tcp_max_syn_backlog=16384
 net.core.netdev_max_backlog=16384
@@ -38,7 +38,7 @@ fs.file-max=2097152
 fs.nr_open=2097152
 EOF
 
-sysctl --load=/etc/sysctl.d/99-sysctl.conf
+sysctl --load=/etc/sysctl.d/perftest.conf
 
 cat >> /etc/security/limits.conf << EOF
 *      soft   nofile      2097152

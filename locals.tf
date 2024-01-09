@@ -58,6 +58,7 @@ locals {
     }
   ]
   emqx_license_file = try(local.spec.emqx.license_file, "")
+  emqx_scripts = try(local.spec.emqx.scripts, [])
   cluster_dns_name  = "emqx-cluster.${local.route53_zone_name}"
 
   # group by region
@@ -193,6 +194,37 @@ locals {
       }
   ]])
   locust_nodes = { for node in local.locust_nodes_list : node.hostname => node }
+
+  # http server integration
+  http_region     = try(local.spec.http.region, local.default_region)
+  http_os_name    = try(local.spec.http.os_name, local.default_os_name)
+  http_os_version = try(local.spec.http.os_version, local.default_os_version)
+  http_cpu_arch   = try(local.spec.http.cpu_arch, local.default_cpu_arch)
+  # NB: this works for ubuntu only
+  http_ami_filter                    = "*/${local.http_os_name}-${local.http_os_version}-${local.http_cpu_arch}-server-*"
+  http_instance_type                 = try(local.spec.http.instance_type, local.default_instance_type)
+  http_use_spot_instances            = try(local.spec.http.use_spot_instances, local.default_use_spot_instances)
+  # group by region
+  http_nodes_by_region = {
+    for r in local.regions :
+    r => flatten([
+      for node in try(local.spec.http.nodes, []) : try(node.region, local.http_region) == r ?
+      [for i in range(0, try(node.instance_count, 1)) : node]
+      : []
+    ])
+  }
+  # all nodes as flat list
+  http_nodes_list = flatten([
+    for r, nodes in local.http_nodes_by_region : [
+      for i, n in nodes : {
+        instance_type   = try(n.instance_type, local.http_instance_type)
+        region          = r
+        name            = "http-${lookup(var.regions_abbrev_map, r)}-${i + 1}",
+        hostname        = "http-${lookup(var.regions_abbrev_map, r)}-${i + 1}.${local.route53_zone_name}",
+        ami_filter      = try(n.ami_filter, local.http_ami_filter)
+      }
+  ]])
+  http_nodes = { for node in local.http_nodes_list : node.hostname => node }
 
   # monitoring
   monitoring_os_name            = try(local.spec.monitoring.os_name, local.default_os_name)

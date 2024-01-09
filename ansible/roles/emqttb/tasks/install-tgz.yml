@@ -32,18 +32,21 @@
     src: "{{ emqttb_tgz_file_path }}"
     dest: "/tmp/emqttb.tar.gz"
 
-- name: Create emqttb directory
+- name: Create emqttb system user
   become: yes
-  ansible.builtin.file:
-    path: "/opt/emqttb"
-    state: directory
-    mode: '0755'
+  ansible.builtin.user:
+    name: emqttb
+    shell: /bin/bash
+    system: yes
+    createhome: yes
+    home: "{{ emqttb_home_dir }}"
 
 - name: Unarchive emqttb
   become: yes
+  become_user: emqttb
   ansible.builtin.unarchive:
     src: "/tmp/emqttb.tar.gz"
-    dest: "/opt/emqttb"
+    dest: "{{ emqttb_home_dir }}"
     copy: no
       
 - name: Render emqttb systemd unit file

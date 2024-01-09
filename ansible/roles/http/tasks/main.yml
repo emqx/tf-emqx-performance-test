@@ -1,0 +1,25 @@
+- name: Install nginx
+  become: yes
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: Replace /etc/nginx/sites-available/default
+  become: yes
+  ansible.builtin.copy:
+    src: default
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+
+- name: Make sure nginx is started and enabled
+  become: yes
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Reload nginx configuration
+  become: yes
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded

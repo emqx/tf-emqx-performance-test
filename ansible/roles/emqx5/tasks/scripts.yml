@@ -1,0 +1,28 @@
+- name: Create directory for scripts
+  become: yes
+  ansible.builtin.file:
+    path: /opt/emqx
+    state: directory
+    mode: '0755'
+    owner: emqx
+    group: emqx
+
+- name: Copy scripts
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../{{ item }}"
+    dest: /opt/emqx/
+    mode: '0755'
+    owner: emqx
+    group: emqx
+  loop: "{{ emqx_scripts }}"
+
+- name: Run scripts
+  become: yes
+  become_user: emqx
+  run_once: yes
+  environment:
+    HTTP_SERVER_URL: "{{ http_server_url }}"
+    EMQX_ADMIN_PASSWORD: "{{ emqx_dashboard_default_password }}"
+  ansible.builtin.command: "/opt/emqx/{{ item | basename }}"
+  loop: "{{ emqx_scripts }}"

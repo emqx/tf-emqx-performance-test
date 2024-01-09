@@ -36,6 +36,11 @@ emqttb
 emqtt_bench
 locust
 
+[http]
+%{ for host in http_nodes ~}
+${host}
+%{ endfor ~}
+
 [monitoring]
 %{ for host in monitoring_nodes ~}
 ${host}

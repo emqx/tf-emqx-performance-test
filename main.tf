@@ -161,6 +161,32 @@ resource "aws_lb_target_group_attachment" "locust" {
   port             = 8080
 }
 
+module "http" {
+  for_each           = { for k, v in local.http_nodes : k => v }
+  source             = "./modules/ec2"
+  region             = each.value.region
+  instance_name      = each.value.name
+  instance_type      = each.value.instance_type
+  hostname           = each.value.hostname
+  vpc_id             = local.vpcs[each.value.region].vpc_id
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  security_group_id  = local.vpcs[each.value.region].security_group_id
+  ami_filter         = local.http_ami_filter
+  use_spot_instances = local.http_use_spot_instances
+  prefix             = local.prefix
+  region_aliases     = local.region_aliases
+  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  providers = {
+    aws.default = aws.default
+    aws.region2 = aws.region2
+    aws.region3 = aws.region3
+  }
+  depends_on = [
+    aws_route53_zone_association.region2,
+    aws_route53_zone_association.region3
+  ]
+}
+
 module "monitoring" {
   source             = "./modules/ec2"
   region             = local.default_region
@@ -215,6 +241,7 @@ resource "local_file" "ansible_inventory" {
       emqttb_nodes        = [for node in module.emqttb : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
       emqtt_bench_nodes   = [for node in module.emqtt-bench : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
       locust_nodes        = [for node in module.locust : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
+      http_nodes          = [for node in module.http : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
       monitoring_nodes    = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ips[0]} private_ip=${module.monitoring.private_ips[0]}"]
       emqx_version_family = local.emqx_version_family
   })
@@ -223,33 +250,8 @@ resource "local_file" "ansible_inventory" {
 
 resource "local_file" "ansible_common_group_vars" {
   content = yamlencode({
-    node_exporter_enabled_collectors = [
-      "buddyinfo",
-      "cpu",
-      "diskstats",
-      "ethtool",
-      "filefd",
-      "filesystem",
-      "loadavg",
-      "meminfo",
-      "netdev",
-      "netstat",
-      "processes",
-      "sockstat",
-      "stat",
-      "systemd",
-      "tcpstat",
-      "time",
-      "uname",
-      "vmstat"
-    ]
-    deb_architecture_map = {
-      "armv6l" : "armhf",
-      "armv7l" : "armhf",
-      "aarch64" : "arm64",
-      "x86_64" : "amd64",
-      "i386" : "i386"
-    }
+    node_exporter_enabled_collectors = var.node_exporter_enabled_collectors
+    deb_architecture_map = var.deb_architecture_map
   })
   filename = "${path.module}/ansible/group_vars/all.yml"
 }
@@ -274,6 +276,8 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_license_file                    = local.emqx_license_file,
     emqx_version_family                  = local.emqx_version_family,
     emqx_package_version                 = local.emqx_package_version,
+    emqx_scripts                         = local.emqx_scripts,
+    http_server_url                      = length(module.http) > 0 ? "http://${[for x in module.http: x.fqdn][0]}" : "",
   })
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
@@ -360,13 +364,8 @@ resource "local_file" "ansible_monitoring_group_vars" {
   filename = "${path.module}/ansible/group_vars/monitoring.yml"
 }
 
-resource "null_resource" "ansible_playbook" {
+resource "null_resource" "ansible_playbook_common" {
   depends_on = [
-    module.emqx,
-    module.emqttb,
-    module.emqtt-bench,
-    module.locust,
-    module.monitoring,
     local_file.ansible_inventory,
     local_file.ansible_cfg,
     local_file.ansible_emqx_group_vars,
@@ -386,10 +385,102 @@ resource "null_resource" "ansible_playbook" {
     command = "ansible-galaxy role install -r ansible/requirements.yml"
   }
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/playbook.yml"
+    command = "ansible-playbook ansible/common.yml"
     environment = {
       no_proxy = "*"
     }
   }
 }
 
+resource "null_resource" "ansible_playbook_node_exporter" {
+  depends_on = [
+    null_resource.ansible_playbook_common
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/node_exporter.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_playbook_monitoring" {
+  depends_on = [
+    null_resource.ansible_playbook_common
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/monitoring.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_playbook_http" {
+  depends_on = [
+    null_resource.ansible_playbook_common
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/http.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_playbook_emqx" {
+  depends_on = [
+    null_resource.ansible_playbook_common
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/emqx.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_playbook_emqttb" {
+  depends_on = [
+    null_resource.ansible_playbook_common
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/emqttb.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_playbook_emqtt_bench" {
+  depends_on = [
+    null_resource.ansible_playbook_common
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/emqtt_bench.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_playbook_locust" {
+  depends_on = [
+    null_resource.ansible_playbook_common
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/locust.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_ensure_kernel_tuning" {
+  depends_on = [
+    null_resource.ansible_playbook_common
+  ]
+  provisioner "local-exec" {
+    command = "ansible all -m command -a 'sysctl --load=/etc/sysctl.d/perftest.conf' --become"
+  }
+}

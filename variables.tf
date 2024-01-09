@@ -35,3 +35,19 @@ variable "spec_file" {
   type    = string
   default = "tests/default.yaml"
 }
+
+variable "node_exporter_enabled_collectors" {
+  type    = list(string)
+  default = ["buddyinfo", "cpu", "diskstats", "ethtool", "filefd", "filesystem", "loadavg", "meminfo", "netdev", "netstat", "processes", "sockstat", "stat", "systemd", "tcpstat", "time", "uname", "vmstat"]
+}
+
+variable "deb_architecture_map" {
+  type = map(any)
+  default = {
+    "armv6l" : "armhf",
+    "armv7l" : "armhf",
+    "aarch64" : "arm64",
+    "x86_64" : "amd64",
+    "i386" : "i386"
+  }
+}

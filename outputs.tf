@@ -42,3 +42,8 @@ output "emqtt_bench_nodes" {
   description = "emqtt-bench nodes"
   value       = [for node in module.emqtt-bench : format("%-16s %s", node.public_ips[0], node.fqdn)]
 }
+
+output "http_nodes" {
+  description = "http nodes"
+  value       = [for node in module.http : format("%-16s %s", node.public_ips[0], node.fqdn)]
+}
