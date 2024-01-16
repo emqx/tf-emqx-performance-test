@@ -4,7 +4,7 @@
 - name: Upload package
   when: emqx_package_file_path != ''
   ansible.builtin.copy:
-    src: "{{ emqx_package_file_path }}"
+    src: "{{ playbook_dir }}/../{{ emqx_package_file_path }}"
     dest: "/tmp/emqx.{{ (ansible_os_family == 'Debian') | ternary('deb', 'rpm') }}"
 
 - name: Install emqx
@@ -92,14 +92,6 @@
     mode: '0644'
   register: _override
 
-- name: Start emqx
-  become: yes
-  ansible.builtin.systemd:
-    name: emqx.service
-    state: started
-    enabled: yes
-    daemon_reload: yes
-
 - name: Restart emqx
   become: yes
   when: _emqx_conf.changed or _bootstrap_api.changed or _env.changed or _override.changed
@@ -109,7 +101,7 @@
     enabled: yes
     daemon_reload: yes
 
-- name: Start emqx
+- name: Ensure emqx is started
   become: yes
   ansible.builtin.systemd:
     name: emqx.service

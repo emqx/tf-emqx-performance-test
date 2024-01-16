@@ -265,7 +265,7 @@ resource "local_file" "ansible_inventory" {
 resource "local_file" "ansible_common_group_vars" {
   content = yamlencode({
     node_exporter_enabled_collectors = var.node_exporter_enabled_collectors
-    deb_architecture_map = var.deb_architecture_map
+    deb_architecture_map             = var.deb_architecture_map
   })
   filename = "${path.module}/ansible/group_vars/all.yml"
 }
@@ -291,6 +291,8 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_version_family                  = local.emqx_version_family,
     emqx_package_version                 = local.emqx_package_version,
     emqx_scripts                         = local.emqx_scripts,
+    emqx_session_persistence             = try(local.spec.emqx.session_persistence, false),
+    emqx_session_persistence_builtin     = try(local.spec.emqx.session_persistence_builtin, false),
     http_server_url                      = length(module.http) > 0 ? "http://${[for x in module.http: x.fqdn][0]}" : "",
   })
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
@@ -342,7 +344,7 @@ resource "local_file" "ansible_emqtt_bench_host_vars" {
 }
 
 resource "local_file" "ansible_locust_group_vars" {
-  count = length(module.locust)
+  count = length(module.locust) > 0 ? 1 : 0
   content = yamlencode({
     locust_version                       = local.locust_version
     locust_leader_ip                     = local.locust_leader[0].private_ips[0],

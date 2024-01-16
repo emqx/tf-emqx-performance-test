@@ -52,3 +52,12 @@ dashboard {
 api_key {
   bootstrap_file = "{{ emqx_api_key_bootstrap_file | default('/etc/emqx/bootstrap-api') }}"
 }
+
+session_persistence {
+  enable = {{ emqx_session_persistence | string | lower }}
+  storage {
+    builtin {
+      enable = {{ emqx_session_persistence_builtin | string | lower }}
+    }
+  }
+}

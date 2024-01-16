@@ -6,7 +6,7 @@ if [ -b /dev/nvme1n1 ]; then
     echo "Found extra data volume, format and mount to /data"
     mount
     lsblk
-    if ! mkfs.xfs -f -L data /dev/nvme1n1; then
+    if ! mkfs.ext4 -L data /dev/nvme1n1; then
         echo "Failed to format /dev/nvme1n1"
     else
         mkdir -p /data
@@ -18,8 +18,8 @@ Description=Mount /dev/nvme1n1 to /data
 [Mount]
 What=/dev/nvme1n1
 Where=/data
-Type=xfs
-Options=defaults
+Type=ext4
+Options=defaults,noatime,discard
 
 [Install]
 WantedBy=multi-user.target
