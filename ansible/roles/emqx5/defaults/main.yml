@@ -12,3 +12,4 @@ emqx_bootstrap_api_keys:
     secret: emqx
 emqx_session_persistence: false
 emqx_session_persistence_builtin: false
+emqx_data_dir: '/var/lib/emqx'

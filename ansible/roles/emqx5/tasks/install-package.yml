@@ -53,6 +53,15 @@
     state: present
     update_cache: yes
 
+- name: Ensure data dir
+  become: yes
+  ansible.builtin.file:
+    path: "{{ emqx_data_dir }}"
+    state: directory
+    mode: 0755
+    owner: emqx
+    group: emqx
+
 - name: Render /etc/emqx/emqx.conf
   become: yes
   ansible.builtin.template:

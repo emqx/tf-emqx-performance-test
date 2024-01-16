@@ -1,18 +1,8 @@
 - hosts: all
-  vars:
-    docker_users:
-      - "{{ ansible_user_id }}"
-    pip_install_packages:
-      - name: docker
-        version: 6.1.3
-      - name: docker-compose
   pre_tasks:
-    - name: Remember available ip addresses before installing docker
+    - name: Store available ip addresses
       ansible.builtin.set_fact:
         available_ip_addresses: "{{ ansible_all_ipv4_addresses }}"
-  roles:
-    - { role: geerlingguy.docker, become: yes }
-    - { role: geerlingguy.pip, become: yes }
   tasks:
     - name: Add entries to /etc/hosts
       ansible.builtin.lineinfile:

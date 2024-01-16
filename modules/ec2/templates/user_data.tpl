@@ -32,7 +32,7 @@ fi
 
 if which apt >/dev/null 2>&1; then
     apt update -y
-    apt install -y curl wget zip unzip net-tools dnsutils ca-certificates gnupg lsb-release jq git
+    apt install -y curl wget zip unzip net-tools dnsutils ca-certificates gnupg lsb-release jq git python3-pip
 
     systemctl stop apt-daily.timer
     systemctl disable apt-daily.timer
@@ -42,7 +42,18 @@ if which apt >/dev/null 2>&1; then
     systemctl disable apt-daily-upgrade.service
 
     apt-get purge -y unattended-upgrades
+elif which dnf >/dev/null 2>&1; then
+    dnf install -y curl wget zip unzip net-tools bind-utils ca-certificates gnupg jq git python3
+elif which yum >/dev/null 2>&1; then
+    yum install -y curl wget zip unzip net-tools bind-utils ca-certificates gnupg jq git python3
 fi
+
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh ./get-docker.sh
+
+# install docker packages for python
+python3 -m ensurepip --upgrade
+python3 -m pip install docker==6.1.3 docker-compose
 
 # https://docs.emqx.com/en/enterprise/latest/performance/tune.html
 cat > /etc/sysctl.d/perftest.conf <<EOF

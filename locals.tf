@@ -35,33 +35,20 @@ locals {
   }
 
   # emqx
-  emqx_region           = try(local.spec.emqx.region, local.default_region)
-  emqx_os_name          = try(local.spec.emqx.os_name, local.default_os_name)
-  emqx_os_version       = try(local.spec.emqx.os_version, local.default_os_version)
-  emqx_cpu_arch         = try(local.spec.emqx.cpu_arch, local.default_cpu_arch)
-  emqx_root_volume_size = try(local.spec.emqx.root_volume_size, 20)
-  emqx_version_family   = try(local.spec.emqx.version_family, 5) # 5 or 4
-  emqx_http_api_port    = local.emqx_version_family == 4 ? 8081 : 18083
-  emqx_api_version      = local.emqx_version_family == 4 ? "v4" : "v5"
-  # NB: this works for ubuntu only
-  emqx_ami_filter                 = "*/${local.emqx_os_name}-${local.emqx_os_version}-${local.emqx_cpu_arch}-server-*"
+  emqx_region                     = try(local.spec.emqx.region, local.default_region)
+  emqx_os_name                    = try(local.spec.emqx.os_name, local.default_os_name)
+  emqx_os_version                 = try(local.spec.emqx.os_version, local.default_os_version)
+  emqx_cpu_arch                   = try(local.spec.emqx.cpu_arch, local.default_cpu_arch)
+  emqx_root_volume_size           = try(local.spec.emqx.root_volume_size, 20)
+  emqx_version_family             = try(local.spec.emqx.version_family, 5) # 5 or 4
+  emqx_http_api_port              = local.emqx_version_family == 4 ? 8081 : 18083
+  emqx_api_version                = local.emqx_version_family == 4 ? "v4" : "v5"
   emqx_instance_type              = try(local.spec.emqx.instance_type, local.default_instance_type)
   emqx_use_spot_instances         = try(local.spec.emqx.use_spot_instances, local.default_use_spot_instances)
-  emqx_install_source             = try(local.spec.emqx.install_source, "package")
-  emqx_package_version            = try(local.spec.emqx.package_version, "latest")
   emqx_dashboard_default_password = try(local.spec.emqx.dashboard_default_password, "public")
-
-  emqx_api_key    = try(local.spec.emqx.api_key, "perftest")
-  emqx_api_secret = try(local.spec.emqx.api_secret, "perftest")
-  emqx_bootstrap_api_keys = [
-    {
-      key    = local.emqx_api_key
-      secret = local.emqx_api_secret
-    }
-  ]
-  emqx_license_file = try(local.spec.emqx.license_file, "")
-  emqx_scripts = try(local.spec.emqx.scripts, [])
-  cluster_dns_name  = "emqx-cluster.${local.route53_zone_name}"
+  # NB: this works for ubuntu only
+  emqx_ami_filter  = "*/${local.emqx_os_name}-${local.emqx_os_version}-${local.emqx_cpu_arch}-server-*"
+  cluster_dns_name = "emqx-cluster.${local.route53_zone_name}"
 
   # group by region
   emqx_nodes_by_region = {
@@ -84,8 +71,7 @@ locals {
         ami_filter    = try(n.ami_filter, local.emqx_ami_filter)
       }
   ]])
-  emqx_nodes = { for node in local.emqx_nodes_list : node.hostname => node }
-
+  emqx_nodes        = { for node in local.emqx_nodes_list : node.hostname => node }
   emqx_static_seeds = [for node in local.emqx_nodes : "emqx@${node.hostname}" if node.role == "core"]
 
   # emqttb
@@ -166,13 +152,6 @@ locals {
   locust_instance_type                 = try(local.spec.locust.instance_type, local.default_instance_type)
   locust_use_spot_instances            = try(local.spec.locust.use_spot_instances, local.default_use_spot_instances)
   locust_plan_entrypoint               = try(local.spec.locust.plan_entrypoint, "locustfile.py")
-  locust_version                       = try(local.spec.locust.version, "latest")
-  locust_topics_count                  = try(local.spec.locust.topics_count, 100)
-  locust_unsubscribe_client_batch_size = try(local.spec.locust.unsubscribe_client_batch_size, 100)
-  locust_max_client_id                 = try(local.spec.locust.max_client_id, 1000000)
-  locust_client_prefix_list            = try(local.spec.locust.client_prefix_list, "")
-  locust_users                         = try(local.spec.locust.users, 10)
-  locust_payload_size                  = try(local.spec.locust.payload_size, 256)
   # group by region
   locust_nodes_by_region = {
     for r in local.regions :
@@ -203,9 +182,9 @@ locals {
   http_os_version = try(local.spec.http.os_version, local.default_os_version)
   http_cpu_arch   = try(local.spec.http.cpu_arch, local.default_cpu_arch)
   # NB: this works for ubuntu only
-  http_ami_filter                    = "*/${local.http_os_name}-${local.http_os_version}-${local.http_cpu_arch}-server-*"
-  http_instance_type                 = try(local.spec.http.instance_type, local.default_instance_type)
-  http_use_spot_instances            = try(local.spec.http.use_spot_instances, local.default_use_spot_instances)
+  http_ami_filter         = "*/${local.http_os_name}-${local.http_os_version}-${local.http_cpu_arch}-server-*"
+  http_instance_type      = try(local.spec.http.instance_type, local.default_instance_type)
+  http_use_spot_instances = try(local.spec.http.use_spot_instances, local.default_use_spot_instances)
   # group by region
   http_nodes_by_region = {
     for r in local.regions :
@@ -219,11 +198,11 @@ locals {
   http_nodes_list = flatten([
     for r, nodes in local.http_nodes_by_region : [
       for i, n in nodes : {
-        instance_type   = try(n.instance_type, local.http_instance_type)
-        region          = r
-        name            = "http-${lookup(var.regions_abbrev_map, r)}-${i + 1}",
-        hostname        = "http-${lookup(var.regions_abbrev_map, r)}-${i + 1}.${local.route53_zone_name}",
-        ami_filter      = try(n.ami_filter, local.http_ami_filter)
+        instance_type = try(n.instance_type, local.http_instance_type)
+        region        = r
+        name          = "http-${lookup(var.regions_abbrev_map, r)}-${i + 1}",
+        hostname      = "http-${lookup(var.regions_abbrev_map, r)}-${i + 1}.${local.route53_zone_name}",
+        ami_filter    = try(n.ami_filter, local.http_ami_filter)
       }
   ]])
   http_nodes = { for node in local.http_nodes_list : node.hostname => node }
