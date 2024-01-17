@@ -10,3 +10,6 @@ emqx_dashboard_default_password: 'public'
 emqx_bootstrap_api_keys:
   - key: emqx
     secret: emqx
+emqx_session_persistence: false
+emqx_session_persistence_builtin: false
+emqx_data_dir: '/var/lib/emqx'

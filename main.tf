@@ -265,33 +265,41 @@ resource "local_file" "ansible_inventory" {
 resource "local_file" "ansible_common_group_vars" {
   content = yamlencode({
     node_exporter_enabled_collectors = var.node_exporter_enabled_collectors
-    deb_architecture_map = var.deb_architecture_map
+    deb_architecture_map             = var.deb_architecture_map
   })
   filename = "${path.module}/ansible/group_vars/all.yml"
 }
 
 resource "local_file" "ansible_emqx_group_vars" {
   content = yamlencode({
-    emqx_install_source                  = local.emqx_install_source,
-    emqx_package_download_url            = try(local.spec.emqx.package_download_url, ""),
-    emqx_package_file_path               = try(local.spec.emqx.package_file_path, ""),
-    emqx_cluster_discovery_strategy      = try(local.spec.emqx.cluster_discovery_strategy, "static"),
-    emqx_cluster_static_seeds            = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds),
-    emqx_cluster_dns_name                = local.cluster_dns_name,
-    emqx_cluster_dns_record_type         = try(local.spec.emqx.cluster_dns_record_type, "srv"),
-    emqx_prometheus_enabled              = try(local.spec.emqx.prometheus_enabled, false),
-    emqx_prometheus_push_gateway_server  = "http://${local.monitoring_hostname}:9091",
-    emqx_log_console_handler_level       = try(local.spec.emqx.log_console_handler_level, "info"),
-    emqx_log_file_handlers_default_level = try(local.spec.emqx.log_file_handlers_default_level, "info"),
-    emqx_dashboard_default_password      = local.emqx_dashboard_default_password,
-    emqx_api_key                         = local.emqx_api_key,
-    emqx_api_secret                      = local.emqx_api_secret,
-    emqx_bootstrap_api_keys              = local.emqx_bootstrap_api_keys,
-    emqx_license_file                    = local.emqx_license_file,
-    emqx_version_family                  = local.emqx_version_family,
-    emqx_package_version                 = local.emqx_package_version,
-    emqx_scripts                         = local.emqx_scripts,
-    http_server_url                      = length(module.http) > 0 ? "http://${[for x in module.http: x.fqdn][0]}" : "",
+    emqx_install_source                  = try(local.spec.emqx.install_source, "package")
+    emqx_package_download_url            = try(local.spec.emqx.package_download_url, "")
+    emqx_package_file_path               = try(local.spec.emqx.package_file_path, "")
+    emqx_cluster_discovery_strategy      = try(local.spec.emqx.cluster_discovery_strategy, "static")
+    emqx_cluster_static_seeds            = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds)
+    emqx_cluster_dns_name                = local.cluster_dns_name
+    emqx_cluster_dns_record_type         = try(local.spec.emqx.cluster_dns_record_type, "srv")
+    emqx_prometheus_enabled              = try(local.spec.emqx.prometheus_enabled, false)
+    emqx_prometheus_push_gateway_server  = "http://${local.monitoring_hostname}:9091"
+    emqx_log_console_handler_level       = try(local.spec.emqx.log_console_handler_level, "info")
+    emqx_log_file_handlers_default_level = try(local.spec.emqx.log_file_handlers_default_level, "info")
+    emqx_api_key                         = try(local.spec.emqx.api_key, "perftest")
+    emqx_api_secret                      = try(local.spec.emqx.api_secret, "perftest")
+    emqx_bootstrap_api_keys = [
+      {
+        key    = try(local.spec.emqx.api_key, "perftest")
+        secret = try(local.spec.emqx.api_secret, "perftest")
+      }
+    ]
+    emqx_license_file                = try(local.spec.emqx.license_file, "")
+    emqx_package_version             = try(local.spec.emqx.package_version, "latest")
+    emqx_scripts                     = try(local.spec.emqx.scripts, [])
+    emqx_session_persistence         = try(local.spec.emqx.session_persistence, false)
+    emqx_session_persistence_builtin = try(local.spec.emqx.session_persistence_builtin, false)
+    emqx_data_dir                    = try(local.spec.emqx.data_dir, "/var/lib/emqx")
+    emqx_version_family              = local.emqx_version_family
+    emqx_dashboard_default_password  = local.emqx_dashboard_default_password
+    http_server_url                  = length(module.http) > 0 ? "http://${[for x in module.http : x.fqdn][0]}" : ""
   })
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
@@ -299,16 +307,16 @@ resource "local_file" "ansible_emqx_group_vars" {
 resource "local_file" "ansible_emqx_host_vars" {
   for_each = { for i, node in module.emqx : i => node }
   content = yamlencode({
-    emqx_node_name = "emqx@${each.value.fqdn}",
-    emqx_node_role = local.emqx_nodes[each.value.fqdn].role,
+    emqx_node_name = "emqx@${each.value.fqdn}"
+    emqx_node_role = local.emqx_nodes[each.value.fqdn].role
   })
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
 
 resource "local_file" "ansible_emqttb_group_vars" {
   content = yamlencode({
-    emqttb_package_download_url = try(local.spec.emqttb.package_download_url, ""),
-    emqttb_package_file_path    = try(local.spec.emqttb.package_file_path, ""),
+    emqttb_package_download_url = try(local.spec.emqttb.package_download_url, "")
+    emqttb_package_file_path    = try(local.spec.emqttb.package_file_path, "")
     emqttb_targets              = [for node in module.emqx : node.fqdn]
     grafana_url                 = "http://${module.monitoring.fqdn}:3000"
     prometheus_push_gw_url      = "http://${module.monitoring.fqdn}:9091"
@@ -319,15 +327,15 @@ resource "local_file" "ansible_emqttb_group_vars" {
 resource "local_file" "ansible_emqttb_host_vars" {
   for_each = { for i, node in module.emqttb : i => node }
   content = yamlencode({
-    emqttb_scenario = local.emqttb_nodes[each.value.fqdn].scenario,
+    emqttb_scenario = local.emqttb_nodes[each.value.fqdn].scenario
   })
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
 
 resource "local_file" "ansible_emqtt_bench_group_vars" {
   content = yamlencode({
-    emqtt_bench_package_download_url = try(local.spec.emqtt_bench.package_download_url, ""),
-    emqtt_bench_package_file_path    = try(local.spec.emqtt_bench.package_file_path, ""),
+    emqtt_bench_package_download_url = try(local.spec.emqtt_bench.package_download_url, "")
+    emqtt_bench_package_file_path    = try(local.spec.emqtt_bench.package_file_path, "")
     emqtt_bench_targets              = [for node in module.emqx : node.fqdn]
   })
   filename = "${path.module}/ansible/group_vars/emqtt_bench.yml"
@@ -342,16 +350,16 @@ resource "local_file" "ansible_emqtt_bench_host_vars" {
 }
 
 resource "local_file" "ansible_locust_group_vars" {
-  count = length(module.locust)
+  count = length(module.locust) > 0 ? 1 : 0
   content = yamlencode({
-    locust_version                       = local.locust_version
-    locust_leader_ip                     = local.locust_leader[0].private_ips[0],
-    locust_topics_count                  = local.locust_topics_count
-    locust_unsubscribe_client_batch_size = local.locust_unsubscribe_client_batch_size
-    locust_max_client_id                 = local.locust_max_client_id
-    locust_client_prefix_list            = local.locust_client_prefix_list
-    locust_users                         = local.locust_users
-    locust_payload_size                  = local.locust_payload_size
+    locust_leader_ip                     = local.locust_leader[0].private_ips[0]
+    locust_version                       = try(local.spec.locust.version, "latest")
+    locust_topics_count                  = try(local.spec.locust.topics_count, 100)
+    locust_unsubscribe_client_batch_size = try(local.spec.locust.unsubscribe_client_batch_size, 100)
+    locust_max_client_id                 = try(local.spec.locust.max_client_id, 1000000)
+    locust_client_prefix_list            = try(local.spec.locust.client_prefix_list, "")
+    locust_users                         = try(local.spec.locust.users, 10)
+    locust_payload_size                  = try(local.spec.locust.payload_size, 256)
     locust_base_url                      = "http://${module.internal_nlb.dns_name}:${local.emqx_http_api_port}/api/${local.emqx_api_version}"
     locust_emqx_dashboard_url            = "http://${module.public_nlb.dns_name}:18083"
   })
@@ -365,8 +373,8 @@ locals {
 resource "local_file" "ansible_locust_host_vars" {
   for_each = { for i, node in module.locust : i => node }
   content = yamlencode({
-    locust_plan_entrypoint = local.locust_nodes[each.value.fqdn].plan_entrypoint,
-    locust_role            = local.locust_nodes[each.value.fqdn].role,
+    locust_plan_entrypoint = local.locust_nodes[each.value.fqdn].plan_entrypoint
+    locust_role            = local.locust_nodes[each.value.fqdn].role
   })
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }

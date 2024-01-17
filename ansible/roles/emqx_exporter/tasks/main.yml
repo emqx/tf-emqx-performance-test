@@ -11,5 +11,6 @@
     dest: "{{ ansible_user_dir }}/emqx-exporter.config.yaml"
 
 - name: Create and start services
+  become: yes
   community.docker.docker_compose:
     project_src: "{{ ansible_user_dir }}"

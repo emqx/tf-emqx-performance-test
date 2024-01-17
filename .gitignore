@@ -8,3 +8,4 @@ terraform.tfstate*
 /ansible/host_vars/
 /ansible.cfg
 /ansible/inventory.ini
+__pycache__/

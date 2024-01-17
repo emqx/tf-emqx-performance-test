@@ -25,5 +25,6 @@
     - "*.json"
 
 - name: Create and start services
+  become: yes
   community.docker.docker_compose:
     project_src: "{{ ansible_user_dir }}"

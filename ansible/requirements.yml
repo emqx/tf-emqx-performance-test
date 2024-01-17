@@ -1,6 +1,2 @@
 collections:
-  - name: community.docker
   - name: prometheus.prometheus
-roles:   
-  - name: geerlingguy.docker
-  - name: geerlingguy.pip
