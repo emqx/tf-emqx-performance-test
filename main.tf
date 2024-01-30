@@ -56,6 +56,14 @@ resource "aws_lb_target_group_attachment" "emqx" {
   provider         = aws.default
 }
 
+resource "aws_lb_target_group_attachment" "emqx-ws" {
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  target_group_arn = module.public_nlb.emqx_ws_target_group_arn
+  target_id        = each.value.private_ips[0]
+  port             = 8083
+  provider         = aws.default
+}
+
 resource "aws_lb_target_group_attachment" "emqx-api" {
   for_each         = local.emqx_version_family == 4 ? { for i, node in module.emqx : i => node if node.region == local.default_region } : {}
   target_group_arn = module.public_nlb.emqx_api_target_group_arn
