@@ -1,10 +1,31 @@
 - include_tasks: install-repo.yml
   when: emqx_package_download_url == '' and emqx_package_file_path == ''
 
+- name: Resolve package file path
+  when: emqx_package_file_path != ''
+  become: no
+  delegate_to: localhost
+  stat:
+    path: "{{ emqx_package_file_path }}"
+  register: _emqx_pkg_path
+
+- debug:
+    var: _emqx_pkg_path
+
+- name: Set package path fact (absolute)
+  when: emqx_package_file_path != '' and _emqx_pkg_path.stat.exists
+  set_fact:
+    emqx_package_file_path_resolved: "{{ emqx_package_file_path }}"
+
+- name: Set package path fact (relative)
+  when: emqx_package_file_path != '' and not _emqx_pkg_path.stat.exists
+  set_fact:
+    emqx_package_file_path_resolved: "{{ playbook_dir }}/../{{ emqx_package_file_path }}"
+
 - name: Upload package
   when: emqx_package_file_path != ''
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../{{ emqx_package_file_path }}"
+    src: "{{ emqx_package_file_path_resolved }}"
     dest: "/tmp/emqx.{{ (ansible_os_family == 'Debian') | ternary('deb', 'rpm') }}"
 
 - name: Install emqx
