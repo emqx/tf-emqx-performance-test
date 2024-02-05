@@ -33,7 +33,7 @@ To start the test, you need to start loadgen manually (as indicated above, and i
 After terraform run you can use ansible separately to start/stop loadgens, manage emqx nodes, etc.
 
 Some examples:
-    
+
 ```bash
 # start/stop benchmark with emqttb
 ansible emqttb -m command -a 'systemctl start emqttb' --become
@@ -54,6 +54,10 @@ ansible-playbook ansible/emqx.yml
 ansible-playbook ansible/emqttb.yml
 # reinstall emqtt-bench
 ansible-playbook ansible/emqtt-bench.yml
+# reinstall emqx with some custom variables
+# note: we pass them as a JSON object; otherwise,
+# everything is interpreted as a string
+ansible-playbook ansible/emqx.yml -e '{"cache_enabled": true, "topics": ["t/a"]}'
 ```
 
 To ssh directly into instances, use terraform output to get IP addresses, and generated ssh private key in `.ssh` directory, for example:
