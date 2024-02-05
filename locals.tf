@@ -11,7 +11,6 @@ locals {
   default_os_name            = try(local.spec.os_name, "ubuntu-jammy")
   default_os_version         = try(local.spec.os_version, "22.04")
   default_cpu_arch           = try(local.spec.cpu_arch, "amd64")
-  default_ami_filter         = "*/${local.default_os_name}-${local.default_os_version}-${local.default_cpu_arch}-server-*"
   default_use_spot_instances = try(local.spec.use_spot_instances, true)
 
   # collect all regions from spec
@@ -40,7 +39,7 @@ locals {
   emqx_os_name                    = try(local.spec.emqx.os_name, local.default_os_name)
   emqx_os_version                 = try(local.spec.emqx.os_version, local.default_os_version)
   emqx_cpu_arch                   = try(local.spec.emqx.cpu_arch, local.default_cpu_arch)
-  emqx_ami_filter                 = try(local.spec.emqx.ami_filter, local.default_ami_filter)
+  emqx_ami_filter                 = try(local.spec.emqx.ami_filter, "*/${local.emqx_os_name}-${local.emqx_os_version}-${local.emqx_cpu_arch}-server-*")
   emqx_root_volume_size           = try(local.spec.emqx.root_volume_size, 20)
   emqx_version_family             = try(local.spec.emqx.version_family, 5) # 5 or 4
   emqx_http_api_port              = local.emqx_version_family == 4 ? 8081 : 18083
@@ -83,7 +82,7 @@ locals {
   emqttb_os_name            = try(local.spec.emqttb.os_name, local.default_os_name)
   emqttb_os_version         = try(local.spec.emqttb.os_version, local.default_os_version)
   emqttb_cpu_arch           = try(local.spec.emqttb.cpu_arch, local.default_cpu_arch)
-  emqttb_ami_filter         = try(local.spec.emqttb.ami_filter, local.default_ami_filter)
+  emqttb_ami_filter         = try(local.spec.emqttb.ami_filter, "*/${local.emqttb_os_name}-${local.emqttb_os_version}-${local.emqttb_cpu_arch}-server-*")
   emqttb_instance_type      = try(local.spec.emqttb.instance_type, local.default_instance_type)
   emqttb_use_spot_instances = try(local.spec.emqttb.use_spot_instances, local.default_use_spot_instances)
   emqttb_scenario           = try(local.spec.emqttb.scenario, "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb @sub --topic t/%%n --conninterval 100ms --num-clients 100")
@@ -116,7 +115,7 @@ locals {
   emqtt_bench_os_name            = try(local.spec.emqtt_bench.os_name, local.default_os_name)
   emqtt_bench_os_version         = try(local.spec.emqtt_bench.os_version, local.default_os_version)
   emqtt_bench_cpu_arch           = try(local.spec.emqtt_bench.cpu_arch, local.default_cpu_arch)
-  emqtt_bench_ami_filter         = try(local.spec.emqtt_bench.ami_filter, local.default_ami_filter)
+  emqtt_bench_ami_filter         = try(local.spec.emqtt_bench.ami_filter, "*/${local.emqtt_bench_os_name}-${local.emqtt_bench_os_version}-${local.emqtt_bench_cpu_arch}-server-*")
   emqtt_bench_instance_type      = try(local.spec.emqtt_bench.instance_type, local.default_instance_type)
   emqtt_bench_use_spot_instances = try(local.spec.emqtt_bench.use_spot_instances, local.default_use_spot_instances)
   emqtt_bench_scenario           = try(local.spec.emqtt_bench.scenario, "pub -c 100 -I 10 -t bench/%%i -s 256")
@@ -151,7 +150,7 @@ locals {
   locust_os_name            = try(local.spec.locust.os_name, local.default_os_name)
   locust_os_version         = try(local.spec.locust.os_version, local.default_os_version)
   locust_cpu_arch           = try(local.spec.locust.cpu_arch, local.default_cpu_arch)
-  locust_ami_filter         = try(local.spec.locust.ami_filter, local.default_ami_filter)
+  locust_ami_filter         = try(local.spec.locust.ami_filter, "*/${local.locust_os_name}-${local.locust_os_version}-${local.locust_cpu_arch}-server-*")
   locust_instance_type      = try(local.spec.locust.instance_type, local.default_instance_type)
   locust_use_spot_instances = try(local.spec.locust.use_spot_instances, local.default_use_spot_instances)
   locust_plan_entrypoint    = try(local.spec.locust.plan_entrypoint, "locustfile.py")
@@ -184,7 +183,7 @@ locals {
   http_os_name            = try(local.spec.http.os_name, local.default_os_name)
   http_os_version         = try(local.spec.http.os_version, local.default_os_version)
   http_cpu_arch           = try(local.spec.http.cpu_arch, local.default_cpu_arch)
-  http_ami_filter         = try(local.spec.http.ami_filter, local.default_ami_filter)
+  http_ami_filter         = try(local.spec.http.ami_filter, "*/${local.http_os_name}-${local.http_os_version}-${local.http_cpu_arch}-server-*")
   http_instance_type      = try(local.spec.http.instance_type, local.default_instance_type)
   http_use_spot_instances = try(local.spec.http.use_spot_instances, local.default_use_spot_instances)
   # group by region
@@ -213,7 +212,7 @@ locals {
   monitoring_os_name            = try(local.spec.monitoring.os_name, local.default_os_name)
   monitoring_os_version         = try(local.spec.monitoring.os_version, local.default_os_version)
   monitoring_cpu_arch           = try(local.spec.monitoring.cpu_arch, local.default_cpu_arch)
-  monitoring_ami_filter         = try(local.spec.monitoring.ami_filter, local.default_ami_filter)
+  monitoring_ami_filter         = try(local.spec.monitoring.ami_filter, "*/${local.monitoring_os_name}-${local.monitoring_os_version}-${local.monitoring_cpu_arch}-server-*")
   monitoring_instance_type      = try(local.spec.monitoring.instance_type, local.default_instance_type)
   monitoring_use_spot_instances = try(local.spec.monitoring.use_spot_instances, local.default_use_spot_instances)
   monitoring_root_volume_size   = try(local.spec.monitoring.root_volume_size, 20)
