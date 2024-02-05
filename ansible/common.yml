@@ -1,20 +1,32 @@
-- hosts: all
-  pre_tasks:
-    - name: Store available ip addresses
-      ansible.builtin.set_fact:
-        available_ip_addresses: "{{ ansible_all_ipv4_addresses }}"
-  tasks:
-    - name: Add entries to /etc/hosts
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
-        search_string: "{{ item }}"
-        line: "{{ hostvars[item].private_ip }}\t{{ item }}"
-      become: yes
-      loop: "{{ ansible_play_hosts }}"
+- name: wait_for_connection
+  wait_for_connection:
+    delay: 0
+    timeout: 300
+  tags:
+   - always
+- name: wait for /opt/tf_init_done
+  wait_for:
+    path: /opt/tf_init_done
+    timeout: 180
+- name: Gather facts
+  become: yes
+  ansible.builtin.setup:
+  tags:
+   - always
+- name: Store available ip addresses
+  ansible.builtin.set_fact:
+    available_ip_addresses: "{{ ansible_all_ipv4_addresses }}"
+- name: Add entries to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    search_string: "{{ item }}"
+    line: "{{ hostvars[item].private_ip }}\t{{ item }}"
+  become: yes
+  loop: "{{ ansible_play_hosts }}"
 
-    - name: Add entries to /etc/hosts
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
-        search_string: "{{ inventory_hostname }}"
-        line: "127.0.0.1\t{{ inventory_hostname }}"
-      become: yes
+- name: Add entries to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    search_string: "{{ inventory_hostname }}"
+    line: "127.0.0.1\t{{ inventory_hostname }}"
+  become: yes

@@ -65,17 +65,21 @@ resource "aws_network_interface" "default" {
 }
 
 resource "aws_ebs_volume" "default" {
-  count             = lookup(var.region_aliases, var.region) == "default" && var.extra_volume_size > 0 ? 1 : 0
+  count             = lookup(var.region_aliases, var.region) == "default" ? length(var.extra_volumes) : 0
   availability_zone = data.aws_availability_zones.default.names[0]
-  size              = var.extra_volume_size
+  type              = var.extra_volumes[count.index].volume_type
+  size              = var.extra_volumes[count.index].volume_size
+  iops              = var.extra_volumes[count.index].volume_iops
+  throughput        = var.extra_volumes[count.index].volume_throughput
   provider          = aws.default
 }
 
 resource "aws_volume_attachment" "default" {
-  count       = lookup(var.region_aliases, var.region) == "default" && var.extra_volume_size > 0 ? 1 : 0
-  device_name = "/dev/sdf"
-  volume_id   = aws_ebs_volume.default[0].id
+  count       = lookup(var.region_aliases, var.region) == "default" ? length(var.extra_volumes) : 0
+  device_name = var.data_volume_device_list[count.index]
+  volume_id   = aws_ebs_volume.default[count.index].id
   instance_id = aws_instance.default[0].id
+  provider    = aws.default
 }
 
 resource "aws_instance" "default" {
@@ -90,8 +94,9 @@ resource "aws_instance" "default" {
   }
   user_data = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra    = var.extra_user_data
-      hostname = var.hostname
+      extra         = var.extra_user_data
+      hostname      = var.hostname
+      volumes       = concat(var.instance_volumes, var.extra_volumes)
   })
 
   tags = {
@@ -125,17 +130,21 @@ resource "aws_network_interface" "region2" {
 }
 
 resource "aws_ebs_volume" "region2" {
-  count             = lookup(var.region_aliases, var.region) == "region2" && var.extra_volume_size > 0 ? 1 : 0
+  count             = lookup(var.region_aliases, var.region) == "region2" ? length(var.extra_volumes) : 0
   availability_zone = data.aws_availability_zones.region2.names[0]
-  size              = var.extra_volume_size
+  type              = var.extra_volumes[count.index].volume_type
+  size              = var.extra_volumes[count.index].volume_size
+  iops              = var.extra_volumes[count.index].volume_iops
+  throughput        = var.extra_volumes[count.index].volume_throughput
   provider          = aws.region2
 }
 
 resource "aws_volume_attachment" "region2" {
-  count       = lookup(var.region_aliases, var.region) == "region2" && var.extra_volume_size > 0 ? 1 : 0
-  device_name = "/dev/sdf"
-  volume_id   = aws_ebs_volume.region2[0].id
+  count       = lookup(var.region_aliases, var.region) == "region2" ? length(var.extra_volumes) : 0
+  device_name = var.data_volume_device_list[count.index]
+  volume_id   = aws_ebs_volume.region2[count.index].id
   instance_id = aws_instance.region2[0].id
+  provider    = aws.region2
 }
 
 resource "aws_instance" "region2" {
@@ -150,8 +159,9 @@ resource "aws_instance" "region2" {
   }
   user_data = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra    = var.extra_user_data
-      hostname = var.hostname
+      extra         = var.extra_user_data
+      hostname      = var.hostname
+      volumes       = concat(var.instance_volumes, var.extra_volumes)
   })
 
   tags = {
@@ -185,19 +195,22 @@ resource "aws_network_interface" "region3" {
 }
 
 resource "aws_ebs_volume" "region3" {
-  count             = lookup(var.region_aliases, var.region) == "region3" && var.extra_volume_size > 0 ? 1 : 0
+  count             = lookup(var.region_aliases, var.region) == "region3" ? length(var.extra_volumes) : 0
   availability_zone = data.aws_availability_zones.region3.names[0]
-  size              = var.extra_volume_size
+  type              = var.extra_volumes[count.index].volume_type
+  size              = var.extra_volumes[count.index].volume_size
+  iops              = var.extra_volumes[count.index].volume_iops
+  throughput        = var.extra_volumes[count.index].volume_throughput
   provider          = aws.region3
 }
 
 resource "aws_volume_attachment" "region3" {
-  count       = lookup(var.region_aliases, var.region) == "region3" && var.extra_volume_size > 0 ? 1 : 0
-  device_name = "/dev/sdf"
-  volume_id   = aws_ebs_volume.region3[0].id
+  count       = lookup(var.region_aliases, var.region) == "region3" ? length(var.extra_volumes) : 0
+  device_name = var.data_volume_device_list[count.index]
+  volume_id   = aws_ebs_volume.region3[count.index].id
   instance_id = aws_instance.region3[0].id
+  provider    = aws.region3
 }
-
 resource "aws_instance" "region3" {
   count                = lookup(var.region_aliases, var.region) == "region3" ? 1 : 0
   ami                  = data.aws_ami.region3.id
@@ -210,8 +223,9 @@ resource "aws_instance" "region3" {
   }
   user_data = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra    = var.extra_user_data
-      hostname = var.hostname
+      extra         = var.extra_user_data
+      hostname      = var.hostname
+      volumes       = concat(var.instance_volumes, var.extra_volumes)
   })
 
   tags = {

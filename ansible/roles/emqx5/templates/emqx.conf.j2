@@ -53,11 +53,20 @@ api_key {
   bootstrap_file = "{{ emqx_api_key_bootstrap_file | default('/etc/emqx/bootstrap-api') }}"
 }
 
+{% if emqx_license_file | length > 0 -%}
+license {
+  key = "file://{{ emqx_license_file_path }}"
+}
+{% endif -%}
 session_persistence {
   enable = {{ emqx_session_persistence | string | lower }}
+{% if emqx_session_persistence_builtin -%}
+session_persistence {
+  enable = true
   storage {
     builtin {
-      enable = {{ emqx_session_persistence_builtin | string | lower }}
+      enable = true
     }
   }
 }
+{% endif -%}

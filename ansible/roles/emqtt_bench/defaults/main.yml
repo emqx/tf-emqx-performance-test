@@ -2,4 +2,5 @@ emqtt_bench_install_source: tgz # git
 emqtt_bench_version: latest
 emqtt_bench_tgz_download_url: ''
 emqtt_bench_tgz_file_path: ''
+emqtt_bench_payload_template_file_path: ''
 available_ip_addresses: "{{ ansible_all_ipv4_addresses }}"

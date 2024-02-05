@@ -1,0 +1,108 @@
+- name: Create emqx system user
+  become: yes
+  ansible.builtin.user:
+    name: emqx
+    shell: /bin/bash
+    system: yes
+    createhome: yes
+    home: "{{ emqx_home_dir }}"
+
+- name: Modify known hosts
+  block:
+  - name: Ensure ~/.ssh exists
+    become: yes
+    ansible.builtin.file:
+      path: "~/.ssh"
+      state: directory
+      mode: '0700'
+
+  - name: Fetch GitHub public key
+    command: ssh-keyscan -T 10 github.com
+    register: keyscan
+
+  - name: Add GitHub public key to ssh known_hosts
+    become: yes
+    lineinfile:
+      path: "~/.ssh/known_hosts"
+      create: yes
+      line: "{{ item }}"
+    with_items: '{{ keyscan.stdout_lines }}'
+
+- name: Ensure git safe directory
+  become: yes
+  ansible.builtin.shell: |
+    git config --global --add safe.directory {{ emqx_home_dir }}/emqx
+
+- name: Clone repository
+  become: yes
+  ansible.builtin.git:
+    repo: "{{ emqx_git_repo }}"
+    dest: "{{ emqx_home_dir }}/emqx"
+    version: "{{ emqx_git_ref }}"
+    force: yes
+
+- name: Build emqx
+  become: yes
+  ansible.builtin.shell: |
+    docker run --rm -t \
+           -v ~/.gitconfig:/root/.gitconfig \
+           -v "$PWD":"$PWD" \
+           -w "$PWD" \
+           {{ emqx_builder_image }} \
+           bash -c "make {{ emqx_edition }}"
+  args:
+    chdir: "{{ emqx_home_dir }}/emqx"
+
+- name: Ensure owner
+  become: yes
+  ansible.builtin.file:
+    path: "{{ emqx_home_dir }}/emqx"
+    state: directory
+    recurse: yes
+    owner: emqx
+    group: emqx
+
+- name: Create symlink for emqx in /usr/bin
+  become: yes
+  ansible.builtin.file:
+    path: /usr/bin/emqx
+    state: link
+    src: "{{ emqx_home_dir }}/emqx/_build/{{ emqx_edition }}/rel/emqx/bin/emqx"
+
+- name: Render emqx systemd unit file
+  become: yes
+  ansible.builtin.template:
+    src: emqx.service.j2
+    dest: /etc/systemd/system/emqx.service
+    mode: '0644'
+
+- name: Ensure /var/log/emqx
+  become: yes
+  ansible.builtin.file:
+    path: /var/log/emqx
+    state: directory
+    mode: '0755'
+    owner: emqx
+    group: emqx
+
+- name: Ensure /etc/emqx directory
+  become: yes
+  ansible.builtin.file:
+    path: /etc/emqx
+    state: directory
+    mode: '0755'
+
+- name: Fix EMQX_ETC_DIR in emqx_vars
+  become: yes
+  become_user: emqx
+  ansible.builtin.lineinfile:
+    path: "{{ emqx_home_dir }}/emqx/_build/{{ emqx_edition }}/rel/emqx/releases/emqx_vars"
+    regexp: 'EMQX_ETC_DIR=.*'
+    line: 'EMQX_ETC_DIR="/etc/emqx"'
+
+- name: Symlink certs
+  become: yes
+  ansible.builtin.file:
+    path: /etc/emqx/certs
+    state: link
+    src: "{{ emqx_home_dir }}/emqx/_build/{{ emqx_edition }}/rel/emqx/etc/certs"

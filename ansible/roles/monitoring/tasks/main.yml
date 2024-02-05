@@ -1,4 +1,5 @@
 - name: Copy files
+  become: yes
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ ansible_user_dir }}/{{ item }}"
@@ -8,16 +9,19 @@
     - dashboards.yaml
 
 - name: Render prometheus.yml
+  become: yes
   ansible.builtin.template:
     src: prometheus.yml.j2
-    dest: prometheus.yml
+    dest: "{{ ansible_user_dir }}/prometheus.yml"
 
 - name: Ensure dashboards dir
+  become: yes
   ansible.builtin.file:
     path: "{{ ansible_user_dir }}/dashboards"
     state: directory
 
 - name: Copy dashboards
+  become: yes
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ ansible_user_dir }}/dashboards/{{ item | basename }}"

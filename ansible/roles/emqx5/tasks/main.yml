@@ -1,3 +1,7 @@
+- include_tasks: install-git.yml
+  when: emqx_install_source == 'git'
 - include_tasks: install-package.yml
   when: emqx_install_source == 'package'
+- include_tasks: configure.yml
+- include_tasks: service.yml
 - include_tasks: scripts.yml

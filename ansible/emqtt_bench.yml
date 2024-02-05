@@ -1,3 +1,5 @@
 - hosts: emqtt_bench
+  pre_tasks:
+    - include_tasks: common.yml
   roles:
     - emqtt_bench

@@ -1,0 +1,71 @@
+- name: Ensure data dir
+  become: yes
+  ansible.builtin.file:
+    path: "{{ emqx_data_dir }}"
+    state: directory
+    mode: 0755
+    owner: emqx
+    group: emqx
+
+- name: Render /etc/emqx/emqx.conf
+  become: yes
+  ansible.builtin.template:
+    src: emqx.conf.j2
+    dest: /etc/emqx/emqx.conf
+    mode: '0644'
+  register: _emqx_conf
+
+- name: Render acl.conf
+  become: yes
+  ansible.builtin.template:
+    src: acl.conf.j2
+    dest: /etc/emqx/acl.conf
+    mode: '0644'
+
+- name: Render vm.args
+  become: yes
+  ansible.builtin.template:
+    src: vm.args.j2
+    dest: /etc/emqx/vm.args
+    mode: '0644'
+
+- name: Render boostrap api keys file
+  become: yes
+  ansible.builtin.template:
+    src: bootstrap-api.j2
+    dest: "{{ emqx_api_key_bootstrap_file }}"
+    mode: '0644'
+  register: _bootstrap_api
+
+- name: Render environment overrides
+  become: yes
+  ansible.builtin.template:
+    src: env.j2
+    dest: /etc/emqx/env
+    mode: '0644'
+  register: _env
+
+- name: Deploy license file
+  when: emqx_license_file != ''
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ emqx_license_file }}"
+    dest: "{{ emqx_license_file_path }}"
+    mode: '0600'
+    owner: emqx
+    group: emqx
+
+- name: Create a directory for systemd service override
+  become: yes
+  ansible.builtin.file:
+    path: /etc/systemd/system/emqx.service.d
+    state: directory
+    mode: 0755
+
+- name: Render systemd service override file
+  become: yes
+  ansible.builtin.template:
+    src: override.conf.j2
+    dest: /etc/systemd/system/emqx.service.d/override.conf
+    mode: '0644'
+  register: _override

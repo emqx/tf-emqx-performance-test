@@ -2,33 +2,42 @@
 
 set -x
 
-if [ -b /dev/nvme1n1 ]; then
-    echo "Found extra data volume, format and mount to /data"
-    mount
-    lsblk
-    if ! mkfs.ext4 -L data /dev/nvme1n1; then
-        echo "Failed to format /dev/nvme1n1"
-    else
-        mkdir -p /data
-        # create systemd mount unit
-        cat > /etc/systemd/system/data.mount <<EOF
+lsblk
+
+%{ for i, v in volumes ~}
+device=/dev/nvme${i+1}n1
+# wait up to 60 seconds for the device to appear
+for i in {1..60}; do
+    if [ -b $device ]; then
+        break
+    fi
+    sleep 1
+done
+
+if ! mkfs.ext4 $device; then
+    echo "Failed to format $device"
+else
+    mkdir -p ${v.mount_point}
+    unit=$(systemd-escape --suffix mount --path ${v.mount_point})
+    cat > /etc/systemd/system/$unit <<EOF
 [Unit]
-Description=Mount /dev/nvme1n1 to /data
+Description=Mount $device to ${v.mount_point}
+Requires=local-fs.target
+After=local-fs.target
 
 [Mount]
-What=/dev/nvme1n1
-Where=/data
+What=$device
+Where=${v.mount_point}
 Type=ext4
-Options=defaults,noatime,discard
+Options=${v.mount_options}
 
 [Install]
 WantedBy=multi-user.target
 EOF
-        systemctl daemon-reload
-        systemctl enable data.mount
-        systemctl start data.mount
-    fi
+    systemctl daemon-reload
+    systemctl enable --now $unit
 fi
+%{ endfor }
 
 if which apt >/dev/null 2>&1; then
     apt update -y
@@ -54,6 +63,16 @@ sh ./get-docker.sh
 # install docker packages for python
 python3 -m ensurepip --upgrade
 python3 -m pip install docker==6.1.3 docker-compose
+
+case $(uname -m) in
+    x86_64)
+        curl -fsSL https://www.emqx.com/en/downloads/MQTTX/v1.9.8/mqttx-cli-linux-x64 -o mqttx-cli-linux
+        ;;
+    aarch64)
+        curl -fsSL https://www.emqx.com/en/downloads/MQTTX/v1.9.8/mqttx-cli-linux-arm64 -o mqttx-cli-linux
+        ;;
+esac
+install ./mqttx-cli-linux /usr/local/bin/mqttx
 
 # https://docs.emqx.com/en/enterprise/latest/performance/tune.html
 cat > /etc/sysctl.d/perftest.conf <<EOF
@@ -91,3 +110,5 @@ ulimit -n 2097152
 [ -n "${hostname}" ] && hostnamectl set-hostname ${hostname}
 
 ${extra}
+
+touch /opt/tf_init_done
