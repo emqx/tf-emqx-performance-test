@@ -1,0 +1,21 @@
+[Unit]
+Description=emqx daemon
+After=network.target
+
+[Service]
+WorkingDirectory={{ emqx_home_dir }}/emqx
+Environment=HOME={{ emqx_home_dir }}/emqx
+Environment=EMQX_LOG_DIR=/var/log/emqx
+Environment=EMQX_DEFAULT_LOG_HANDLER=file
+User=emqx
+Group=emqx
+ExecStart=/bin/bash /usr/bin/emqx foreground
+ExecStop=/bin/bash -c '/usr/bin/emqx; exit 0'
+TimeoutStopSec=120s
+RestartSec=120s
+LimitNOFILE=1048576
+Restart=on-failure
+EnvironmentFile=-/etc/emqx/env
+
+[Install]
+WantedBy=multi-user.target

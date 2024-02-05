@@ -1,4 +1,5 @@
 - name: Copy files
+  become: yes
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ ansible_user_dir }}/{{ item }}"
@@ -6,6 +7,7 @@
     - docker-compose.yaml
 
 - name: Render emqx-exporter config
+  become: yes
   ansible.builtin.template:
     src: config.yaml.j2
     dest: "{{ ansible_user_dir }}/emqx-exporter.config.yaml"

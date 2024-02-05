@@ -1,3 +1,5 @@
 - hosts: emqttb
+  pre_tasks:
+    - include_tasks: common.yml
   roles:
     - emqttb

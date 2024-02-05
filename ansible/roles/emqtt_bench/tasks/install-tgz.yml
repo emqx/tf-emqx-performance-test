@@ -60,6 +60,13 @@
     dest: /etc/systemd/system/emqtt-bench.service
     mode: '0644'
 
+- name: Deploy payload.txt
+  when: emqtt_bench_payload_template_file_path != ''
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ emqtt_bench_payload_template_file_path }}"
+    dest: "/opt/emqtt-bench/{{ emqtt_bench_payload_template_file_path | basename }}"
+
 - name: Run daemon-reload
   become: yes
   ansible.builtin.command: systemctl daemon-reload

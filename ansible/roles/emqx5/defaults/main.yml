@@ -1,6 +1,11 @@
-emqx_install_source: package # git | zip | docker | package
+emqx_install_source: package # git | tgz
 emqx_package_download_url: '' # https://github.com/emqx/emqx/releases/download/v5.3.1/emqx-5.3.1-ubuntu22.04-arm64.deb
 emqx_package_file_path: '' # emqx-5.3.1-ubuntu22.04-arm64.deb
+emqx_home_dir: /var/lib/emqx
+emqx_git_repo: https://github.com/emqx/emqx.git
+emqx_git_ref: master
+emqx_github_pat_file: ''
+emqx_builder_image: ghcr.io/emqx/emqx-builder/5.3-2:1.15.7-26.2.1-2-ubuntu22.04
 emqx_cluster_discovery_strategy: 'manual' # manual | static | dns | etcd | k8s
 emqx_prometheus_enabled: true
 emqx_prometheus_push_gateway_server: ''
@@ -10,6 +15,7 @@ emqx_dashboard_default_password: 'public'
 emqx_bootstrap_api_keys:
   - key: emqx
     secret: emqx
-emqx_session_persistence: false
 emqx_session_persistence_builtin: false
-emqx_data_dir: '/var/lib/emqx'
+emqx_data_dir: /var/lib/emqx
+emqx_license_file_path: /etc/emqx/emqx.lic
+emqx_edition: emqx # emqx-enterprise

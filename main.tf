@@ -26,6 +26,8 @@ module "emqx" {
   instance_name      = each.value.name
   instance_type      = each.value.instance_type
   hostname           = each.value.hostname
+  extra_volumes      = each.value.extra_volumes
+  instance_volumes   = each.value.instance_volumes
   vpc_id             = local.vpcs[each.value.region].vpc_id
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
@@ -275,6 +277,10 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_install_source                  = try(local.spec.emqx.install_source, "package")
     emqx_package_download_url            = try(local.spec.emqx.package_download_url, "")
     emqx_package_file_path               = try(local.spec.emqx.package_file_path, "")
+    emqx_git_repo                        = try(local.spec.emqx.git_repo, "https://github.com/emqx/emqx.git")
+    emqx_git_ref                         = try(local.spec.emqx.git_ref, "master")
+    emqx_edition                         = try(local.spec.emqx.edition, "emqx")
+    emqx_builder_image                   = try(local.spec.emqx.builder_image, "")
     emqx_cluster_discovery_strategy      = try(local.spec.emqx.cluster_discovery_strategy, "static")
     emqx_cluster_static_seeds            = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds)
     emqx_cluster_dns_name                = local.cluster_dns_name
@@ -294,7 +300,6 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_license_file                = try(local.spec.emqx.license_file, "")
     emqx_package_version             = try(local.spec.emqx.package_version, "latest")
     emqx_scripts                     = try(local.spec.emqx.scripts, [])
-    emqx_session_persistence         = try(local.spec.emqx.session_persistence, false)
     emqx_session_persistence_builtin = try(local.spec.emqx.session_persistence_builtin, false)
     emqx_data_dir                    = try(local.spec.emqx.data_dir, "/var/lib/emqx")
     emqx_version_family              = local.emqx_version_family
@@ -344,7 +349,8 @@ resource "local_file" "ansible_emqtt_bench_group_vars" {
 resource "local_file" "ansible_emqtt_bench_host_vars" {
   for_each = { for i, node in module.emqtt-bench : i => node }
   content = yamlencode({
-    emqtt_bench_scenario = local.emqtt_bench_nodes[each.value.fqdn].scenario,
+    emqtt_bench_scenario                   = local.emqtt_bench_nodes[each.value.fqdn].scenario,
+    emqtt_bench_payload_template_file_path = local.emqtt_bench_nodes[each.value.fqdn].payload_template
   })
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
@@ -386,18 +392,10 @@ resource "local_file" "ansible_monitoring_group_vars" {
   filename = "${path.module}/ansible/group_vars/monitoring.yml"
 }
 
-resource "null_resource" "ansible_playbook_common" {
+resource "null_resource" "ansible_init" {
   depends_on = [
     local_file.ansible_inventory,
-    local_file.ansible_cfg,
-    local_file.ansible_emqx_group_vars,
-    local_file.ansible_emqx_host_vars,
-    local_file.ansible_emqttb_group_vars,
-    local_file.ansible_emqttb_host_vars,
-    local_file.ansible_emqtt_bench_group_vars,
-    local_file.ansible_emqtt_bench_host_vars,
-    local_file.ansible_locust_group_vars,
-    local_file.ansible_locust_host_vars
+    local_file.ansible_cfg
   ]
 
   provisioner "local-exec" {
@@ -406,41 +404,12 @@ resource "null_resource" "ansible_playbook_common" {
   provisioner "local-exec" {
     command = "ansible-galaxy role install -r ansible/requirements.yml"
   }
-  provisioner "local-exec" {
-    command = "ansible-playbook ansible/common.yml"
-    environment = {
-      no_proxy = "*"
-    }
-  }
-}
-
-resource "null_resource" "ansible_playbook_node_exporter" {
-  depends_on = [
-    null_resource.ansible_playbook_common
-  ]
-  provisioner "local-exec" {
-    command = "ansible-playbook ansible/node_exporter.yml"
-    environment = {
-      no_proxy = "*"
-    }
-  }
-}
-
-resource "null_resource" "ansible_playbook_monitoring" {
-  depends_on = [
-    null_resource.ansible_playbook_common
-  ]
-  provisioner "local-exec" {
-    command = "ansible-playbook ansible/monitoring.yml"
-    environment = {
-      no_proxy = "*"
-    }
-  }
 }
 
 resource "null_resource" "ansible_playbook_http" {
   depends_on = [
-    null_resource.ansible_playbook_common
+    module.http,
+    null_resource.ansible_init
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/http.yml"
@@ -452,7 +421,9 @@ resource "null_resource" "ansible_playbook_http" {
 
 resource "null_resource" "ansible_playbook_emqx" {
   depends_on = [
-    null_resource.ansible_playbook_common
+    null_resource.ansible_init,
+    local_file.ansible_emqx_group_vars,
+    local_file.ansible_emqx_host_vars
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/emqx.yml"
@@ -464,7 +435,9 @@ resource "null_resource" "ansible_playbook_emqx" {
 
 resource "null_resource" "ansible_playbook_emqttb" {
   depends_on = [
-    null_resource.ansible_playbook_common
+    null_resource.ansible_init,
+    local_file.ansible_emqttb_group_vars,
+    local_file.ansible_emqttb_host_vars
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/emqttb.yml"
@@ -476,7 +449,9 @@ resource "null_resource" "ansible_playbook_emqttb" {
 
 resource "null_resource" "ansible_playbook_emqtt_bench" {
   depends_on = [
-    null_resource.ansible_playbook_common
+    null_resource.ansible_init,
+    local_file.ansible_emqtt_bench_group_vars,
+    local_file.ansible_emqtt_bench_host_vars
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/emqtt_bench.yml"
@@ -488,7 +463,9 @@ resource "null_resource" "ansible_playbook_emqtt_bench" {
 
 resource "null_resource" "ansible_playbook_locust" {
   depends_on = [
-    null_resource.ansible_playbook_common
+    null_resource.ansible_init,
+    local_file.ansible_locust_group_vars,
+    local_file.ansible_locust_host_vars
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/locust.yml"
@@ -498,11 +475,39 @@ resource "null_resource" "ansible_playbook_locust" {
   }
 }
 
-resource "null_resource" "ansible_ensure_kernel_tuning" {
+resource "null_resource" "ansible_playbook_tuning" {
   depends_on = [
-    null_resource.ansible_playbook_common
+    null_resource.ansible_init
   ]
   provisioner "local-exec" {
-    command = "ansible all -m command -a 'sysctl --load=/etc/sysctl.d/perftest.conf' --become"
+    command = "ansible-playbook ansible/tuning.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_playbook_monitoring" {
+  depends_on = [
+    null_resource.ansible_init,
+    local_file.ansible_monitoring_group_vars
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/monitoring.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "null_resource" "ansible_playbook_node_exporter" {
+  depends_on = [
+    null_resource.ansible_init
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/node_exporter.yml"
+    environment = {
+      no_proxy = "*"
+    }
   }
 }

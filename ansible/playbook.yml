@@ -1,5 +1,3 @@
-- import_playbook: wait.yml
-- import_playbook: common.yml
 - import_playbook: node_exporter.yml
 - import_playbook: monitoring.yml
 - import_playbook: http.yml

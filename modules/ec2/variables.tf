@@ -65,8 +65,37 @@ variable "ip_alias_count" {
   default     = 0
 }
 
-variable "extra_volume_size" {
-  description = "Extra volume size in GB"
-  type        = number
-  default     = 0
+variable "instance_volumes" {
+  description = "Storage volumes directly attached to the instance"
+  type = list(object({
+    mount_point   = string
+    mount_options = optional(string, "defaults")
+  }))
+  default = []
+}
+
+variable "extra_volumes" {
+  description = "Extra volumes to attach to the instance"
+  type = list(object({
+    volume_size       = number
+    volume_type       = optional(string, "gp3")
+    volume_iops       = optional(number, null)
+    volume_throughput = optional(number, null)
+    mount_point       = string
+    mount_options     = optional(string, "defaults")
+  }))
+  default = []
+}
+
+## EC2 does not want enumerated device names, like "/dev/sdxN"
+variable "data_volume_device_list" {
+  description = "Device list for EC2 mapping"
+  type        = list(any)
+  default = ["/dev/sdf", "/dev/sdg", "/dev/sdh",
+    "/dev/sdi", "/dev/sdj", "/dev/sdk",
+    "/dev/sdl", "/dev/sdm", "/dev/sdn",
+    "/dev/sdo", "/dev/sdp", "/dev/sdq",
+    "/dev/sdr", "/dev/sds", "/dev/sdt",
+    "/dev/sdu", "/dev/sdv", "/dev/sdw",
+  "/dev/sdx", "/dev/sdy", "/dev/sdz"]
 }

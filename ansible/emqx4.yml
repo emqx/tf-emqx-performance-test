@@ -1,4 +1,6 @@
 - hosts: emqx4
+  pre_tasks:
+    - include_tasks: common.yml
   roles:
     - emqx4
     - emqx_exporter

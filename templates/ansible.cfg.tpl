@@ -17,3 +17,10 @@ control_path_dir={{ ANSIBLE_HOME ~ "/pc" }}
 ssh_args = -o ControlMaster=auto -o ControlPersist=60s
 retries = 10
 pipelining = True
+
+[privilege_escalation]
+become_flags = -H -S -n
+become_method = sudo
+
+[sudo_become_plugin]
+flags = -H -S -n --preserve-env=SSH_AUTH_SOCK

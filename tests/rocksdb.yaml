@@ -7,10 +7,13 @@ emqx:
   instance_type: t3.large
   cpu_arch: amd64
   dashboard_default_password: admin
-  data_volume_size: 30
   data_dir: /data/emqx
-  session_persistence: true
   session_persistence_builtin: true
+  extra_volumes:
+    - mount_point: /data
+      volume_size: 30
+      volume_type: gp3
+      mount_options: defaults,noatime,discard
   nodes:
     - role: core
       instance_count: 3
@@ -18,5 +21,5 @@ emqttb:
   instance_type: t3.large
   cpu_arch: amd64
   nodes:
-    - scenario: "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb"
-    - scenario: "@sub --topic t/%%n --conninterval 100ms --num-clients 100"
+    - scenario: "@pub --topic t/%%n --conninterval 1ms --pubinterval 1s --num-clients 100 --size 1kb"
+    - scenario: "@sub --topic t/%%n --conninterval 1ms --num-clients 100"
