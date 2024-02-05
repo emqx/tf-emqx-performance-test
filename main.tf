@@ -475,12 +475,15 @@ resource "null_resource" "ansible_playbook_locust" {
   }
 }
 
-resource "null_resource" "ansible_ensure_kernel_tuning" {
+resource "null_resource" "ansible_playbook_tuning" {
   depends_on = [
     null_resource.ansible_init
   ]
   provisioner "local-exec" {
-    command = "ansible 'all:!monitoring' -m shell -a '[ -f /etc/sysctl.d/perftest.conf ] && sysctl --load=/etc/sysctl.d/perftest.conf' --become"
+    command = "ansible-playbook ansible/tuning.yml"
+    environment = {
+      no_proxy = "*"
+    }
   }
 }
 

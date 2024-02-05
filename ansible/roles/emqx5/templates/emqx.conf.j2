@@ -58,8 +58,7 @@ license {
   key = "file://{{ emqx_license_file_path }}"
 }
 {% endif -%}
-session_persistence {
-  enable = {{ emqx_session_persistence | string | lower }}
+
 {% if emqx_session_persistence_builtin -%}
 session_persistence {
   enable = true
