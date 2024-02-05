@@ -95,6 +95,12 @@ cpu_arch: arm64            # default cpu architecture for base AMI
 use_spot_instances: true   # whether to use spot instances
 emqx:                      # emqx related settings
   instance_type: m6g.large # one can override default parameters here for all emqx nodes
+  data_dir: /data/emqx     # data directory for emqx config and files, optional, default is /var/lib/emqx
+  extra_volumes:           # attach extra ebs volumes to emqx nodes (optional)
+    - mount_point: /data   # mount point
+      volume_size: 30      # volume size in GB
+      volume_type: gp3     # volume type (gp3, gp2, io1, etc.) - default is gp3
+      mount_options: defaults,noatime,discard # mount options, default is 'defaults'
   nodes:                   # list of emqx nodes
     - role: core           # role of the node, can be core or replicant (default is core)
       region: eu-west-1
