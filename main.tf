@@ -27,7 +27,7 @@ module "emqx" {
   instance_type      = each.value.instance_type
   hostname           = each.value.hostname
   extra_volumes      = each.value.extra_volumes
-  instance_volumes    = each.value.instance_volumes
+  instance_volumes   = each.value.instance_volumes
   vpc_id             = local.vpcs[each.value.region].vpc_id
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id

@@ -49,7 +49,7 @@ locals {
   emqx_use_spot_instances         = try(local.spec.emqx.use_spot_instances, local.default_use_spot_instances)
   emqx_dashboard_default_password = try(local.spec.emqx.dashboard_default_password, "public")
   emqx_extra_volumes              = try(local.spec.emqx.extra_volumes, [])
-  emqx_instance_volumes            = try(local.spec.emqx.instance_volumes, [])
+  emqx_instance_volumes           = try(local.spec.emqx.instance_volumes, [])
   cluster_dns_name                = "emqx-cluster.${local.route53_zone_name}"
 
   # group by region
@@ -65,13 +65,13 @@ locals {
   emqx_nodes_list = flatten([
     for r, nodes in local.emqx_nodes_by_region : [
       for i, n in nodes : {
-        instance_type = try(n.instance_type, local.emqx_instance_type)
-        role          = try(n.role, "core")
-        region        = r
-        name          = "emqx-${lookup(var.regions_abbrev_map, r)}-${i + 1}",
-        hostname      = "emqx-${lookup(var.regions_abbrev_map, r)}-${i + 1}.${local.route53_zone_name}",
-        ami_filter    = try(n.ami_filter, local.emqx_ami_filter)
-        extra_volumes = try(n.extra_volumes, local.emqx_extra_volumes)
+        instance_type    = try(n.instance_type, local.emqx_instance_type)
+        role             = try(n.role, "core")
+        region           = r
+        name             = "emqx-${lookup(var.regions_abbrev_map, r)}-${i + 1}",
+        hostname         = "emqx-${lookup(var.regions_abbrev_map, r)}-${i + 1}.${local.route53_zone_name}",
+        ami_filter       = try(n.ami_filter, local.emqx_ami_filter)
+        extra_volumes    = try(n.extra_volumes, local.emqx_extra_volumes)
         instance_volumes = try(n.instance_volumes, local.emqx_instance_volumes)
       }
   ]])

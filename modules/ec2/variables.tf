@@ -68,8 +68,8 @@ variable "ip_alias_count" {
 variable "instance_volumes" {
   description = "Storage volumes directly attached to the instance"
   type = list(object({
-    mount_point       = string
-    mount_options     = optional(string, "defaults")
+    mount_point   = string
+    mount_options = optional(string, "defaults")
   }))
   default = []
 }

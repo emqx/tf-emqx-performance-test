@@ -94,9 +94,9 @@ resource "aws_instance" "default" {
   }
   user_data = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra         = var.extra_user_data
-      hostname      = var.hostname
-      volumes       = concat(var.instance_volumes, var.extra_volumes)
+      extra    = var.extra_user_data
+      hostname = var.hostname
+      volumes  = concat(var.instance_volumes, var.extra_volumes)
   })
 
   tags = {
@@ -159,9 +159,9 @@ resource "aws_instance" "region2" {
   }
   user_data = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra         = var.extra_user_data
-      hostname      = var.hostname
-      volumes       = concat(var.instance_volumes, var.extra_volumes)
+      extra    = var.extra_user_data
+      hostname = var.hostname
+      volumes  = concat(var.instance_volumes, var.extra_volumes)
   })
 
   tags = {
@@ -223,9 +223,9 @@ resource "aws_instance" "region3" {
   }
   user_data = templatefile("${path.module}/templates/user_data.tpl",
     {
-      extra         = var.extra_user_data
-      hostname      = var.hostname
-      volumes       = concat(var.instance_volumes, var.extra_volumes)
+      extra    = var.extra_user_data
+      hostname = var.hostname
+      volumes  = concat(var.instance_volumes, var.extra_volumes)
   })
 
   tags = {
