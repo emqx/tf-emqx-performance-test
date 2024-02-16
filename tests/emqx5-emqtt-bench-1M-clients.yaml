@@ -1,11 +1,9 @@
 id: 1m
 region: eu-west-1
-os_name: ubuntu-jammy
-os_version: 22.04
 use_spot_instances: true
 emqx:
   instance_type: m7g.large
-  cpu_arch: arm64
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
   dashboard_default_password: admin
   nodes:
     - role: core
@@ -13,7 +11,7 @@ emqx:
     - role: replicant
       instance_count: 3
 emqtt_bench:
-  cpu_arch: amd64
+  ami_filter: "*/ubuntu-jammy-22.04-amd64-server-*"
   nodes:
     - scenario: "sub -c 256000 -i 1 -t bench/%%i -q 1 --shortids --prefix a --startnumber 0"
       instance_type: c7i.2xlarge

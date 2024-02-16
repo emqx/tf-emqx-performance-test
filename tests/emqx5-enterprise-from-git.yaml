@@ -1,11 +1,9 @@
 id: emqx-enterprise
 region: eu-west-1
-os_name: ubuntu-jammy
-os_version: 22.04
 use_spot_instances: true
 emqx:
   instance_type: t4g.large
-  cpu_arch: arm64
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
   install_source: git
   edition: emqx-enterprise
   git_repo: git@github.com:emqx/emqx.git

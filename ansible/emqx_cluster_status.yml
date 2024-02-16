@@ -1,0 +1,13 @@
+- name: check cluster status
+  hosts: emqx
+  tasks:
+    - name: check cluster
+      run_once: yes
+      become: yes
+      ansible.builtin.shell: |
+        emqx ctl cluster status
+      register: _cluster_status
+
+    - name: print cluster result
+      ansible.builtin.debug:
+        var: _cluster_status.stdout_lines

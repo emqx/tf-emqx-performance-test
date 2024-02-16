@@ -14,6 +14,10 @@ variable "ami_filter" {
   type = string
 }
 
+variable "ami_owner" {
+  type = string
+}
+
 variable "instance_type" {
   type = string
 }

@@ -1,18 +1,16 @@
 id: emqtt-bench
 region: eu-west-1
-os_name: ubuntu-jammy
-os_version: 22.04
 use_spot_instances: false
 emqx:
   instance_type: t4g.large
-  cpu_arch: arm64
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
   dashboard_default_password: admin
   nodes:
     - role: core
       instance_count: 3
 emqtt_bench:
   instance_type: t3.large
-  cpu_arch: amd64
+  ami_filter: "*/ubuntu-jammy-22.04-amd64-server-*"
   nodes:
     - scenario: "pub -c 100 -I 10 -t bench/%%i -s 256"
     - scenario: "sub -c 100 -i 100 -t bench/%%i -q 1"

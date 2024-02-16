@@ -1,0 +1,14 @@
+id: emqx-enterprise
+region: eu-west-1
+use_spot_instances: true
+monitoring_enabled: false
+ami_filter: "debian-10-amd64-*"
+remote_user: admin
+emqx:
+  instance_type: m6a.large
+  edition: emqx-enterprise
+  package_version: 5.3.2
+  license_file: emqx5.lic
+  nodes:
+    - role: core
+      instance_count: 3
