@@ -32,6 +32,7 @@ module "emqx" {
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   ami_filter         = local.emqx_ami_filter
+  ami_owner          = local.emqx_ami_owner
   use_spot_instances = local.emqx_use_spot_instances
   root_volume_size   = local.emqx_root_volume_size
   prefix             = local.prefix
@@ -99,6 +100,7 @@ module "emqttb" {
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   ami_filter         = local.emqttb_ami_filter
+  ami_owner          = local.emqttb_ami_owner
   use_spot_instances = local.emqttb_use_spot_instances
   prefix             = local.prefix
   region_aliases     = local.region_aliases
@@ -126,6 +128,7 @@ module "emqtt-bench" {
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   ami_filter         = local.emqtt_bench_ami_filter
+  ami_owner          = local.emqtt_bench_ami_owner
   use_spot_instances = local.emqtt_bench_use_spot_instances
   prefix             = local.prefix
   region_aliases     = local.region_aliases
@@ -152,6 +155,7 @@ module "locust" {
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   ami_filter         = local.locust_ami_filter
+  ami_owner          = local.locust_ami_owner
   use_spot_instances = local.locust_use_spot_instances
   prefix             = local.prefix
   region_aliases     = local.region_aliases
@@ -186,6 +190,7 @@ module "http" {
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   ami_filter         = local.http_ami_filter
+  ami_owner          = local.http_ami_owner
   use_spot_instances = local.http_use_spot_instances
   prefix             = local.prefix
   region_aliases     = local.region_aliases
@@ -202,6 +207,7 @@ module "http" {
 }
 
 module "monitoring" {
+  count              = local.monitoring_enabled ? 1 : 0
   source             = "./modules/ec2"
   region             = local.default_region
   instance_name      = "monitoring"
@@ -211,6 +217,7 @@ module "monitoring" {
   subnet_id          = local.vpcs[local.default_region].public_subnet_ids[0]
   security_group_id  = local.vpcs[local.default_region].security_group_id
   ami_filter         = local.monitoring_ami_filter
+  ami_owner          = local.monitoring_ami_owner
   use_spot_instances = local.monitoring_use_spot_instances
   root_volume_size   = local.monitoring_root_volume_size
   prefix             = local.prefix
@@ -228,15 +235,17 @@ module "monitoring" {
 }
 
 resource "aws_lb_target_group_attachment" "grafana" {
+  count            = local.monitoring_enabled ? 1 : 0
   target_group_arn = module.public_nlb.grafana_target_group_arn
-  target_id        = module.monitoring.private_ips[0]
+  target_id        = module.monitoring[0].private_ips[0]
   port             = 3000
   provider         = aws.default
 }
 
 resource "aws_lb_target_group_attachment" "prometheus" {
+  count            = local.monitoring_enabled ? 1 : 0
   target_group_arn = module.public_nlb.prometheus_target_group_arn
-  target_id        = module.monitoring.private_ips[0]
+  target_id        = module.monitoring[0].private_ips[0]
   port             = 9090
   provider         = aws.default
 }
@@ -245,7 +254,7 @@ resource "local_file" "ansible_cfg" {
   content = templatefile("${path.module}/templates/ansible.cfg.tpl",
     {
       private_key_file = local.ssh_key_path
-      remote_user      = "ubuntu"
+      remote_user      = local.default_remote_user
   })
   filename = "${path.module}/ansible.cfg"
 }
@@ -253,12 +262,12 @@ resource "local_file" "ansible_cfg" {
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.ini.tpl",
     {
-      emqx_nodes          = [for node in module.emqx : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      emqttb_nodes        = [for node in module.emqttb : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      emqtt_bench_nodes   = [for node in module.emqtt-bench : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      locust_nodes        = [for node in module.locust : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      http_nodes          = [for node in module.http : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]}"]
-      monitoring_nodes    = ["${module.monitoring.fqdn} ansible_host=${module.monitoring.public_ips[0]} private_ip=${module.monitoring.private_ips[0]}"]
+      emqx_nodes          = [for node in module.emqx : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.emqx_remote_user}"]
+      emqttb_nodes        = [for node in module.emqttb : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.emqttb_remote_user}"]
+      emqtt_bench_nodes   = [for node in module.emqtt-bench : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.emqtt_bench_remote_user}"]
+      locust_nodes        = [for node in module.locust : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.locust_remote_user}"]
+      http_nodes          = [for node in module.http : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.http_remote_user}"]
+      monitoring_nodes    = [for node in module.monitoring : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.monitoring_remote_user}"]
       emqx_version_family = local.emqx_version_family
   })
   filename = "${path.module}/ansible/inventory.ini"
@@ -297,7 +306,7 @@ resource "local_file" "ansible_emqx_group_vars" {
         secret = try(local.spec.emqx.api_secret, "perftest")
       }
     ]
-    emqx_license_file                = try(local.spec.emqx.license_file, "")
+    emqx_license                     = try(local.spec.emqx.license_file, "") == "" ? "" : file(pathexpand(local.spec.emqx.license_file))
     emqx_package_version             = try(local.spec.emqx.package_version, "latest")
     emqx_scripts                     = try(local.spec.emqx.scripts, [])
     emqx_session_persistence_builtin = try(local.spec.emqx.session_persistence_builtin, false)
@@ -323,8 +332,8 @@ resource "local_file" "ansible_emqttb_group_vars" {
     emqttb_package_download_url = try(local.spec.emqttb.package_download_url, "")
     emqttb_package_file_path    = try(local.spec.emqttb.package_file_path, "")
     emqttb_targets              = [for node in module.emqx : node.fqdn]
-    grafana_url                 = "http://${module.monitoring.fqdn}:3000"
-    prometheus_push_gw_url      = "http://${module.monitoring.fqdn}:9091"
+    grafana_url                 = local.monitoring_enabled ? "http://${module.monitoring[0].fqdn}:3000" : null
+    prometheus_push_gw_url      = local.monitoring_enabled ? "http://${module.monitoring[0].fqdn}:9091" : null
   })
   filename = "${path.module}/ansible/group_vars/emqttb.yml"
 }
@@ -386,6 +395,7 @@ resource "local_file" "ansible_locust_host_vars" {
 }
 
 resource "local_file" "ansible_monitoring_group_vars" {
+  count = local.monitoring_enabled ? 1 : 0
   content = yamlencode({
     emqx_version_family = local.emqx_version_family
   })

@@ -45,16 +45,6 @@
     mode: '0644'
   register: _env
 
-- name: Deploy license file
-  when: emqx_license_file != ''
-  become: yes
-  ansible.builtin.copy:
-    src: "{{ emqx_license_file }}"
-    dest: "{{ emqx_license_file_path }}"
-    mode: '0600'
-    owner: emqx
-    group: emqx
-
 - name: Create a directory for systemd service override
   become: yes
   ansible.builtin.file:

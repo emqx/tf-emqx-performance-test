@@ -53,9 +53,9 @@ api_key {
   bootstrap_file = "{{ emqx_api_key_bootstrap_file | default('/etc/emqx/bootstrap-api') }}"
 }
 
-{% if emqx_license_file | length > 0 -%}
+{% if emqx_license | length > 0 -%}
 license {
-  key = "file://{{ emqx_license_file_path }}"
+  key = "{{ emqx_license | trim }}"
 }
 {% endif -%}
 

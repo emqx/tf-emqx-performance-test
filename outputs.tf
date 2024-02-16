@@ -5,17 +5,17 @@ output "emqx_dashboard_url" {
 
 output "grafana_url" {
   description = "Grafana URL"
-  value       = "${module.public_nlb.dns_name}:3000"
+  value       = local.monitoring_enabled ? "${module.public_nlb.dns_name}:3000" : null
 }
 
 output "prometheus_url" {
   description = "Prometheus URL"
-  value       = "${module.public_nlb.dns_name}:9090"
+  value       = local.monitoring_enabled ? "${module.public_nlb.dns_name}:9090" : null
 }
 
 output "locust_url" {
   description = "Locust URL"
-  value       = "${module.public_nlb.dns_name}:8080"
+  value       = length(module.locust) > 0 ? "${module.public_nlb.dns_name}:8080" : null
 }
 
 output "emqx_dashboard_credentials" {
@@ -25,7 +25,7 @@ output "emqx_dashboard_credentials" {
 
 output "grafana_credentials" {
   description = "Grafana credentials"
-  value       = "admin:admin"
+  value       = local.monitoring_enabled ? "admin:admin" : null
 }
 
 output "emqx_nodes" {
@@ -46,4 +46,9 @@ output "emqtt_bench_nodes" {
 output "http_nodes" {
   description = "http nodes"
   value       = [for node in module.http : format("%-16s %s", node.public_ips[0], node.fqdn)]
+}
+
+output "ssh_key_path" {
+  description = "SSH key path"
+  value       = local.ssh_key_path
 }

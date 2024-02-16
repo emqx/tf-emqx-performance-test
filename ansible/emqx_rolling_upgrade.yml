@@ -1,0 +1,77 @@
+- hosts: emqx5
+  serial: 1
+  become: true
+  tasks:
+  - name: ensure cluster is healthy
+    ansible.builtin.shell: |
+      emqx ctl cluster status --json
+    register: cluster_status
+
+  - name: ensure stopped_nodes array is empty
+    assert:
+      that: cluster_status.stdout | from_json | json_query('stopped_nodes') == []
+
+  - name: evacuate clients
+    ansible.builtin.shell: |
+      emqx ctl rebalance start --evacuation
+    register: rebalance_start
+    failed_when: '"Rebalance(evacuation) started" not in rebalance_start.stdout'
+
+  - name: wait for clients to evacuate
+    ansible.builtin.shell: |
+      emqx ctl clients list
+    register: clients_list
+    until: clients_list.stdout == 'No clients.'
+    retries: 10
+    delay: 5
+
+  - name: stop rebalance
+    ansible.builtin.shell: |
+      emqx ctl rebalance stop
+    register: rebalance_stop
+    failed_when: '"Rebalance(evacuation) stopped" not in rebalance_stop.stdout'
+
+  - name: stop emqx
+    ansible.builtin.service:
+      name: emqx
+      state: stopped
+
+  - name: install emqx
+    when: emqx_package_version == 'latest'
+    ansible.builtin.apt:
+      name: "{{ emqx_edition }}"
+      state: present
+      update_cache: yes
+
+  - name: install emqx
+    when: emqx_package_version != 'latest'
+    ansible.builtin.apt:
+      name: "{{ emqx_edition }}={{ emqx_package_version }}"
+      state: present
+      update_cache: yes
+
+  - name: start emqx
+    ansible.builtin.service:
+      name: emqx
+      state: started
+    
+  - name: emqx ping
+    ansible.builtin.shell: |
+      emqx ping
+    register: _emqx_ping
+    until: _emqx_ping.stdout == "pong"
+    retries: 30
+    delay: 1
+
+  - name: Ensure emqx responded with pong
+    fail:
+      msg: "emqx did not respond with pong"
+    when: _emqx_ping.stdout != "pong"
+
+  - name: emqx ctl status should not fail
+    ansible.builtin.shell: |
+      emqx ctl status
+    register: _emqx_ctl_status
+
+  - ansible.builtin.debug:
+      var: _emqx_ctl_status

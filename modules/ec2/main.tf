@@ -25,7 +25,7 @@ data "aws_availability_zones" "region3" {
 
 data "aws_ami" "default" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = [var.ami_owner]
 
   filter {
     name   = "name"
@@ -36,7 +36,7 @@ data "aws_ami" "default" {
 
 data "aws_ami" "region2" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = [var.ami_owner]
 
   filter {
     name   = "name"
@@ -47,7 +47,7 @@ data "aws_ami" "region2" {
 
 data "aws_ami" "region3" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = [var.ami_owner]
 
   filter {
     name   = "name"

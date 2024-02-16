@@ -1,11 +1,9 @@
 id: emqx4-locust
 region: eu-west-1
-os_name: ubuntu-jammy
-os_version: 22.04
 use_spot_instances: true
 emqx:
   instance_type: m7g.2xlarge
-  cpu_arch: arm64
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
   version_family: 4
   license_file: ~/Downloads/emqx4.lic
   dashboard_default_password: admin
@@ -13,7 +11,7 @@ emqx:
     - instance_count: 3
 emqtt_bench:
   instance_type: m6a.large
-  cpu_arch: amd64
+  ami_filter: "*/ubuntu-jammy-22.04-amd64-server-*"
   nodes:
     - scenario: "sub -c 640000 -i 10 -t bench/%%i -q 1 --shortids --prefix a --startnumber 0"
       ip_alias_count: 9
@@ -24,7 +22,7 @@ emqtt_bench:
     - scenario: "sub -c 1 -t bench/# -q 1"
 locust:
   instance_type: m7g.large
-  cpu_arch: arm64
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
   version: latest
   plan_entrypoint: locustfile.py
   topics_count: 1920000

@@ -17,5 +17,5 @@ emqx_bootstrap_api_keys:
     secret: emqx
 emqx_session_persistence_builtin: false
 emqx_data_dir: /var/lib/emqx
-emqx_license_file_path: /etc/emqx/emqx.lic
+emqx_license: ''
 emqx_edition: emqx # emqx-enterprise

@@ -1,10 +1,7 @@
 id: http
 region: eu-west-1
-os_name: ubuntu-jammy
-os_version: 22.04
 use_spot_instances: true
 emqx:
-  cpu_arch: amd64
   dashboard_default_password: admin
   nodes:
     - role: core
@@ -16,12 +13,10 @@ emqx:
   scripts:
     - scripts/create-http-server-integration.sh
 emqttb:
-  cpu_arch: amd64
   instance_type: m7i.2xlarge
   nodes:
     - scenario: "@pub --topic t/%%n --conninterval 1ms --pubinterval 1s --num-clients 50000 --size 200"
 http:
-  cpu_arch: amd64
   instance_type: m7i.xlarge
   nodes:
     - instance_count: 1  

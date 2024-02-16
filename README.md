@@ -60,6 +60,8 @@ To ssh directly into instances, use terraform output to get IP addresses, and ge
 
 ```bash
 ssh -l ubuntu -i ~/.ssh/foobar.pem 52.53.191.91
+# generic ssh one-liner to connect to the first emqx node
+ssh -l ubuntu -i $(terraform output -raw ssh_key_path) $(terraform output -json emqx_nodes | jq -r '.[0] | split(" ") | .[0]')
 ```
 Key name is generated as `<id>.pem` (`id` is from test spec file).
 
@@ -89,9 +91,7 @@ Example test spec:
 id: foobar                 # mandatory field, used as a prefix for all resources, must be unique, but not very long
 region: eu-west-1          # default region
 instance_type: m6g.large   # default instance type
-os_name: ubuntu-jammy      # default os name for base AMI
-os_version: 22.04          # default os version for base AMI
-cpu_arch: arm64            # default cpu architecture for base AMI
+ami_filter: "ubuntu-22.04-arm64-*" # default ami filter
 use_spot_instances: true   # whether to use spot instances
 emqx:                      # emqx related settings
   instance_type: m6g.large # one can override default parameters here for all emqx nodes
@@ -116,12 +116,50 @@ emqx:                      # emqx related settings
       region: us-east-1
     - role: replicant
       region: us-east-1
-emqttb:                   # emqttb related settings
-  instance_type: m5.large # emqttb instance type
-  cpu_arch: amd64         # emqttb cpu architecture
-  nodes:                  # mind the '%%' in the scenario - it's quoting for systemd unit file
+emqttb:                              # emqttb related settings
+  instance_type: m5.large            # emqttb instance type
+  ami_filter: "ubuntu-22.04-amd64-*" # emqttb ami filter
+  nodes:
+      # mind the '%%' in the scenario - it's quoting for systemd unit file
     - scenario: "@pub --topic t/%%n --conninterval 10ms --pubinterval 10ms --num-clients 100 --size 1kb"
       instance_count: 3
     - scenario: "@sub --topic t/%%n --conninterval 10ms --num-clients 10"
       instance_count: 3
+```
+
+## Testing rolling upgrades
+
+For example, here is how to test rolling upgrade of emqx-enterprise from 5.3.2 to 5.4.1.
+
+1. Create a new test spec file `tests/emqx-enterprise-5.3.2.yml`:
+
+```yaml
+id: emqx-enterprise
+region: eu-west-1
+use_spot_instances: true
+monitoring_enabled: false
+ami_filter: "debian-10-amd64-*"
+remote_user: admin
+emqx:
+  instance_type: m6a.large
+  edition: emqx-enterprise
+  package_version: 5.3.2
+  license_file: emqx5.lic
+  nodes:
+    - role: core
+      instance_count: 3
+```
+
+2. Run terraform with this spec:
+
+```bash
+terraform init
+terraform apply -var spec_file=tests/emqx-enterprise-5.3.2.yml
+```
+
+3. In `ansible/group_vars/emqx5.yml` change `emqx_package_version` to `5.4.1`
+4. Run `emqx_rolling_upgrade.yml` playbook:
+
+```bash
+ansible-playbook ansible/emqx_rolling_upgrade.yml
 ```

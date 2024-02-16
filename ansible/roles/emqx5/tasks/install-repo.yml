@@ -18,27 +18,29 @@
     - pygpgme
     - yum-utils
 
+- name: Set EMQX repo name
+  when: emqx_edition == "emqx"
+  set_fact:
+    emqx_repo_name: "emqx"
+
+- name: Set EMQX repo name
+  when: emqx_edition == "emqx-enterprise"
+  set_fact:
+    emqx_repo_name: "emqx-enterprise5"
+
 - name: Add EMQX repo gpg key
   when: ansible_os_family == 'Debian'
   become: yes
   ansible.builtin.apt_key:
-    url: https://packagecloud.io/emqx/emqx/gpgkey
+    url: "https://packagecloud.io/emqx/{{ emqx_repo_name }}/gpgkey"
     keyring: /etc/apt/trusted.gpg.d/emqx.gpg
     state: present
-
-- name: Add EMQX repo gpg key
-  when: ansible_os_family == 'RedHat'
-  become: yes
-  ansible.builtin.get_url:
-    url: https://packagecloud.io/emqx/emqx/gpgkey
-    dest: /etc/pki/rpm-gpg/emqx.gpg
-    mode: '0644'
 
 - name: Add EMQX repo
   when: ansible_os_family == 'Debian'
   become: yes
   ansible.builtin.apt_repository:
-    repo: deb [signed-by=/etc/apt/trusted.gpg.d/emqx.gpg] https://packagecloud.io/emqx/emqx/{{ ansible_distribution|lower }} {{ ansible_distribution_release|lower }} main
+    repo: deb [signed-by=/etc/apt/trusted.gpg.d/emqx.gpg] https://packagecloud.io/emqx/{{ emqx_repo_name }}/{{ ansible_distribution|lower }} {{ ansible_distribution_release|lower }} main
     state: present
 
 - name: Add EMQX repo
@@ -47,7 +49,7 @@
   ansible.builtin.yum_repository:
     name: emqx
     description: EMQX
-    baseurl: https://packagecloud.io/emqx/emqx/el/{{ ansible_distribution_major_version }}/{{ ansible_architecture }}
-    gpgkey: https://packagecloud.io/emqx/emqx/gpgkey
+    baseurl: https://packagecloud.io/emqx/{{ emqx_repo_name }}/el/{{ ansible_distribution_major_version }}/{{ ansible_architecture }}
+    gpgkey: https://packagecloud.io/emqx/{{ emqx_repo_name }}/gpgkey
     gpgcheck: yes
     enabled: yes
