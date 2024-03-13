@@ -167,3 +167,60 @@ terraform apply -var spec_file=tests/emqx-enterprise-5.3.2.yml
 ```bash
 ansible-playbook ansible/emqx_rolling_upgrade.yml
 ```
+
+# Supporting shell functions
+
+Helpful function that you could add to your `.bashrc` or `.zshrc`.
+
+"bm" in the function names stands for "BenchMark".
+
+## Benchmark start/stop
+
+```
+bm-start ()
+{
+    n=$1
+    ansible emqtt_bench -m command -a 'systemctl start emqtt-bench' --become -l emqtt-bench-euw1-$n.my-bencmark.emqx.io
+}
+
+bm-stop ()
+{
+    n=$1
+    ansible emqtt_bench -m command -a 'systemctl stop emqtt-bench' --become -l emqtt-bench-euw1-$n.my-bencmark.emqx.io
+}
+
+bmb-start ()
+{
+    n=$1
+    ansible emqttb -m command -a 'systemctl start emqttb' --become -l emqttb-euw1-$n.my-bencmark.emqx.io
+}
+
+bmb-stop ()
+{
+    n=$1
+    ansible emqttb -m command -a 'systemctl stop emqttb' --become -l emqttb-euw1-$n.my-bencmark.emqx.io
+}
+```
+
+## Interactive selector of the node to ssh to (via `fzf`)
+
+```
+bm-ssh () {
+    node=$(terraform output -json | jq -r 'to_entries[] | select(.key | endswith("_nodes")) | .value.value[]' | sort -k2 | fzf | cut -d ' ' -f 1)
+    if [[ -n $node ]]; then
+        ssh -l ubuntu -i ~/.ssh/my-benchmark.pem "$node"
+    fi
+}
+```
+
+## Print full URLs which are clickable from Terminal
+
+```
+bm-urls () {
+    dashboard_url=$(terraform output -json | jq '.emqx_dashboard_url.value' -r)
+    grafana_url=$(terraform output -json | jq '.grafana_url.value' -r)
+
+    echo "dashboard: http://${dashboard_url}"
+    echo "grafana: http://${grafana_url}"
+}
+```
