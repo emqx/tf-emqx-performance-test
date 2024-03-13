@@ -174,41 +174,41 @@ Helpful function that you could add to your `.bashrc` or `.zshrc`.
 
 "bm" in the function names stands for "BenchMark".
 
-## Benchmark start/stop
+## start/stop emqtt-bench
 
 ```
-bm-start ()
-{
+function bm-start() {
     n=$1
-    ansible emqtt_bench -m command -a 'systemctl start emqtt-bench' --become -l emqtt-bench-euw1-$n.my-bencmark.emqx.io
+    ansible emqtt_bench -m command -a 'systemctl start emqtt-bench' --become -l emqtt-bench-euw1-$n.$(terraform output -raw bench_id).emqx.io
 }
 
-bm-stop ()
-{
+function bm-stop () {
     n=$1
-    ansible emqtt_bench -m command -a 'systemctl stop emqtt-bench' --become -l emqtt-bench-euw1-$n.my-bencmark.emqx.io
+    ansible emqtt_bench -m command -a 'systemctl stop emqtt-bench' --become -l emqtt-bench-euw1-$n.$(terraform output -raw bench_id).emqx.io
+}
+```
+
+## start/stop emqttb
+
+```
+function bmb-start() {
+    n=$1
+    ansible emqttb -m command -a 'systemctl start emqttb' --become -l emqttb-euw1-$n.$(terraform output -raw bench_id).emqx.io
 }
 
-bmb-start ()
-{
+function bmb-stop() {
     n=$1
-    ansible emqttb -m command -a 'systemctl start emqttb' --become -l emqttb-euw1-$n.my-bencmark.emqx.io
-}
-
-bmb-stop ()
-{
-    n=$1
-    ansible emqttb -m command -a 'systemctl stop emqttb' --become -l emqttb-euw1-$n.my-bencmark.emqx.io
+    ansible emqttb -m command -a 'systemctl stop emqttb' --become -l emqttb-euw1-$n.$(terraform output -raw bench_id).emqx.io
 }
 ```
 
 ## Interactive selector of the node to ssh to (via `fzf`)
 
 ```
-bm-ssh () {
+function bm-ssh() {
     node=$(terraform output -json | jq -r 'to_entries[] | select(.key | endswith("_nodes")) | .value.value[]' | sort -k2 | fzf | cut -d ' ' -f 1)
     if [[ -n $node ]]; then
-        ssh -l ubuntu -i ~/.ssh/my-benchmark.pem "$node"
+        ssh -l ubuntu -i $(terraform output -raw ssh_key_path) "$node"
     fi
 }
 ```
@@ -216,7 +216,7 @@ bm-ssh () {
 ## Print full URLs which are clickable from Terminal
 
 ```
-bm-urls () {
+function bm-urls() {
     dashboard_url=$(terraform output -json | jq '.emqx_dashboard_url.value' -r)
     grafana_url=$(terraform output -json | jq '.grafana_url.value' -r)
 
