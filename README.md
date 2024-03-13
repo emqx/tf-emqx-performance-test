@@ -178,13 +178,13 @@ Helpful function that you could add to your `.bashrc` or `.zshrc`.
 
 ```
 function bm-start() {
-    n=$1
-    ansible emqtt_bench -m command -a 'systemctl start emqtt-bench' --become -l emqtt-bench-euw1-$n.$(terraform output -raw bench_id).emqx.io
+    n=${1:-1}
+    ansible emqtt_bench -m command -a 'systemctl start emqtt_bench' --become -l $(terraform output -json emqtt_bench_nodes | jq -r ".[$((n-1))].fqdn")
 }
 
 function bm-stop () {
-    n=$1
-    ansible emqtt_bench -m command -a 'systemctl stop emqtt-bench' --become -l emqtt-bench-euw1-$n.$(terraform output -raw bench_id).emqx.io
+    n=${1:-1}
+    ansible emqtt_bench -m command -a 'systemctl stop emqtt_bench' --become -l $(terraform output -json emqtt_bench_nodes | jq -r ".[$((n-1))].fqdn")
 }
 ```
 
@@ -192,13 +192,13 @@ function bm-stop () {
 
 ```
 function bmb-start() {
-    n=$1
-    ansible emqttb -m command -a 'systemctl start emqttb' --become -l emqttb-euw1-$n.$(terraform output -raw bench_id).emqx.io
+    n=${1:-1}
+    ansible emqttb -m command -a 'systemctl start emqttb' --become -l $(terraform output -json emqttb_nodes | jq -r ".[$((n-1))].fqdn")
 }
 
 function bmb-stop() {
-    n=$1
-    ansible emqttb -m command -a 'systemctl stop emqttb' --become -l emqttb-euw1-$n.$(terraform output -raw bench_id).emqx.io
+    n=${1:-1}
+    ansible emqttb -m command -a 'systemctl stop emqttb' --become -l $(terraform output -json emqttb_nodes | jq -r ".[$((n-1))].fqdn")
 }
 ```
 
@@ -206,7 +206,7 @@ function bmb-stop() {
 
 ```
 function bm-ssh() {
-    node=$(terraform output -json | jq -r 'to_entries[] | select(.key | endswith("_nodes")) | .value.value[]' | sort -k2 | fzf | cut -d ' ' -f 1)
+    node=$(terraform output -json | jq -r 'to_entries[] | select(.key | endswith("_nodes")) | .value.value[] | "\(.ip)\t\(.fqdn)"' | sort -k2 | fzf | cut -d $'\t' -f 1)
     if [[ -n $node ]]; then
         ssh -l ubuntu -i $(terraform output -raw ssh_key_path) "$node"
     fi
