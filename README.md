@@ -65,8 +65,11 @@ To ssh directly into instances, use terraform output to get IP addresses, and ge
 ```bash
 ssh -l ubuntu -i ~/.ssh/foobar.pem 52.53.191.91
 # generic ssh one-liner to connect to the first emqx node
-ssh -l ubuntu -i $(terraform output -raw ssh_key_path) $(terraform output -json emqx_nodes | jq -r '.[0] | split(" ") | .[0]')
+ssh -l ubuntu -i $(terraform output -raw ssh_key_path) $(terraform output -json emqx_nodes | jq -r '.[0].ip')
+# open dashboard in the browser (macos only)
+open http://$(terraform output -raw emqx_dashboard_url)
 ```
+
 Key name is generated as `<id>.pem` (`id` is from test spec file).
 
 You can also modify ansible variables directly under `ansible/group_vars` and `ansible/host_vars` directories, and re-run ansible playbooks without recreating terraform infrastructure.
@@ -217,10 +220,7 @@ function bm-ssh() {
 
 ```
 function bm-urls() {
-    dashboard_url=$(terraform output -json | jq '.emqx_dashboard_url.value' -r)
-    grafana_url=$(terraform output -json | jq '.grafana_url.value' -r)
-
-    echo "dashboard: http://${dashboard_url}"
-    echo "grafana: http://${grafana_url}"
+    echo "dashboard: http://$(terraform output -raw emqx_dashboard_url)"
+    echo "grafana: http://$(terraform output -raw grafana_url)"
 }
 ```
