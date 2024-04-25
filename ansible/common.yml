@@ -15,7 +15,7 @@
    - always
 - name: Store available ip addresses
   ansible.builtin.set_fact:
-    available_ip_addresses: "{{ ansible_all_ipv4_addresses }}"
+    available_ip_addresses: "{{ ansible_all_ipv4_addresses | select('match', '^10\\.') | list }}"
 - name: Add entries to /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts

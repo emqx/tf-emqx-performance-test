@@ -84,6 +84,7 @@ locals {
   emqttb_instance_type      = try(local.spec.emqttb.instance_type, local.default_instance_type)
   emqttb_use_spot_instances = try(local.spec.emqttb.use_spot_instances, local.default_use_spot_instances)
   emqttb_scenario           = try(local.spec.emqttb.scenario, "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb @sub --topic t/%%n --conninterval 100ms --num-clients 100")
+  emqttb_use_nlb            = try(local.spec.emqttb.use_nlb, false)
   # group by region
   emqttb_nodes_by_region = {
     for r in local.regions :
@@ -117,6 +118,7 @@ locals {
   emqtt_bench_use_spot_instances = try(local.spec.emqtt_bench.use_spot_instances, local.default_use_spot_instances)
   emqtt_bench_scenario           = try(local.spec.emqtt_bench.scenario, "pub -c 100 -I 10 -t bench/%%i -s 256")
   emqtt_bench_payload_template   = try(local.spec.emqtt_bench.emqtt_bench_payload_template, "")
+  emqtt_bench_use_nlb            = try(local.spec.emqtt_bench.use_nlb, false)
   # group by region
   emqtt_bench_nodes_by_region = {
     for r in local.regions :

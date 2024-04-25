@@ -52,7 +52,7 @@ module "emqx" {
 resource "aws_lb_target_group_attachment" "emqx" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
   target_group_arn = module.public_nlb.emqx_target_group_arn
-  target_id        = each.value.private_ips[0]
+  target_id        = each.value.instance_ids[0]
   port             = 18083
   provider         = aws.default
 }
@@ -60,7 +60,7 @@ resource "aws_lb_target_group_attachment" "emqx" {
 resource "aws_lb_target_group_attachment" "emqx-ws" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
   target_group_arn = module.public_nlb.emqx_ws_target_group_arn
-  target_id        = each.value.private_ips[0]
+  target_id        = each.value.instance_ids[0]
   port             = 8083
   provider         = aws.default
 }
@@ -68,7 +68,7 @@ resource "aws_lb_target_group_attachment" "emqx-ws" {
 resource "aws_lb_target_group_attachment" "emqx-api" {
   for_each         = local.emqx_version_family == 4 ? { for i, node in module.emqx : i => node if node.region == local.default_region } : {}
   target_group_arn = module.public_nlb.emqx_api_target_group_arn
-  target_id        = each.value.private_ips[0]
+  target_id        = each.value.instance_ids[0]
   port             = 8081
   provider         = aws.default
 }
@@ -76,15 +76,23 @@ resource "aws_lb_target_group_attachment" "emqx-api" {
 resource "aws_lb_target_group_attachment" "int-mqtt" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
   target_group_arn = module.internal_nlb.mqtt_target_group_arn
-  target_id        = each.value.private_ips[0]
+  target_id        = each.value.instance_ids[0]
   port             = 1883
+  provider         = aws.default
+}
+
+resource "aws_lb_target_group_attachment" "int-mqtts" {
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  target_group_arn = module.internal_nlb.mqtts_target_group_arn
+  target_id        = each.value.instance_ids[0]
+  port             = 8883
   provider         = aws.default
 }
 
 resource "aws_lb_target_group_attachment" "int-httpapi" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
   target_group_arn = module.internal_nlb.httpapi_target_group_arn
-  target_id        = each.value.private_ips[0]
+  target_id        = each.value.instance_ids[0]
   port             = local.emqx_http_api_port
   provider         = aws.default
 }
@@ -92,7 +100,7 @@ resource "aws_lb_target_group_attachment" "int-httpapi" {
 resource "aws_lb_target_group_attachment" "int-mgmt" {
   for_each         = local.emqx_version_family == 4 ? { for i, node in module.emqx : i => node if node.region == local.default_region } : {}
   target_group_arn = module.internal_nlb.mgmt_target_group_arn
-  target_id        = each.value.private_ips[0]
+  target_id        = each.value.instance_ids[0]
   port             = 18083
   provider         = aws.default
 }
@@ -182,7 +190,7 @@ module "locust" {
 resource "aws_lb_target_group_attachment" "locust" {
   for_each         = { for i, node in module.locust : i => node if node.region == local.default_region }
   target_group_arn = module.public_nlb.locust_target_group_arn
-  target_id        = each.value.private_ips[0]
+  target_id        = each.value.instance_ids[0]
   port             = 8080
   provider         = aws.default
 }
@@ -245,7 +253,7 @@ module "monitoring" {
 resource "aws_lb_target_group_attachment" "grafana" {
   count            = local.monitoring_enabled ? 1 : 0
   target_group_arn = module.public_nlb.grafana_target_group_arn
-  target_id        = module.monitoring[0].private_ips[0]
+  target_id        = module.monitoring[0].instance_ids[0]
   port             = 3000
   provider         = aws.default
 }
@@ -253,7 +261,7 @@ resource "aws_lb_target_group_attachment" "grafana" {
 resource "aws_lb_target_group_attachment" "prometheus" {
   count            = local.monitoring_enabled ? 1 : 0
   target_group_arn = module.public_nlb.prometheus_target_group_arn
-  target_id        = module.monitoring[0].private_ips[0]
+  target_id        = module.monitoring[0].instance_ids[0]
   port             = 9090
   provider         = aws.default
 }
@@ -339,7 +347,7 @@ resource "local_file" "ansible_emqttb_group_vars" {
   content = yamlencode({
     emqttb_package_download_url = try(local.spec.emqttb.package_download_url, "")
     emqttb_package_file_path    = try(local.spec.emqttb.package_file_path, "")
-    emqttb_targets              = [for node in module.emqx : node.fqdn]
+    emqttb_targets              = local.emqttb_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn]
     grafana_url                 = local.monitoring_enabled ? "http://${module.monitoring[0].fqdn}:3000" : null
     prometheus_push_gw_url      = local.monitoring_enabled ? "http://${module.monitoring[0].fqdn}:9091" : null
   })
@@ -358,7 +366,7 @@ resource "local_file" "ansible_emqtt_bench_group_vars" {
   content = yamlencode({
     emqtt_bench_package_download_url = try(local.spec.emqtt_bench.package_download_url, "")
     emqtt_bench_package_file_path    = try(local.spec.emqtt_bench.package_file_path, "")
-    emqtt_bench_targets              = [for node in module.emqx : node.fqdn]
+    emqtt_bench_targets              = local.emqtt_bench_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn]
   })
   filename = "${path.module}/ansible/group_vars/emqtt_bench.yml"
 }
@@ -499,9 +507,6 @@ resource "null_resource" "ansible_playbook_tuning" {
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/tuning.yml"
-    environment = {
-      no_proxy = "*"
-    }
   }
 }
 

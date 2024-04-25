@@ -86,7 +86,7 @@ resource "aws_lb_target_group" "emqx" {
   name        = "${var.prefix}-emqx"
   port        = 18083
   protocol    = "TCP"
-  target_type = "ip"
+  target_type = "instance"
   vpc_id      = var.vpc_id
 }
 
@@ -94,7 +94,7 @@ resource "aws_lb_target_group" "emqx-ws" {
   name        = "${var.prefix}-emqx-ws"
   port        = 8083
   protocol    = "TCP"
-  target_type = "ip"
+  target_type = "instance"
   vpc_id      = var.vpc_id
 }
 
@@ -102,7 +102,7 @@ resource "aws_lb_target_group" "emqx-api" {
   name        = "${var.prefix}-emqx-api"
   port        = 8081
   protocol    = "TCP"
-  target_type = "ip"
+  target_type = "instance"
   vpc_id      = var.vpc_id
 }
 
@@ -110,7 +110,7 @@ resource "aws_lb_target_group" "grafana" {
   name        = "${var.prefix}-grafana"
   port        = 3000
   protocol    = "TCP"
-  target_type = "ip"
+  target_type = "instance"
   vpc_id      = var.vpc_id
 }
 
@@ -118,7 +118,7 @@ resource "aws_lb_target_group" "prometheus" {
   name        = "${var.prefix}-prometheus"
   port        = 9090
   protocol    = "TCP"
-  target_type = "ip"
+  target_type = "instance"
   vpc_id      = var.vpc_id
 }
 
@@ -126,7 +126,7 @@ resource "aws_lb_target_group" "locust" {
   name        = "${var.prefix}-locust"
   port        = 8080
   protocol    = "TCP"
-  target_type = "ip"
+  target_type = "instance"
   vpc_id      = var.vpc_id
 }
 
@@ -135,52 +135,15 @@ resource "aws_security_group" "nlb_sg" {
   description = "Access to EMQX Dashboard, Grafana and Prometheus"
   vpc_id      = var.vpc_id
 
-  ingress {
-    from_port        = 18083
-    to_port          = 18083
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 8083
-    to_port          = 8083
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 8081
-    to_port          = 8081
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 3000
-    to_port          = 3000
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 9090
-    to_port          = 9090
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 8080
-    to_port          = 8080
-    protocol         = "TCP"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+  dynamic "ingress" {
+    for_each = [18083, 8083, 8081, 3000, 9090, 8080]
+    content {
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "TCP"
+      cidr_blocks = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
   }
 
   egress {
