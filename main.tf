@@ -28,6 +28,7 @@ module "emqx" {
   hostname           = each.value.hostname
   extra_volumes      = each.value.extra_volumes
   instance_volumes   = each.value.instance_volumes
+  attach_to_nlb      = each.value.attach_to_nlb
   vpc_id             = local.vpcs[each.value.region].vpc_id
   subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
   security_group_id  = local.vpcs[each.value.region].security_group_id
@@ -58,7 +59,7 @@ resource "aws_lb_target_group_attachment" "emqx" {
 }
 
 resource "aws_lb_target_group_attachment" "emqx-ws" {
-  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region && node.attach_to_nlb }
   target_group_arn = module.public_nlb.emqx_ws_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 8083
@@ -74,7 +75,7 @@ resource "aws_lb_target_group_attachment" "emqx-api" {
 }
 
 resource "aws_lb_target_group_attachment" "int-mqtt" {
-  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region && node.attach_to_nlb }
   target_group_arn = module.internal_nlb.mqtt_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 1883
@@ -82,7 +83,7 @@ resource "aws_lb_target_group_attachment" "int-mqtt" {
 }
 
 resource "aws_lb_target_group_attachment" "int-mqtts" {
-  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region }
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.default_region && node.attach_to_nlb }
   target_group_arn = module.internal_nlb.mqtts_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 8883

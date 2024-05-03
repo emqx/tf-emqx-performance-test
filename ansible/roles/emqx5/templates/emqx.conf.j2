@@ -23,6 +23,20 @@ cluster {
 {% endif -%}
 }
 
+listeners {
+  ssl {
+    default {
+      acceptors = 32
+    }
+  }
+  tcp {
+    default {
+      acceptors = 64
+      max_connections = 1024000
+    }
+  }
+}
+
 log {
   console_handler {
     level = "{{ emqx_log_console_level | default('info') }}"

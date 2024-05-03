@@ -17,3 +17,7 @@ output "fqdn" {
 output "region" {
   value = var.region
 }
+
+output "attach_to_nlb" {
+  value = var.attach_to_nlb
+}

@@ -91,6 +91,12 @@ variable "extra_volumes" {
   default = []
 }
 
+variable "attach_to_nlb" {
+  description = "Whether to attach the instance to the NLB"
+  type        = bool
+  default     = false
+}
+
 ## EC2 does not want enumerated device names, like "/dev/sdxN"
 variable "data_volume_device_list" {
   description = "Device list for EC2 mapping"

@@ -71,6 +71,7 @@ locals {
         ami_filter       = try(n.ami_filter, local.emqx_ami_filter)
         extra_volumes    = try(n.extra_volumes, local.emqx_extra_volumes)
         instance_volumes = try(n.instance_volumes, local.emqx_instance_volumes)
+        attach_to_nlb    = try(n.attach_to_nlb, true)
       }
   ]])
   emqx_nodes        = { for node in local.emqx_nodes_list : node.hostname => node }
