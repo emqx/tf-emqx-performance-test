@@ -138,10 +138,10 @@ resource "aws_security_group" "nlb_sg" {
   dynamic "ingress" {
     for_each = [18083, 8083, 8081, 3000, 9090, 8080]
     content {
-      from_port   = ingress.value
-      to_port     = ingress.value
-      protocol    = "TCP"
-      cidr_blocks = ["0.0.0.0/0"]
+      from_port        = ingress.value
+      to_port          = ingress.value
+      protocol         = "TCP"
+      cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
     }
   }

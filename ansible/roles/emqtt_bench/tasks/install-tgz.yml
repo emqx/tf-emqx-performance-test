@@ -1,56 +1,55 @@
 - name: Get latest emqtt-bench release
-  when: emqtt_bench_version == 'latest' and emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == ''
+  when: emqtt_bench_options.version == 'latest' and emqtt_bench_options.package_download_url == '' and emqtt_bench_options.package_file_path == ''
   uri:
     url: https://api.github.com/repos/emqx/emqtt-bench/releases/latest
     body_format: json
     return_content: yes
-  register: emqtt_bench_assets
+  register: github_response
 
-- name: Set the match url fact
-  when: emqtt_bench_version == 'latest' and emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == ''
+- name: Parse JSON response to get the latest version tag
+  when: emqtt_bench_options.version == 'latest' and emqtt_bench_options.package_download_url == '' and emqtt_bench_options.package_file_path == ''
   set_fact:
-    file_name_match: "{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}"
+    emqtt_bench_version: "{{ github_response.json.tag_name }}"
 
-- name: Download emqtt-bench tgz
-  when: emqtt_bench_version == 'latest' and emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == '' and file_name_match in item.browser_download_url
-  ansible.builtin.get_url:
-    url: "{{ item.browser_download_url }}"
-    dest: "/tmp/emqtt_bench.tar.gz"
-    mode: '0644'
-  loop: "{{ emqtt_bench_assets.json.assets }}"
+- name: Set emqtt_bench_version to the specified version
+  when: emqtt_bench_options.version != 'latest' and emqtt_bench_options.package_download_url == '' and emqtt_bench_options.package_file_path == ''
+  set_fact:
+    emqtt_bench_version: "{{ emqtt_bench_options.version }}"
 
-- name: Download emqtt-bench release
-  when: emqtt_bench_version != 'latest' and emqtt_bench_tgz_download_url == '' and emqtt_bench_tgz_file_path == ''
+- name: Download emqtt-bench package
+  when: emqtt_bench_options.package_download_url != ''
   ansible.builtin.get_url:
-    url: "https://github.com/emqx/emqtt-bench/releases/download/v{{ emqtt_bench_version }}/emqtt-bench-{{ emqtt_bench_version }}-{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}.tar.gz"
-    dest: "/tmp/emqtt_bench.tar.gz"
-    mode: '0644'
-
-- name: Download emqtt-bench tgz
-  when: emqtt_bench_tgz_download_url != ''
-  ansible.builtin.get_url:
-    url: emqtt_bench_tgz_download_url
+    url: emqtt_bench_options.package_download_url
     dest: /tmp/emqtt_bench.tar.gz
     mode: '0644'
 
-- name: Upload tgz
-  when: emqtt_bench_tgz_file_path != ''
+- name: Download emqtt-bench package
+  when: emqtt_bench_options.package_download_url == '' and emqtt_bench_options.package_file_path == ''
+  ansible.builtin.get_url:
+    url: "https://github.com/emqx/emqtt-bench/releases/download/{{ emqtt_bench_version }}/emqtt-bench-{{ emqtt_bench_version }}-{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}.tar.gz"
+    dest: "/tmp/emqtt_bench.tar.gz"
+    mode: '0644'
+
+- name: Upload package
+  when: emqtt_bench_options.package_file_path != ''
   ansible.builtin.copy:
-    src: "{{ emqtt_bench_tgz_file_path }}"
+    src: "{{ emqtt_bench_options.package_file_path }}"
     dest: "/tmp/emqtt_bench.tar.gz"
 
-- name: Create emqtt-bench directory
+- name: Create emqtt-bench system user
   become: yes
-  ansible.builtin.file:
-    path: "/opt/emqtt-bench"
-    state: directory
-    mode: '0755'
+  ansible.builtin.user:
+    name: emqtt-bench
+    shell: /bin/bash
+    system: yes
+    createhome: yes
+    home: "{{ emqtt_bench_options.home_dir }}"
 
 - name: Unarchive emqtt-bench
   become: yes
   ansible.builtin.unarchive:
     src: "/tmp/emqtt_bench.tar.gz"
-    dest: "/opt/emqtt-bench"
+    dest: "{{ emqtt_bench_options.home_dir }}"
     copy: no
       
 - name: Render emqtt-bench systemd unit file
@@ -61,11 +60,11 @@
     mode: '0644'
 
 - name: Deploy payload.txt
-  when: emqtt_bench_payload_template_file_path != ''
+  when: emqtt_bench_options.payload_template_file_path != ''
   become: yes
   ansible.builtin.copy:
-    src: "{{ emqtt_bench_payload_template_file_path }}"
-    dest: "/opt/emqtt-bench/{{ emqtt_bench_payload_template_file_path | basename }}"
+    src: "{{ emqtt_bench_options.payload_template_file_path }}"
+    dest: "{{ [emqtt_bench_options.home_dir, emqtt_bench_options.payload_template_file_path | basename] | path_join }}"
 
 - name: Run daemon-reload
   become: yes

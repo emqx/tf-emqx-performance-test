@@ -1,2 +1,5 @@
 collections:
+  - name: community.docker
+    version: 3.10.3
   - name: prometheus.prometheus
+    version: 0.16.3

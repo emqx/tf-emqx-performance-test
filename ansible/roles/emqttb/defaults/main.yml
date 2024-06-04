@@ -1,6 +1,7 @@
-emqttb_install_source: tgz # git
-emqttb_version: latest
-emqttb_tgz_download_url: ''
-emqttb_tgz_file_path: ''
-prometheus_push_gw_url: ''
-emqttb_home_dir: /var/lib/emqttb
+emqttb_options:
+  install_source: tgz # git
+  version: latest
+  package_download_url: ''
+  package_file_path: ''
+  prometheus_push_gw_url: ''
+  home_dir: /var/lib/emqttb

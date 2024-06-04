@@ -1,14 +1,14 @@
 - name: Install locust
   become: yes
-  when: locust_version == 'latest'
+  when: locust_options.version == 'latest'
   ansible.builtin.pip:
     name: locust
 
 - name: Install locust
   become: yes
-  when: locust_version != 'latest'
+  when: locust_options.version != 'latest'
   ansible.builtin.pip:
-    name: "locust=={{ locust_version }}"
+    name: "locust=={{ locust_options.version }}"
 
 - name: Create locust system user
   become: yes
@@ -17,7 +17,7 @@
     shell: /bin/bash
     system: yes
     createhome: yes
-    home: "{{ locust_home_dir }}"
+    home: "{{ locust_options.home_dir }}"
     
 - name: Ensure /etc/locust directory exists
   become: yes
@@ -48,11 +48,11 @@
 
 - name: Copy locust files
   become: yes
-  become_user: locust
   ansible.builtin.copy:
     src: "{{ item }}"
-    dest: "{{ locust_home_dir }}"
+    dest: "{{ locust_options.home_dir }}"
     mode: '0644'
+    owner: locust
   with_fileglob:
     - "{{ playbook_dir }}/../locust/*.py"
     - "{{ playbook_dir }}/../locust/requirements.txt"
@@ -60,7 +60,7 @@
 - name: Install dependencies
   become: yes
   ansible.builtin.command: |
-    pip install -r {{ locust_home_dir }}/requirements.txt
+    pip install -r {{ locust_options.home_dir }}/requirements.txt
 
 - name: Run daemon-reload
   become: yes

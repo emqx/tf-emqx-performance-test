@@ -21,3 +21,11 @@ output "region" {
 output "attach_to_nlb" {
   value = var.attach_to_nlb
 }
+
+output "type" {
+  value = var.type
+}
+
+output "remote_user" {
+  value = var.remote_user
+}

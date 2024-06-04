@@ -1,6 +1,6 @@
 locals {
   vpc_subnets = {
-    (local.default_region) = {
+    (local.region) = {
       "public" = {
         "cidr" = cidrsubnet(var.vpc_cidr, 8, 0)
       }
@@ -18,9 +18,9 @@ locals {
   }
 
   vpcs = {
-    (local.default_region) = module.vpc-default
-    (local.region2)        = local.region2 == "region2-stub" ? null : module.vpc-region2[0]
-    (local.region3)        = local.region3 == "region3-stub" ? null : module.vpc-region3[0]
+    (local.region)  = module.vpc-default
+    (local.region2) = local.region2 == "region2-stub" ? null : module.vpc-region2[0]
+    (local.region3) = local.region3 == "region3-stub" ? null : module.vpc-region3[0]
   }
 }
 
@@ -38,9 +38,9 @@ resource "local_sensitive_file" "pem_file" {
 
 module "vpc-default" {
   source         = "./modules/vpc"
-  vpc_region     = local.default_region
+  vpc_region     = local.region
   provider_alias = "default"
-  cidr           = local.vpc_subnets[local.default_region]["public"]["cidr"]
+  cidr           = local.vpc_subnets[local.region]["public"]["cidr"]
   prefix         = local.prefix
   public_key     = tls_private_key.pk.public_key_openssh
   providers = {
@@ -79,7 +79,7 @@ module "vpc-peering-default-to-region2" {
   count               = local.region2 != "region2-stub" ? 1 : 0
   vpc_id              = module.vpc-default.vpc_id
   route_table_id      = module.vpc-default.main_route_table_id
-  cidr_block          = local.vpc_subnets[local.default_region]["public"]["cidr"]
+  cidr_block          = local.vpc_subnets[local.region]["public"]["cidr"]
   peer_vpc_id         = module.vpc-region2[0].vpc_id
   peer_route_table_id = module.vpc-region2[0].main_route_table_id
   peer_region         = local.region2
@@ -95,7 +95,7 @@ module "vpc-peering-default-to-region3" {
   count               = local.region3 != "region3-stub" ? 1 : 0
   vpc_id              = module.vpc-default.vpc_id
   route_table_id      = module.vpc-default.main_route_table_id
-  cidr_block          = local.vpc_subnets[local.default_region]["public"]["cidr"]
+  cidr_block          = local.vpc_subnets[local.region]["public"]["cidr"]
   peer_vpc_id         = module.vpc-region3[0].vpc_id
   peer_route_table_id = module.vpc-region3[0].main_route_table_id
   peer_region         = local.region3

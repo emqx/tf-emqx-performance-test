@@ -1,5 +1,5 @@
 id: multi
-region: eu-west-1
+region: eu-north-1
 use_spot_instances: false
 emqx:
   instance_type: t4g.large
@@ -7,9 +7,9 @@ emqx:
   dashboard_default_password: admin
   nodes:
     - role: core
-      region: eu-west-1
+      region: eu-north-1
     - role: replicant
-      region: eu-west-1
+      region: eu-north-1
     - role: core
       region: us-west-1
     - role: replicant
@@ -18,13 +18,15 @@ emqx:
       region: us-east-1
     - role: replicant
       region: us-east-1
-emqttb:
+loadgens:
   instance_type: t3.large
-  ami_filter: "*/ubuntu-jammy-22.04-amd64-server-*"
   nodes:
-    - scenario: "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb"
-      region: eu-west-1
-    - scenario: "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb --start-n 100"
+    - type: emqttb
+      scenario: "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb"
+      region: eu-north-1
+    - type: emqttb
+      scenario: "@pub --topic t/%%n --conninterval 100ms --pubinterval 1s --num-clients 100 --size 1kb --start-n 100"
       region: us-west-1
-    - scenario: "@sub --topic t/%%n --conninterval 100ms --num-clients 200"
+    - type: emqttb
+      scenario: "@sub --topic t/%%n --conninterval 100ms --num-clients 200"
       region: us-east-1

@@ -1,11 +1,18 @@
-id: acltest
-region: eu-west-1
-use_spot_instances: false
+id: emqtt-bench
+region: eu-north-1
+use_spot_instances: true
 emqx:
   instance_type: t4g.large
-  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  ami_filter: "*/ubuntu-*-24.04-arm64-server-*"
+  dashboard_default_password: admin
   nodes:
     - role: core
       instance_count: 3
-    - role: replicant
-      instance_count: 3
+loadgens:
+  instance_type: t3.large
+  ami_filter: "*/ubuntu-*-22.04-amd64-server-*"
+  nodes:
+    - type: emqtt_bench
+      scenario: "pub -c 100 -I 10 -t bench/%%i -s 256"
+    - type: emqtt_bench
+      scenario: "sub -c 100 -i 100 -t bench/%%i -q 1"

@@ -1,5 +1,10 @@
-locust_version: latest
-locust_web_port: 8080
-locust_home_dir: "/var/lib/locust"
-locust_plan_entrypoint: locustfile.py
-locust_entrypoint: "{{ locust_home_dir }}/{{ locust_plan_entrypoint }}"
+locust_options:
+  version: latest
+  web_port: 8080
+  home_dir: "/var/lib/locust"
+  plan_entrypoint: locustfile.py
+  client_prefix_list: "a,b,c"
+  payload_size: 1024
+  unsubscribe_client_batch_size: 100
+
+locust_entrypoint: "{{ locust_options.home_dir }}/{{ locust_options.plan_entrypoint }}"

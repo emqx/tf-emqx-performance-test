@@ -1,0 +1,25 @@
+id: fanin
+region: eu-north-1
+use_spot_instances: true
+emqx:
+  instance_type: c7i.4xlarge
+  edition: emqx-enterprise
+  license_file: emqx5.lic
+  package_version: 5.5.0
+  nodes:
+    - role: core
+      instance_count: 1
+loadgens:
+  use_nlb: false
+  emqtt_bench_options:
+    version: 0.4.18
+  nodes:
+    - type: emqtt_bench
+      instance_type: c7i.xlarge
+      scenario: "sub --prefix sub -n 0 --shortids -C false -x 5 -t 't/#' -q 1 -c 1"
+    - type: emqtt_bench
+      instance_type: c7i.large
+      scenario: "pub --prefix pub -n 0 --shortids -R 5000 -w -t t/%%i -q 1 -s 256 -c 25000"
+    - type: emqtt_bench
+      instance_type: c7i.large
+      scenario: "pub --prefix pub -n 25000 --shortids -R 5000 -w -t t/%%i -q 1 -s 256 -c 25000"
