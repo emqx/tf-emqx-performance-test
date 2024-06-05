@@ -8,6 +8,11 @@ Requirements
 
 This creates an EMQX cluster with configurable number of core and replicant nodes, [emqttb](https://github.com/emqx/emqttb) and/or [emqtt-bench](https://github.com/emqx/emqtt-bench) load generator nodes, and prometheus+grafana instance in a private VPC.
 
+## Security considerations
+
+- By default, all instances are launched in a private VPC in the first availability zone, with public IPv4 addresses.
+- Security group allows all inbound and outbound traffic to prevent [Security group connection tracking](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-connection-tracking.html) from affecting the test results. You can change this in `modules/security_group_rules/main.tf`.
+
 ## Quick start
 
 ```bash
