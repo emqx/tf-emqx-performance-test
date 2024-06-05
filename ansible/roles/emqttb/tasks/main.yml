@@ -1,2 +1,2 @@
 - include_tasks: install-tgz.yml
-  when: emqttb_install_source == 'tgz'
+  when: emqttb_options.install_source == 'tgz'

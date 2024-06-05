@@ -32,18 +32,18 @@ listeners {
   tcp {
     default {
       acceptors = 64
-      max_connections = 1024000
+      max_connections = infinity
     }
   }
 }
 
 log {
   console_handler {
-    level = "{{ emqx_log_console_level | default('info') }}"
+    level = "{{ emqx_log_console_level | default('notice') }}"
   }
   file_handlers {
     default {
-      level = "{{ emqx_log_file_level | default('info') }}"
+      level = "{{ emqx_log_file_level | default('notice') }}"
     }
   }
 }
@@ -51,8 +51,23 @@ log {
 {% if emqx_prometheus_enabled -%}
 prometheus {
   enable = true
+  enable_basic_auth = false
+  collectors {
+    mnesia = disabled
+    vm_dist = disabled
+    vm_memory = disabled
+    vm_msacc = disabled
+    vm_statistics = disabled
+    vm_system_info = disabled
+  }
 {% if emqx_prometheus_push_gateway_server | length > 0 -%}
-  push_gateway_server = "{{ emqx_prometheus_push_gateway_server }}"
+  push_gateway {
+    enable = true
+    headers {}
+    interval = "15s"
+    job_name = "${name}/instance/${name}~${host}"
+    url = "{{ emqx_prometheus_push_gateway_server }}"
+  }
 {% endif -%}
 }
 {% endif -%}
@@ -73,13 +88,49 @@ license {
 }
 {% endif -%}
 
-{% if emqx_session_persistence_builtin -%}
-session_persistence {
+{% if emqx_durable_sessions_enabled -%}
+durable_sessions {
+  batch_size = 1000
   enable = true
-  storage {
-    builtin {
-      enable = true
-    }
+  heartbeat_interval = "5s"
+  idle_poll_interval = "100ms"
+  message_retention_period = "1d"
+  session_gc_batch_size = 100
+  session_gc_interval = "10m"
+}
+durable_storage {
+  messages {
+    backend = builtin
+    n_shards = 12
   }
 }
 {% endif -%}
+
+force_shutdown {
+  enable = false
+}
+
+sysmon {
+  os {
+    cpu_check_interval = 60s
+    cpu_high_watermark = 80%
+    cpu_low_watermark = 60%
+    mem_check_interval = 60s
+    procmem_high_watermark = 5%
+    sysmem_high_watermark = 80%
+  }
+  vm {
+    busy_dist_port = true
+    busy_port = true
+    large_heap = 32MB
+    long_gc = disabled
+    long_schedule = 240ms
+    process_check_interval = 30s
+    process_high_watermark = 80%
+    process_low_watermark = 60%
+  }
+}
+
+mqtt {
+  max_mqueue_len = infinity
+}

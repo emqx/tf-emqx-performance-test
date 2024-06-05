@@ -1,14 +1,14 @@
 locustfile = {{ locust_entrypoint }}
-{% if locust_role == "leader" -%}
+{% if loadgen_role == "leader" -%}
 master = true
 {% else -%}
 worker = true
 master-host = {{ locust_leader_ip }}
 {% endif %}
 host = {{ locust_base_url }}
-users = {{ locust_users | default(10) }}
-spawn-rate = {{ locust_spawn_rate | default(10) }}
-web-port = {{ locust_web_port }}
+users = {{ locust_options.users | default(10) }}
+spawn-rate = {{ locust_options.spawn_rate | default(10) }}
+web-port = {{ locust_options.web_port }}
 autostart = true
 processes = -1
 loglevel = INFO

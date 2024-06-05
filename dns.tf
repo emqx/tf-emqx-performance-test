@@ -2,7 +2,7 @@ resource "aws_route53_zone" "vpc" {
   name = local.route53_zone_name
   vpc {
     vpc_id     = module.vpc-default.vpc_id
-    vpc_region = local.default_region
+    vpc_region = local.region
   }
   tags = {
     Name = local.prefix
@@ -27,7 +27,7 @@ resource "aws_route53_zone_association" "region3" {
 resource "aws_route53_record" "emqx-cluster" {
   count   = length(local.emqx_nodes) > 1 ? 1 : 0
   zone_id = aws_route53_zone.vpc.zone_id
-  name    = local.cluster_dns_name
+  name    = local.emqx_cluster_dns_name
   type    = "SRV"
   ttl     = 30
   records = [

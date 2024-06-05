@@ -1,34 +1,44 @@
-- name: Copy files
+- name: Ensure home dir
   become: yes
+  ansible.builtin.file:
+    path: "{{ home_dir }}"
+    state: directory
+
+- name: Update home dir owner
+  become: yes
+  ansible.builtin.file:
+    path: "{{ home_dir }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    recurse: yes
+
+- name: Copy files
   ansible.builtin.copy:
     src: "{{ item }}"
-    dest: "{{ ansible_user_dir }}/{{ item }}"
+    dest: "{{ home_dir }}/{{ item }}"
   loop:
     - docker-compose.yaml
     - datasource.yaml
     - dashboards.yaml
 
 - name: Render prometheus.yml
-  become: yes
   ansible.builtin.template:
     src: prometheus.yml.j2
-    dest: "{{ ansible_user_dir }}/prometheus.yml"
+    dest: "{{ home_dir }}/prometheus.yml"
 
 - name: Ensure dashboards dir
-  become: yes
   ansible.builtin.file:
-    path: "{{ ansible_user_dir }}/dashboards"
+    path: "{{ home_dir }}/dashboards"
     state: directory
 
 - name: Copy dashboards
-  become: yes
   ansible.builtin.copy:
     src: "{{ item }}"
-    dest: "{{ ansible_user_dir }}/dashboards/{{ item | basename }}"
+    dest: "{{ home_dir }}/dashboards/{{ item | basename }}"
   with_fileglob:
     - "*.json"
 
 - name: Create and start services
   become: yes
-  community.docker.docker_compose:
-    project_src: "{{ ansible_user_dir }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ home_dir }}"

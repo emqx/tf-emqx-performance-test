@@ -3,8 +3,8 @@ Description=EMQTT bench
 After=network.target
 
 [Service]
-WorkingDirectory=/opt/emqtt-bench
-ExecStart=:/opt/emqtt-bench/bin/emqtt_bench {{ emqtt_bench_scenario }} -h {{ emqtt_bench_targets | join(',') }} --ifaddr {{ available_ip_addresses | join(',') }}
+WorkingDirectory={{ emqtt_bench_options.home_dir }}
+ExecStart=:{{ emqtt_bench_options.home_dir }}/bin/emqtt_bench {{ loadgen_scenario }} -h {{ loadgen_targets | join(',') }} --ifaddr {{ available_ip_addresses | join(',') }}
 LimitNOFILE=2097152
 Restart=on-failure
 

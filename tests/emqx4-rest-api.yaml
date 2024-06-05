@@ -1,0 +1,40 @@
+id: restapi
+region: eu-north-1
+use_spot_instances: false
+emqx:
+  instance_type: m7g.2xlarge
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  version_family: 4
+  license_file: emqx4.lic
+  dashboard_default_password: admin
+  nodes:
+    - instance_count: 3
+
+loadgens:
+  instance_type: m7i.large
+  locust_options:
+    plan_entrypoint: locustfile.py
+    topics_count: 1920000
+    unsubscribe_client_batch_size: 100
+    max_client_id: 1920000
+    client_prefix_list: "a,b,c"
+    users: 10000
+    payload_size: 1024
+  nodes:
+    - type: emqtt_bench
+      scenario: "sub -c 640000 -i 10 -t bench/%%i -q 1 --shortids --prefix a --startnumber 0"
+      ip_aliases: 9
+    - type: emqtt_bench
+      scenario: "sub -c 640000 -i 10 -t bench/%%i -q 1 --shortids --prefix b --startnumber 640000"
+      ip_aliases: 9
+    - type: emqtt_bench
+      scenario: "sub -c 640000 -i 10 -t bench/%%i -q 1 --shortids --prefix c --startnumber 1280000"
+      ip_aliases: 9
+    - type: emqtt_bench
+      scenario: "sub -c 1 -t bench/# -q 1"
+    - type: locust
+      role: leader
+      instance_count: 1
+    - type: locust
+      role: worker
+      instance_count: 5

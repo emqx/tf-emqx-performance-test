@@ -1,3 +1,5 @@
+home_dir: /opt/emqx-exporter
+
 grafana_dashboards:
   - id: 17446
     revision: 1

@@ -123,14 +123,16 @@ emqx:                      # emqx related settings
       region: us-east-1
     - role: replicant
       region: us-east-1
-emqttb:                              # emqttb related settings
-  instance_type: m5.large            # emqttb instance type
-  ami_filter: "ubuntu-22.04-amd64-*" # emqttb ami filter
+loadgens:                            # load generators section
+  instance_type: m5.large            # instance type for all load generators
+  ami_filter: "ubuntu-22.04-amd64-*" # ami filter for all load generators
   nodes:
       # mind the '%%' in the scenario - it's quoting for systemd unit file
-    - scenario: "@pub --topic t/%%n --conninterval 10ms --pubinterval 10ms --num-clients 100 --size 1kb"
+    - type: emqttb
+      scenario: "@pub --topic t/%%n --conninterval 10ms --pubinterval 10ms --num-clients 100 --size 1kb"
       instance_count: 3
-    - scenario: "@sub --topic t/%%n --conninterval 10ms --num-clients 10"
+    - type: emqttb
+      scenario: "@sub --topic t/%%n --conninterval 10ms --num-clients 10"
       instance_count: 3
 ```
 

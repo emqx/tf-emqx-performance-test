@@ -60,7 +60,7 @@ resource "aws_network_interface" "default" {
   count             = lookup(var.region_aliases, var.region) == "default" ? 1 : 0
   subnet_id         = var.subnet_id
   security_groups   = [var.security_group_id]
-  private_ips_count = var.ip_alias_count
+  private_ips_count = var.ip_aliases
   provider          = aws.default
 }
 
@@ -125,7 +125,7 @@ resource "aws_network_interface" "region2" {
   count             = lookup(var.region_aliases, var.region) == "region2" ? 1 : 0
   subnet_id         = var.subnet_id
   security_groups   = [var.security_group_id]
-  private_ips_count = var.ip_alias_count
+  private_ips_count = var.ip_aliases
   provider          = aws.region2
 }
 
@@ -190,7 +190,7 @@ resource "aws_network_interface" "region3" {
   count             = lookup(var.region_aliases, var.region) == "region3" ? 1 : 0
   subnet_id         = var.subnet_id
   security_groups   = [var.security_group_id]
-  private_ips_count = var.ip_alias_count
+  private_ips_count = var.ip_aliases
   provider          = aws.region3
 }
 

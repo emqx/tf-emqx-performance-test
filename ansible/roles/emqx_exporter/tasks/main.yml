@@ -1,18 +1,30 @@
-- name: Copy files
+- name: Ensure home dir
   become: yes
+  ansible.builtin.file:
+    path: "{{ home_dir }}"
+    state: directory
+
+- name: Update home dir owner
+  become: yes
+  ansible.builtin.file:
+    path: "{{ home_dir }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    recurse: yes
+
+- name: Copy files
   ansible.builtin.copy:
     src: "{{ item }}"
-    dest: "{{ ansible_user_dir }}/{{ item }}"
+    dest: "{{ home_dir }}/{{ item }}"
   loop:
     - docker-compose.yaml
 
 - name: Render emqx-exporter config
-  become: yes
   ansible.builtin.template:
     src: config.yaml.j2
-    dest: "{{ ansible_user_dir }}/emqx-exporter.config.yaml"
+    dest: "{{ home_dir }}/emqx-exporter.config.yaml"
 
 - name: Create and start services
   become: yes
-  community.docker.docker_compose:
-    project_src: "{{ ansible_user_dir }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ home_dir }}"

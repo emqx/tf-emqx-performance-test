@@ -6,6 +6,7 @@ remote_user=${remote_user}
 host_key_checking=False
 use_persistent_connections=True
 forks=48
+hash_behaviour=merge
 
 [connection]
 pipelining=True

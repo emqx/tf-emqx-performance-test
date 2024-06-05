@@ -16,18 +16,34 @@ curl -gs "$PROMETHEUS_URL/api/v1/query?query=irate(node_disk_writes_completed_to
 
 node_data=$(jq -s 'add | group_by(.host) | map(add)' cpu.json mem.json disk.json | jq -r '["Host","Avg_CPU","Avg_Mem","Disk_Write_IOPS"], ["----","-------","-------","---------------"], (.[] | [.host, .cpu, .mem, .disk]) | @tsv' | column -t)
 
+# emqx metrics
+emqx_connections=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_live_connections_count)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+emqx_messages_received=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_received)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+emqx_messages_sent=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_sent)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+emqx_messages_acked=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_acked)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+emqx_messages_publish=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_publish)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+emqx_messages_delivered=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_delivered)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+emqx_messages_dropped=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_dropped)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
 # emqx exporter metrics
 emqx_messages_input_period_second=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqx_messages_input_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+emqx_messages_output_period_second=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqx_messages_output_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
 emqx_cluster_cpu_load=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum%20by(node)%20(emqx_cluster_cpu_load{load=\"load15\"})" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
-emqx_connections=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_live_connections_count)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
 
 cat << EOF > summary.txt
 $node_data
 
 EMQX Exporter
-emqx_messages_input_period_second: $emqx_messages_input_period_second
-emqx_cluster_cpu_load:             $emqx_cluster_cpu_load
-emqx_connections:                  $emqx_connections
+emqx_messages_input_period_second:  $emqx_messages_input_period_second
+emqx_messages_output_period_second: $emqx_messages_output_period_second
+emqx_cluster_cpu_load:              $emqx_cluster_cpu_load
+emqx_connections:                   $emqx_connections
+emqx_messages_received:             $emqx_messages_received
+emqx_messages_sent:                 $emqx_messages_sent
+emqx_messages_acked:                $emqx_messages_acked
+emqx_messages_publish:              $emqx_messages_publish
+emqx_messages_delivered:            $emqx_messages_delivered
+emqx_messages_dropped:              $emqx_messages_dropped
 EOF
 
 cat summary.txt

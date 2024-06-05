@@ -36,6 +36,11 @@ emqttb
 emqtt_bench
 locust
 
+[integration]
+%{ for host in integration_nodes ~}
+${host}
+%{ endfor ~}
+
 [http]
 %{ for host in http_nodes ~}
 ${host}

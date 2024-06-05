@@ -1,35 +1,39 @@
 - name: Get latest emqttb release
-  when: emqttb_version == 'latest' and emqttb_tgz_download_url == '' and emqttb_tgz_file_path == ''
+  when: emqttb_options.version == 'latest' and emqttb_options.package_download_url == '' and emqttb_options.package_file_path == ''
   uri:
     url: https://api.github.com/repos/emqx/emqttb/releases/latest
     body_format: json
     return_content: yes
-  register: emqttb_assets
+  register: github_response
 
-- name: Download emqttb tgz
-  when: emqttb_tgz_download_url != ''
+- name: Parse JSON response to get the latest version tag
+  when: emqttb_options.version == 'latest' and emqttb_options.package_download_url == '' and emqttb_options.package_file_path == ''
+  set_fact:
+    emqttb_version: "{{ github_response.json.tag_name }}"
+
+- name: Set emqttb_version to the specified version
+  when: emqttb_options.version != 'latest' and emqttb_options.package_download_url == '' and emqttb_options.package_file_path == ''
+  set_fact:
+    emqttb_version: "{{ emqttb_options.version }}"
+
+- name: Download emqttb package
+  when: emqttb_options.package_download_url != ''
   ansible.builtin.get_url:
-    url: emqttb_tgz_download_url
+    url: emqttb_options.package_download_url
     dest: /tmp/emqttb.tar.gz
     mode: '0644'
 
-- name: Set the match url fact
-  when: emqttb_tgz_download_url == '' and emqttb_tgz_file_path == ''
-  set_fact:
-    file_name_match: "{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}"
-
-- name: Download emqttb tgz
-  when: emqttb_tgz_download_url == '' and emqttb_tgz_file_path == '' and file_name_match in item.browser_download_url
+- name: Download emqttb package
+  when: emqttb_options.package_download_url == '' and emqttb_options.package_file_path == ''
   ansible.builtin.get_url:
-    url: "{{ item.browser_download_url }}"
+    url: "https://github.com/emqx/emqttb/releases/download/{{ emqttb_version }}/emqttb-{{ emqttb_version | regex_replace('^v', '') }}-{{ ansible_distribution | lower }}{{ ansible_distribution_version }}-{{ deb_architecture_map[ansible_architecture] }}-quic.tar.gz"
     dest: "/tmp/emqttb.tar.gz"
     mode: '0644'
-  loop: "{{ emqttb_assets.json.assets }}"
 
-- name: Upload tgz
-  when: emqttb_tgz_file_path != ''
+- name: Upload package
+  when: emqttb_options.package_file_path != ''
   ansible.builtin.copy:
-    src: "{{ emqttb_tgz_file_path }}"
+    src: "{{ emqttb_options.package_file_path }}"
     dest: "/tmp/emqttb.tar.gz"
 
 - name: Create emqttb system user
@@ -39,14 +43,14 @@
     shell: /bin/bash
     system: yes
     createhome: yes
-    home: "{{ emqttb_home_dir }}"
+    home: "{{ emqttb_options.home_dir }}"
 
 - name: Unarchive emqttb
   become: yes
   become_user: emqttb
   ansible.builtin.unarchive:
     src: "/tmp/emqttb.tar.gz"
-    dest: "{{ emqttb_home_dir }}"
+    dest: "{{ emqttb_options.home_dir }}"
     copy: no
       
 - name: Render emqttb systemd unit file

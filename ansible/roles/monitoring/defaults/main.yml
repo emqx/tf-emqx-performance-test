@@ -1,4 +1,6 @@
 emqx_version_family: "5"
+home_dir: /opt/monitoring
+
 grafana_dashboards:
   - id: 17446
     revision: 1

@@ -1,5 +1,5 @@
 id: http
-region: eu-west-1
+region: eu-north-1
 use_spot_instances: true
 emqx:
   dashboard_default_password: admin
@@ -12,11 +12,13 @@ emqx:
       instance_count: 1
   scripts:
     - scripts/create-http-server-integration.sh
-emqttb:
+loadgens:
   instance_type: m7i.2xlarge
   nodes:
-    - scenario: "@pub --topic t/%%n --conninterval 1ms --pubinterval 1s --num-clients 50000 --size 200"
-http:
+    - type: emqttb
+      scenario: "@pub --topic t/%%n --conninterval 1ms --pubinterval 1s --num-clients 50000 --size 200"
+integrations:
   instance_type: m7i.xlarge
   nodes:
-    - instance_count: 1  
+    - type: http
+      instance_count: 1  

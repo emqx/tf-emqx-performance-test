@@ -63,7 +63,7 @@ variable "root_volume_size" {
   default     = 20
 }
 
-variable "ip_alias_count" {
+variable "ip_aliases" {
   description = "The number of IP aliases to add to the instance"
   type        = number
   default     = 0
@@ -95,6 +95,18 @@ variable "attach_to_nlb" {
   description = "Whether to attach the instance to the NLB"
   type        = bool
   default     = false
+}
+
+variable "type" {
+  description = "Node type"
+  type        = string
+  default     = ""
+}
+
+variable "remote_user" {
+  description = "Remote user to use for SSH"
+  type        = string
+  default     = "ubuntu"
 }
 
 ## EC2 does not want enumerated device names, like "/dev/sdxN"
