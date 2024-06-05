@@ -354,7 +354,8 @@ resource "terraform_data" "ansible_init" {
 resource "terraform_data" "ansible_playbook_http" {
   depends_on = [
     module.integration,
-    terraform_data.ansible_init
+    terraform_data.ansible_init,
+    local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/http.yml"
@@ -367,6 +368,7 @@ resource "terraform_data" "ansible_playbook_http" {
 resource "terraform_data" "ansible_playbook_emqx" {
   depends_on = [
     terraform_data.ansible_init,
+    local_file.ansible_common_group_vars,
     local_file.ansible_emqx_group_vars,
     local_file.ansible_emqx_host_vars
   ]
@@ -381,6 +383,7 @@ resource "terraform_data" "ansible_playbook_emqx" {
 resource "terraform_data" "ansible_playbook_loadgen" {
   depends_on = [
     terraform_data.ansible_init,
+    local_file.ansible_common_group_vars,
     local_file.ansible_loadgen_group_vars,
     local_file.ansible_locust_group_vars,
     local_file.ansible_loadgen_host_vars
@@ -395,7 +398,8 @@ resource "terraform_data" "ansible_playbook_loadgen" {
 
 resource "terraform_data" "ansible_playbook_tuning" {
   depends_on = [
-    terraform_data.ansible_init
+    terraform_data.ansible_init,
+    local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/tuning.yml"
@@ -404,7 +408,8 @@ resource "terraform_data" "ansible_playbook_tuning" {
 
 resource "terraform_data" "ansible_playbook_monitoring" {
   depends_on = [
-    terraform_data.ansible_init
+    terraform_data.ansible_init,
+    local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/monitoring.yml"
@@ -416,7 +421,8 @@ resource "terraform_data" "ansible_playbook_monitoring" {
 
 resource "terraform_data" "ansible_playbook_node_exporter" {
   depends_on = [
-    terraform_data.ansible_init
+    terraform_data.ansible_init,
+    local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/node_exporter.yml"
