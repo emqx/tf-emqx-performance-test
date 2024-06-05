@@ -137,7 +137,7 @@ locals {
   integration_nodes_pre = flatten([
     for node in try(local.spec.integrations.nodes, []) : [
       for i in range(0, try(node.instance_count, 1)) : {
-        type               = try(node.type, local.integration_type)
+        type               = node.type
         region             = try(node.region, local.integration_region)
         ami_filter         = try(node.ami_filter, local.integration_ami_filter)
         ami_owner          = try(node.ami_owner, local.integration_ami_owner)
