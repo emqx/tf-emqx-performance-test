@@ -254,7 +254,7 @@ resource "local_file" "ansible_common_group_vars" {
 }
 
 locals {
-  http_nodes = [for node in module.integration: node if node.type == "http"]
+  http_nodes = [for node in module.integration : node if node.type == "http"]
 }
 
 resource "local_file" "ansible_emqx_group_vars" {
@@ -282,15 +282,15 @@ resource "local_file" "ansible_emqx_group_vars" {
         secret = try(local.spec.emqx.api_secret, "perftest")
       }
     ]
-    emqx_license_file                = try(local.spec.emqx.license_file, "") == "" ? "" : pathexpand(local.spec.emqx.license_file)
-    emqx_license                     = try(local.spec.emqx.license_file, "") == "" ? "" : file(pathexpand(local.spec.emqx.license_file))
-    emqx_package_version             = try(local.spec.emqx.package_version, "latest")
-    emqx_scripts                     = try(local.spec.emqx.scripts, [])
-    emqx_durable_sessions_enabled    = try(local.spec.emqx.durable_sessions_enabled, false)
-    emqx_data_dir                    = try(local.spec.emqx.data_dir, "/var/lib/emqx")
-    emqx_version                     = local.emqx_version
-    emqx_dashboard_default_password  = local.emqx_dashboard_default_password
-    http_server_url                  = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
+    emqx_license_file               = try(local.spec.emqx.license_file, "") == "" ? "" : pathexpand(local.spec.emqx.license_file)
+    emqx_license                    = try(local.spec.emqx.license_file, "") == "" ? "" : file(pathexpand(local.spec.emqx.license_file))
+    emqx_package_version            = try(local.spec.emqx.package_version, "latest")
+    emqx_scripts                    = try(local.spec.emqx.scripts, [])
+    emqx_durable_sessions_enabled   = try(local.spec.emqx.durable_sessions_enabled, false)
+    emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
+    emqx_version                    = local.emqx_version
+    emqx_dashboard_default_password = local.emqx_dashboard_default_password
+    http_server_url                 = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
   })
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
@@ -331,8 +331,8 @@ resource "local_file" "ansible_loadgen_host_vars" {
 resource "local_file" "ansible_locust_group_vars" {
   count = length([for n in module.loadgen : n if n.type == "locust"]) > 0 ? 1 : 0
   content = yamlencode({
-    locust_leader_ip          = [for n in module.loadgen : n.private_ips[0] if n.type == "locust" && local.loadgen_nodes[n.fqdn].role == "leader"][0]
-    locust_base_url           = "http://${module.internal_nlb.dns_name}:${local.emqx_http_api_port}/api/${local.emqx_api_version}"
+    locust_leader_ip = [for n in module.loadgen : n.private_ips[0] if n.type == "locust" && local.loadgen_nodes[n.fqdn].role == "leader"][0]
+    locust_base_url  = "http://${module.internal_nlb.dns_name}:${local.emqx_http_api_port}/api/${local.emqx_api_version}"
   })
   filename = "${path.module}/ansible/group_vars/locust.yml"
 }

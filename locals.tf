@@ -137,13 +137,13 @@ locals {
   integration_nodes_pre = flatten([
     for node in try(local.spec.integrations.nodes, []) : [
       for i in range(0, try(node.instance_count, 1)) : {
-        type                 = try(node.type, local.loadgen_type)
-        region               = try(node.region, local.loadgen_region)
-        ami_filter           = try(node.ami_filter, local.loadgen_ami_filter)
-        ami_owner            = try(node.ami_owner, local.loadgen_ami_owner)
-        remote_user          = try(node.remote_user, local.loadgen_remote_user)
-        instance_type        = try(node.instance_type, local.loadgen_instance_type)
-        use_spot_instances   = try(node.use_spot_instances, local.loadgen_use_spot_instances)
+        type               = try(node.type, local.integration_type)
+        region             = try(node.region, local.integration_region)
+        ami_filter         = try(node.ami_filter, local.integration_ami_filter)
+        ami_owner          = try(node.ami_owner, local.integration_ami_owner)
+        remote_user        = try(node.remote_user, local.integration_remote_user)
+        instance_type      = try(node.instance_type, local.integration_instance_type)
+        use_spot_instances = try(node.use_spot_instances, local.integration_use_spot_instances)
       }
     ]
   ])
