@@ -23,10 +23,11 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_subnet" "public" {
+  count                   = length(data.aws_availability_zones.available.names)
   vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = cidrsubnet(var.cidr, 8, 0)
+  cidr_block              = cidrsubnet(var.cidr, 8, count.index)
   map_public_ip_on_launch = true
-  availability_zone       = data.aws_availability_zones.available.names[0]
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
   provider                = aws
   tags = {
     Name = var.prefix
@@ -56,7 +57,8 @@ resource "aws_route" "igw_ipv6" {
 }
 
 resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
+  count          = length(aws_subnet.public)
+  subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_vpc.vpc.main_route_table_id
   provider       = aws
 }

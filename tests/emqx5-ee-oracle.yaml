@@ -1,0 +1,27 @@
+# note: creating oracle rds takes about 20 minutes, deleting it a little faster
+id: ora
+region: eu-north-1
+use_spot_instances: true
+emqx:
+  instance_type: c7i.8xlarge
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  license_file: emqx5.lic
+  nodes:
+    - role: core
+      instance_count: 1
+  scripts:
+    - scripts/create-oracle-integration.sh
+loadgens:
+  instance_type: c7i.4xlarge
+  emqtt_bench_options:
+    version: 0.4.18
+    payload_template_file_path: random.txt
+  nodes:
+    - type: emqtt_bench
+      scenario: "pub --prefix pub --shortids -R 5000 -w -t perftest/%%i -q 1 -c 100000 -m 'template://random.txt'"
+      ip_aliases: 1
+integrations:
+  nodes:
+    - type: oracle-rds
+      instance_type: db.m5.4xlarge
