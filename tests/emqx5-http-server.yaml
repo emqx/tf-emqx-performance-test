@@ -16,9 +16,9 @@ loadgens:
   instance_type: m7i.2xlarge
   nodes:
     - type: emqttb
-      scenario: "@pub --topic t/%%n --conninterval 1ms --pubinterval 1s --num-clients 50000 --size 200"
+      scenario: "@pub --topic t/%%n --conninterval 1ms --pubinterval 1s --num-clients 50000 --size 200 -q 1"
 integrations:
   instance_type: m7i.xlarge
   nodes:
     - type: http
-      instance_count: 1  
+      instance_count: 1
