@@ -12,7 +12,7 @@ prometheus_config_dir: /etc/prometheus
 prometheus_global:
   scrape_interval: 15s
   scrape_timeout: 10s
-  evaluation_interval: 15s
+  evaluation_interval: 1s
 
 prometheus_remote_write: []
 # prometheus_remote_write:
@@ -36,12 +36,13 @@ prometheus_scrape_configs:
         - "localhost:9090"
   - job_name: "pushgateway"
     honor_labels: true
+    scrape_interval: 1s
     static_configs:
       - targets:
         - "localhost:9091"
   - job_name: 'emqx5'
     metrics_path: /api/v5/prometheus/stats
-    scrape_interval: 5s
+    scrape_interval: 1s
     honor_labels: true
     static_configs:
       - targets: "{{ groups['emqx5'] | map('regex_replace', '$', ':18083') | list }}"

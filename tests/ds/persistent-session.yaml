@@ -1,0 +1,26 @@
+id: ds-pers-ses
+region: eu-north-1
+use_spot_instances: true
+emqx:
+  instance_type: m7a.large
+  edition: emqx-enterprise
+  license_file: emqx5.lic
+  dashboard_default_password: admin
+  data_dir: /data/emqx
+  durable_sessions_enabled: true
+  extra_volumes:
+    - mount_point: /data
+      volume_size: 30
+      volume_type: gp3
+      mount_options: defaults,noatime,discard
+  scripts:
+    - scripts/create-mqtt-user.sh
+  nodes:
+    - role: core
+      instance_count: 1
+
+loadgens:
+  instance_type: m7a.large
+  nodes:
+    - type: emqttb
+      scenario: '--motto "persistent_session" @persistent_session --max-stuck-time 20s --pubtime 5s --pubinterval 19us -P 10 -S 10 --cycles 5 @g --inflight 1000 --username perftest --password perftest'
