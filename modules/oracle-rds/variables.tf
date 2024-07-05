@@ -21,10 +21,11 @@ variable "instance_class" {
   default     = "db.t3.medium"
 }
 
+# https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#gp3-storage
 variable "allocated_storage" {
   description = "The allocated storage in gibibytes"
   type        = number
-  default     = 20
+  default     = 200
 }
 
 variable "storage_type" {

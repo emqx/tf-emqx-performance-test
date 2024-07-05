@@ -50,3 +50,7 @@ rule_engine {
 EOF
 
 emqx ctl conf load /tmp/oracle.conf
+cat <<EOF > /tmp/oracle.cmd
+{ok, Conn} = jamdb_oracle_conn:connect([{sid,"ORCL"},{password, "${ORACLE_DB_PASSWORD}"},{user,"${ORACLE_DB_USERNAME}"},{port,${ORACLE_PORT}},{host,"${ORACLE_SERVER}"}]), {ok, _, _} = jamdb_oracle_conn:sql_query(Conn, "create table t_mqtt_msgs(msgid VARCHAR2(64), topic VARCHAR2(255), qos NUMBER(1), payload NCLOB)"), jamdb_oracle_conn:disconnect(Conn).
+EOF
+emqx eval "$(cat /tmp/oracle.cmd)"
