@@ -21,8 +21,6 @@
   become: yes
   become_user: emqx
   run_once: yes
-  environment:
-    HTTP_SERVER_URL: "{{ http_server_url }}"
-    EMQX_ADMIN_PASSWORD: "{{ emqx_dashboard_default_password }}"
+  environment: "{{ emqx_script_env }}"
   ansible.builtin.command: "/opt/emqx/{{ item | basename }}"
   loop: "{{ emqx_scripts }}"

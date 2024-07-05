@@ -11,7 +11,7 @@ output "vpc_cidr_block" {
 }
 
 output "public_subnet_ids" {
-  value = [aws_subnet.public.id]
+  value = aws_subnet.public[*].id
 }
 
 output "main_route_table_id" {

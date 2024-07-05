@@ -146,7 +146,7 @@ resource "aws_lb_target_group_attachment" "locust" {
 }
 
 module "integration" {
-  for_each           = local.integration_nodes
+  for_each           = { for hostname, node in local.integration_nodes : hostname => node if node.type != "oracle-rds" }
   source             = "./modules/ec2"
   region             = each.value.region
   type               = each.value.type
@@ -172,6 +172,20 @@ module "integration" {
     aws_route53_zone_association.region2,
     aws_route53_zone_association.region3
   ]
+}
+
+module "oracle-rds" {
+  for_each           = { for hostname, node in local.integration_nodes : hostname => node if node.type == "oracle-rds" }
+  source             = "./modules/oracle-rds"
+  instance_class     = each.value.instance_type
+  hostname           = each.value.hostname
+  subnet_ids         = local.vpcs[each.value.region].public_subnet_ids
+  security_group_ids = [local.vpcs[each.value.region].security_group_id]
+  prefix             = local.prefix
+  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  providers = {
+    aws = aws.default
+  }
 }
 
 module "monitoring" {
@@ -243,18 +257,28 @@ resource "local_file" "ansible_inventory" {
   filename = "${path.module}/ansible/inventory.ini"
 }
 
+locals {
+  http_nodes       = [for node in module.integration : node if node.type == "http"]
+  oracle_rds_nodes = [for _, node in module.oracle-rds : node]
+}
+
 resource "local_file" "ansible_common_group_vars" {
   content = yamlencode({
     emqx_version_family              = local.emqx_version_family
     emqx_dashboard_url               = "http://${module.public_nlb.dns_name}:18083"
     node_exporter_enabled_collectors = var.node_exporter_enabled_collectors
     deb_architecture_map             = var.deb_architecture_map
+    emqx_script_env = {
+      EMQX_ADMIN_PASSWORD = local.emqx_dashboard_default_password
+      HTTP_SERVER_URL     = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
+      ORACLE_SERVER       = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].fqdn : ""
+      ORACLE_PORT         = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].port : ""
+      ORACLE_TLS_PORT     = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].tls_port : ""
+      ORACLE_DB_USERNAME  = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].username : ""
+      ORACLE_DB_PASSWORD  = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].password : ""
+    }
   })
   filename = "${path.module}/ansible/group_vars/all.yml"
-}
-
-locals {
-  http_nodes = [for node in module.integration : node if node.type == "http"]
 }
 
 resource "local_file" "ansible_emqx_group_vars" {
@@ -290,7 +314,6 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
     emqx_version                    = local.emqx_version
     emqx_dashboard_default_password = local.emqx_dashboard_default_password
-    http_server_url                 = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
   })
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
