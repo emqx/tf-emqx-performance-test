@@ -37,16 +37,16 @@
       state: stopped
 
   - name: install emqx
-    when: emqx_package_version == 'latest'
+    when: emqx_version == 'latest'
     ansible.builtin.apt:
       name: "{{ emqx_edition }}"
       state: present
       update_cache: yes
 
   - name: install emqx
-    when: emqx_package_version != 'latest'
+    when: emqx_version != 'latest'
     ansible.builtin.apt:
-      name: "{{ emqx_edition }}={{ emqx_package_version }}"
+      name: "{{ emqx_edition }}={{ emqx_version }}"
       state: present
       update_cache: yes
 

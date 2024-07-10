@@ -20,7 +20,7 @@ loadgens:
   nodes:
     - type: emqtt_bench
       use_spot_instances: false
-      scenario: "pub --prefix pub --shortids -R 5000 -w -t perftest/%%i -q 1 -c 60000 -m 'template://random.txt'"
+      scenario: "pub --prefix pub_ --shortids -R 5000 -w -t perftest/%%i -q 1 -c 60000 -m 'template://random.txt'"
       ip_aliases: 1
 integrations:
   nodes:

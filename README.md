@@ -157,7 +157,7 @@ remote_user: admin
 emqx:
   instance_type: m6a.large
   edition: emqx-enterprise
-  package_version: 5.3.2
+  version: 5.3.2
   license_file: emqx5.lic
   nodes:
     - role: core
@@ -171,7 +171,7 @@ terraform init
 terraform apply -var spec_file=tests/emqx-enterprise-5.3.2.yml
 ```
 
-3. In `ansible/group_vars/emqx5.yml` change `emqx_package_version` to `5.4.1`
+3. In `ansible/group_vars/emqx5.yml` change `emqx_version` to `5.4.1`
 4. Run `emqx_rolling_upgrade.yml` playbook:
 
 ```bash

@@ -1,0 +1,26 @@
+id: rabbitmq
+region: us-west-2
+use_spot_instances: true
+emqx:
+  instance_type: c7i.8xlarge
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  license_file: emqx5.lic
+  version: 5.1.0
+  nodes:
+    - role: core
+      instance_count: 1
+  scripts:
+    - scripts/create-rabbitmq-integration-510.sh
+loadgens:
+  instance_type: c7i.4xlarge
+  emqtt_bench_options:
+    version: 0.4.18
+  nodes:
+    - type: emqtt_bench
+      scenario: "pub --prefix pub_ --shortids -R 5000 -w -t perftest/%%i -q 1 -s 200 -c 100000"
+      ip_aliases: 1
+integrations:
+  nodes:
+    - type: rabbitmq
+      instance_type: c7i.4xlarge

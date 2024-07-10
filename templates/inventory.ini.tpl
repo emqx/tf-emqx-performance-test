@@ -46,6 +46,11 @@ ${host}
 ${host}
 %{ endfor ~}
 
+[rabbitmq]
+%{ for host in rabbitmq_nodes ~}
+${host}
+%{ endfor ~}
+
 [monitoring]
 %{ for host in monitoring_nodes ~}
 ${host}

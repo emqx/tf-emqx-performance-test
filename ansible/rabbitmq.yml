@@ -1,0 +1,5 @@
+- hosts: rabbitmq
+  pre_tasks:
+    - include_tasks: common.yml
+  roles:
+    - rabbitmq

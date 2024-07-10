@@ -1,0 +1,135 @@
+- name: Install necessary packages
+  become: yes
+  ansible.builtin.package:
+    name:
+      - gnupg
+      - curl
+      - apt-transport-https
+    state: present
+
+- name: Download GPG keys for RabbitMQ
+  become: yes
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    mode: '0644'
+  loop:
+    - url: https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA
+      dest: /etc/apt/keyrings/com.rabbitmq.team.key
+    - url: https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key
+      dest: /etc/apt/keyrings/rabbitmq.E495BB49CC4BBE5B.key
+    - url: https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key
+      dest: /etc/apt/keyrings/rabbitmq.9F4587F226208342.key
+
+- name: Dearmor GPG keys
+  become: yes
+  ansible.builtin.shell:
+    cmd: "cat /etc/apt/keyrings/{{ item }}.key | gpg --dearmor > /etc/apt/keyrings/{{ item }}.gpg"
+  args:
+    creates: "/etc/apt/keyrings/{{ item }}.gpg"
+  loop:
+    - com.rabbitmq.team
+    - rabbitmq.E495BB49CC4BBE5B
+    - rabbitmq.9F4587F226208342
+
+- name: Add RabbitMQ repositories
+  become: yes
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/{{ item.signing_key }}] {{ item.base_url }}/deb/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} main"
+    state: present
+  loop:
+    - base_url: https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang
+      signing_key: rabbitmq.E495BB49CC4BBE5B.gpg
+    - base_url: https://ppa2.novemberain.com/rabbitmq/rabbitmq-erlang
+      signing_key: rabbitmq.E495BB49CC4BBE5B.gpg
+    - base_url: https://ppa1.novemberain.com/rabbitmq/rabbitmq-server
+      signing_key: rabbitmq.9F4587F226208342.gpg
+    - base_url: https://ppa2.novemberain.com/rabbitmq/rabbitmq-server
+      signing_key: rabbitmq.9F4587F226208342.gpg
+
+- name: Update apt cache
+  become: yes
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install Erlang packages
+  become: yes
+  ansible.builtin.package:
+    name:
+      - erlang-base
+      - erlang-asn1
+      - erlang-crypto
+      - erlang-eldap
+      - erlang-ftp
+      - erlang-inets
+      - erlang-mnesia
+      - erlang-os-mon
+      - erlang-parsetools
+      - erlang-public-key
+      - erlang-runtime-tools
+      - erlang-snmp
+      - erlang-ssl
+      - erlang-syntax-tools
+      - erlang-tftp
+      - erlang-tools
+      - erlang-xmerl
+    state: present
+
+- name: Install RabbitMQ
+  become: yes
+  ansible.builtin.package:
+    name: rabbitmq-server
+    state: present
+
+- name: Make sure RabbitMQ is started and enabled
+  become: yes
+  ansible.builtin.service:
+    name: rabbitmq-server
+    state: started
+    enabled: yes
+
+- name: Wait for RabbitMQ to start
+  ansible.builtin.wait_for:
+    port: 5672
+    delay: 5
+    timeout: 60
+    state: started
+
+- name: Enable management plugin
+  become: yes
+  ansible.builtin.command:
+    cmd: rabbitmq-plugins enable rabbitmq_management
+
+- name: Download rabbitmqadmin
+  become: yes
+  ansible.builtin.get_url:
+    url: http://localhost:15672/cli/rabbitmqadmin
+    dest: /usr/local/bin/rabbitmqadmin
+    mode: '0755'
+
+- name: Check if emqx user already exists in RabbitMQ
+  become: yes
+  become_user: rabbitmq
+  ansible.builtin.shell:
+    cmd: rabbitmqctl list_users | grep emqx
+  register: emqx_user
+  ignore_errors: yes
+
+- name: Create emqx user in RabbitMQ
+  when: emqx_user.rc != 0
+  become: yes
+  become_user: rabbitmq
+  ansible.builtin.command:
+    cmd: rabbitmqctl add_user emqx emqx
+
+- name: Set permissions
+  become: yes
+  become_user: rabbitmq
+  ansible.builtin.command:
+    cmd: rabbitmqctl set_permissions -p / emqx ".*" ".*" ".*"
+
+- name: Create emqx exchange
+  become: yes
+  become_user: rabbitmq
+  ansible.builtin.command:
+    cmd: rabbitmqadmin declare exchange name=emqx type=direct

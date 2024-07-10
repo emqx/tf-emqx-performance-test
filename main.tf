@@ -244,6 +244,7 @@ resource "local_file" "ansible_cfg" {
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/inventory.ini.tpl",
     {
+      emqx_version_family = local.emqx_version_family
       emqx_nodes          = [for node in module.emqx : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.emqx_remote_user}"]
       loadgen_nodes       = [for node in module.loadgen : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.loadgen_remote_user}"]
       emqttb_nodes        = [for node in module.loadgen : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.loadgen_remote_user}" if node.type == "emqttb"]
@@ -251,14 +252,15 @@ resource "local_file" "ansible_inventory" {
       locust_nodes        = [for node in module.loadgen : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.loadgen_remote_user}" if node.type == "locust"]
       integration_nodes   = [for node in module.integration : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.integration_remote_user}"]
       http_nodes          = [for node in module.integration : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.integration_remote_user}" if node.type == "http"]
+      rabbitmq_nodes      = [for node in module.integration : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.integration_remote_user}" if node.type == "rabbitmq"]
       monitoring_nodes    = [for node in module.monitoring : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.monitoring_remote_user}"]
-      emqx_version_family = local.emqx_version_family
   })
   filename = "${path.module}/ansible/inventory.ini"
 }
 
 locals {
   http_nodes       = [for node in module.integration : node if node.type == "http"]
+  rabbitmq_nodes   = [for node in module.integration : node if node.type == "rabbitmq"]
   oracle_rds_nodes = [for _, node in module.oracle-rds : node]
 }
 
@@ -271,6 +273,7 @@ resource "local_file" "ansible_common_group_vars" {
     emqx_script_env = {
       EMQX_ADMIN_PASSWORD = local.emqx_dashboard_default_password
       HTTP_SERVER_URL     = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
+      RABBITMQ_SERVER     = length(local.rabbitmq_nodes) > 0 ? "${[for x in local.rabbitmq_nodes : x.fqdn][0]}" : ""
       ORACLE_SERVER       = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].fqdn : ""
       ORACLE_PORT         = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].port : ""
       ORACLE_TLS_PORT     = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].tls_port : ""
@@ -308,7 +311,6 @@ resource "local_file" "ansible_emqx_group_vars" {
     ]
     emqx_license_file               = try(local.spec.emqx.license_file, "") == "" ? "" : pathexpand(local.spec.emqx.license_file)
     emqx_license                    = try(local.spec.emqx.license_file, "") == "" ? "" : file(pathexpand(local.spec.emqx.license_file))
-    emqx_package_version            = try(local.spec.emqx.package_version, "latest")
     emqx_scripts                    = try(local.spec.emqx.scripts, [])
     emqx_durable_sessions_enabled   = try(local.spec.emqx.durable_sessions_enabled, false)
     emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
@@ -382,6 +384,20 @@ resource "terraform_data" "ansible_playbook_http" {
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/http.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "terraform_data" "ansible_playbook_rabbitmq" {
+  depends_on = [
+    module.integration,
+    terraform_data.ansible_init,
+    local_file.ansible_common_group_vars
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/rabbitmq.yml"
     environment = {
       no_proxy = "*"
     }
