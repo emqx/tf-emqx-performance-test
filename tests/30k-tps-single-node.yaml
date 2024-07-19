@@ -1,0 +1,16 @@
+id: 30k
+region: us-west-2
+use_spot_instances: true
+emqx:
+  instance_type: c5.xlarge
+  dashboard_default_password: admin
+  nodes:
+    - role: core
+      instance_count: 1
+loadgens:
+  instance_type: c5.xlarge
+  emqtt_bench_options:
+    version: 0.4.18
+  nodes:
+    - type: emqtt_bench
+      scenario: "pub --prefix pub_ --shortids -w -t perftest/%%i -q 0 -s 20 -c 30 -I 1"
