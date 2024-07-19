@@ -90,18 +90,50 @@ license {
 
 {% if emqx_durable_sessions_enabled -%}
 durable_sessions {
-  batch_size = 1000
   enable = true
-  heartbeat_interval = "5s"
-  idle_poll_interval = "100ms"
-  message_retention_period = "1d"
-  session_gc_batch_size = 100
-  session_gc_interval = "10m"
+{% if emqx_durable_sessions_batch_size is defined %}
+  batch_size = {{ emqx_durable_sessions_batch_size }}
+{% endif -%}
+{% if emqx_durable_sessions_idle_poll_interval is defined %}
+  idle_poll_interval = "{{ emqx_durable_sessions_idle_poll_interval }}"
+{% endif -%}
+{% if emqx_durable_sessions_heartbeat_interval is defined %}
+  heartbeat_interval = "{{ emqx_durable_sessions_heartbeat_interval }}"
+{% endif -%}
+{% if emqx_durable_sessions_renew_streams_interval is defined %}
+  renew_streams_interval = "{{ emqx_durable_sessions_renew_streams_interval }}"
+{% endif -%}
+{% if emqx_durable_sessions_session_gc_interval is defined %}
+  session_gc_interval = "{{ emqx_durable_sessions_session_gc_interval }}"
+{% endif -%}
+{% if emqx_durable_sessions_session_gc_batch_size is defined %}
+  session_gc_batch_size = {{ emqx_durable_sessions_session_gc_batch_size }}
+{% endif -%}
+{% if emqx_durable_sessions_message_retention_period is defined %}
+  message_retention_period = "{{ emqx_durable_sessions_message_retention_period }}"
+{% endif -%}
+{% if emqx_durable_sessions_force_persistence is defined %}
+  force_persistence = {{ emqx_durable_sessions_force_persistence }}
+{% endif -%}
 }
 durable_storage {
   messages {
-    backend = builtin
-    n_shards = 12
+    backend = {{ emqx_durable_storage_backend | default('builtin') }}
+{% if emqx_durable_storage_data_dir is defined %}
+    data_dir = "{{ emqx_durable_storage_data_dir }}"
+{% endif -%}
+{% if emqx_durable_storage_n_shards is defined %}
+    n_shards = {{ emqx_durable_storage_n_shards }}
+{% endif -%}
+{% if emqx_durable_storage_n_sites is defined %}
+    n_sites = {{ emqx_durable_storage_n_sites }}
+{% endif -%}
+{% if emqx_durable_storage_replication_factor is defined %}
+    replication_factor = {{ emqx_durable_storage_replication_factor }}
+{% endif -%}
+{% if emqx_durable_storage_layout is defined %}
+    layout = {{ emqx_durable_storage_layout }}
+{% endif -%}
   }
 }
 {% endif -%}

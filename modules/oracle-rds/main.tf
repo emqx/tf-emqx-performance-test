@@ -38,9 +38,9 @@ resource "aws_db_option_group" "oracle" {
   engine_name          = var.engine
   major_engine_version = var.engine_version
   option {
-    option_name = "SSL"
+    option_name                    = "SSL"
     vpc_security_group_memberships = var.security_group_ids
-    port = var.tls_port
+    port                           = var.tls_port
     option_settings {
       name  = "SQLNET.SSL_VERSION"
       value = "1.2 or 1.0"

@@ -285,7 +285,7 @@ resource "local_file" "ansible_common_group_vars" {
 }
 
 resource "local_file" "ansible_emqx_group_vars" {
-  content = yamlencode({
+  content = yamlencode(merge({
     emqx_install_source                  = try(local.spec.emqx.install_source, "package")
     emqx_package_download_url            = try(local.spec.emqx.package_download_url, "")
     emqx_package_file_path               = try(local.spec.emqx.package_file_path, "")
@@ -312,11 +312,26 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_license_file               = try(local.spec.emqx.license_file, "") == "" ? "" : pathexpand(local.spec.emqx.license_file)
     emqx_license                    = try(local.spec.emqx.license_file, "") == "" ? "" : file(pathexpand(local.spec.emqx.license_file))
     emqx_scripts                    = try(local.spec.emqx.scripts, [])
-    emqx_durable_sessions_enabled   = try(local.spec.emqx.durable_sessions_enabled, false)
-    emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
     emqx_version                    = local.emqx_version
     emqx_dashboard_default_password = local.emqx_dashboard_default_password
-  })
+    emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
+    emqx_durable_sessions_enabled   = try(local.spec.emqx.durable_sessions_enabled, false)
+    },
+    try({ emqx_durable_sessions_batch_size = local.spec.emqx.durable_sessions_batch_size }, {}),
+    try({ emqx_durable_sessions_idle_poll_interval = local.spec.emqx.durable_sessions_idle_poll_interval }, {}),
+    try({ emqx_durable_sessions_heartbeat_interval = local.spec.emqx.durable_sessions_heartbeat_interval }, {}),
+    try({ emqx_durable_sessions_renew_streams_interval = local.spec.emqx.durable_sessions_renew_streams_interval }, {}),
+    try({ emqx_durable_sessions_gc_interval = local.spec.emqx.durable_sessions_gc_interval }, {}),
+    try({ emqx_durable_sessions_gc_batch_size = local.spec.emqx.durable_sessions_gc_batch_size }, {}),
+    try({ emqx_durable_sessions_message_retention_period = local.spec.emqx.durable_sessions_message_retention_period }, {}),
+    try({ emqx_durable_sessions_force_persistence = local.spec.emqx.durable_sessions_force_persistence }, {}),
+    try({ emqx_durable_storage_backend = local.spec.emqx.durable_storage_backend }, {}),
+    try({ emqx_durable_storage_storage_layout = local.spec.emqx.durable_storage_storage_layout }, {}),
+    try({ emqx_durable_storage_data_dir = local.spec.emqx.durable_storage_data_dir }, {}),
+    try({ emqx_durable_storage_n_shards = local.spec.emqx.durable_storage_n_shards }, {}),
+    try({ emqx_durable_storage_n_sites = local.spec.emqx.durable_storage_n_sites }, {}),
+    try({ emqx_durable_storage_replication_factor = local.spec.emqx.durable_storage_replication_factor }, {})
+  ))
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
 
