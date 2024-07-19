@@ -1,14 +1,21 @@
-- name: Ensure data directories
+- name: Ensure data directory
   become: yes
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ emqx_data_dir }}"
     state: directory
     mode: 0755
     owner: emqx
     group: emqx
-  loop:
-    - "{{ emqx_data_dir }}"
-    - "{{ emqx_durable_storage_data_dir }}"
+
+- name: Ensure data directory for durable storage
+  when: emqx_durable_storage_data_dir is defined
+  become: yes
+  ansible.builtin.file:
+    path: "{{ emqx_durable_storage_data_dir }}"
+    state: directory
+    mode: 0755
+    owner: emqx
+    group: emqx
 
 - name: Render /etc/emqx/emqx.conf
   become: yes
