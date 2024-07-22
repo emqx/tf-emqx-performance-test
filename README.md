@@ -29,7 +29,7 @@ ansible emqttb -m command -a 'systemctl start emqttb' --become
 terraform destroy
 ```
 
-Default emqx dashboard credentials are `admin:public`, grafana credentials are `admin:admin`.
+Default emqx dashboard credentials are `admin:public`, grafana credentials are `admin:grafana`.
 
 ## Operations
 
@@ -216,7 +216,7 @@ function bmb-stop() {
 
 ```
 function bm-ssh() {
-    node=$(terraform output -json | jq -r 'to_entries[] | select(.key | endswith("_nodes")) | .value.value[] | "\(.ip)\t\(.fqdn)"' | sort -k2 | fzf | cut -d $'\t' -f 1)
+    node=$(terraform output -json | jq -r 'to_entries[] | select(.key | endswith("_nodes")) | .value.value[] | "\(.ip)\t\(.fqdn)"' | sort -k2 | uniq | fzf | cut -d $'\t' -f 1)
     if [[ -n $node ]]; then
         ssh -l ubuntu -i $(terraform output -raw ssh_key_path) "$node"
     fi

@@ -66,6 +66,9 @@
     src: "{{ emqtt_bench_options.payload_template_file_path }}"
     dest: "{{ [emqtt_bench_options.home_dir, emqtt_bench_options.payload_template_file_path | basename] | path_join }}"
 
-- name: Run daemon-reload
+- name: Enable service
   become: yes
-  ansible.builtin.command: systemctl daemon-reload
+  ansible.builtin.systemd_service:
+    name: emqtt-bench
+    daemon_reload: yes
+    enabled: yes

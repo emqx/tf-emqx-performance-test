@@ -30,7 +30,7 @@ output "emqx_dashboard_credentials" {
 
 output "grafana_credentials" {
   description = "Grafana credentials"
-  value       = local.monitoring_enabled ? "admin:admin" : null
+  value       = local.monitoring_enabled ? "admin:grafana" : null
 }
 
 output "emqx_nodes" {

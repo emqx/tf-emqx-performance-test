@@ -1,0 +1,78 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      aws_access_key:
+        required: true
+      aws_secret_access_key:
+        required: true
+      ref:
+        required: false
+      scenario:
+        required: false
+        default: default
+      duration:
+        required: false
+        default: 30
+
+permissions:
+  contents: read
+
+jobs:
+  scenario:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Configure AWS Credentials
+      run: |
+        mkdir -p ~/.aws
+        cat <<EOF > ~/.aws/credentials
+        [default]
+        aws_access_key_id = ${{ github.event.inputs.aws_access_key }}
+        aws_secret_access_key = ${{ github.event.inputs.aws_secret_access_key }}
+        EOF
+    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      with:
+        ref: ${{ github.event.inputs.ref }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8 # v3.1.1
+      with:
+        terraform_wrapper: false
+    - name: Create infrastructure
+      id: create_infra
+      timeout-minutes: 30
+      run: |
+        terraform init
+        terraform apply -var spec_file=tests/${{ github.event.inputs.scenario }}.yaml -auto-approve 
+        terraform output -json | scripts/output2md.sh >> $GITHUB_STEP_SUMMARY
+        terraform output -raw bench_id >> $GITHUB_OUTPUT
+    - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      if: success()
+      with:
+        name: ssh_private_key
+        path: |
+          "~/.ssh/${{ steps.create_infra.outputs.bench_id }}.pem"
+    - name: Run benchmark
+      timeout-minutes: 60
+      run: |
+        ansible loadgen -m command -a 'systemctl start loadgen' --become
+        sleep ${{ github.event.inputs.duration }}
+        ansible loadgen -m command -a 'systemctl stop loadgen' --become
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Metrics" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        scripts/fetch-metrics.sh >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+    - name: terraform destroy
+      if: always()
+      run: |
+        terraform destroy -var spec_file=tests/${{ github.event.inputs.scenario }}.yaml -auto-approve 
+    - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      if: failure()
+      with:
+        name: terraform
+        path: |
+          .terraform
+          *.tfstate
