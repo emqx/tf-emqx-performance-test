@@ -5,17 +5,17 @@ output "bench_id" {
 
 output "emqx_dashboard_url" {
   description = "EMQX Dashboard URL"
-  value       = "${module.public_nlb.dns_name}:18083"
+  value       = "http://${module.public_nlb.dns_name}:18083"
 }
 
 output "grafana_url" {
   description = "Grafana URL"
-  value       = local.monitoring_enabled ? "${module.public_nlb.dns_name}:3000" : null
+  value       = local.monitoring_enabled ? "http://${module.public_nlb.dns_name}:3000" : null
 }
 
 output "prometheus_url" {
   description = "Prometheus URL"
-  value       = local.monitoring_enabled ? "${module.public_nlb.dns_name}:9090" : null
+  value       = local.monitoring_enabled ? "http://${module.public_nlb.dns_name}:9090" : null
 }
 
 output "locust_url" {
