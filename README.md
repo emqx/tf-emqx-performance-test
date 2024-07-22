@@ -65,10 +65,10 @@ ansible-playbook ansible/emqtt-bench.yml
 ansible-playbook ansible/emqx.yml -e '{"cache_enabled": true, "topics": ["t/a"]}'
 ```
 
-To ssh directly into instances, use terraform output to get IP addresses, and generated ssh private key in `.ssh` directory, for example:
+To ssh directly into instances, use terraform output to get IP addresses, and generated ssh private key, for example:
 
 ```bash
-ssh -l ubuntu -i ~/.ssh/foobar.pem 52.53.191.91
+ssh -l ubuntu -i ./foobar.pem 52.53.191.91
 # generic ssh one-liner to connect to the first emqx node
 ssh -l ubuntu -i $(terraform output -raw ssh_key_path) $(terraform output -json emqx_nodes | jq -r '.[0].ip')
 # open dashboard in the browser (macos only)
@@ -227,7 +227,7 @@ function bm-ssh() {
 
 ```
 function bm-urls() {
-    echo "dashboard: http://$(terraform output -raw emqx_dashboard_url)"
-    echo "grafana: http://$(terraform output -raw grafana_url)"
+    echo "dashboard: $(terraform output -raw emqx_dashboard_url)"
+    echo "grafana: $(terraform output -raw grafana_url)"
 }
 ```

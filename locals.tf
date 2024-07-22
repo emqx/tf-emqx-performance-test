@@ -4,7 +4,7 @@ locals {
   prefix            = local.bench_id
   route53_zone_name = replace("${local.prefix}.emqx.io", "/", "-")
   ssh_key_name      = local.prefix
-  ssh_key_path      = pathexpand(format("~/.ssh/%s.pem", replace(local.ssh_key_name, "/", "-")))
+  ssh_key_path      = pathexpand(format("./%s.pem", replace(local.ssh_key_name, "/", "-")))
 
   region             = try(local.spec.region, "eu-north-1")
   instance_type      = try(local.spec.instance_type, "t3.large")
