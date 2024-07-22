@@ -74,6 +74,9 @@
     dest: /etc/emqttb/env
     mode: '0644'
 
-- name: Run daemon-reload
+- name: Enable service
   become: yes
-  ansible.builtin.command: systemctl daemon-reload
+  ansible.builtin.systemd_service:
+    name: emqttb
+    daemon_reload: yes
+    enabled: yes

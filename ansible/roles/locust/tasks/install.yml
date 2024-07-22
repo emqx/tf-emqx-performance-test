@@ -62,6 +62,9 @@
   ansible.builtin.command: |
     pip install -r {{ locust_options.home_dir }}/requirements.txt
 
-- name: Run daemon-reload
+- name: Enable service
   become: yes
-  ansible.builtin.command: systemctl daemon-reload
+  ansible.builtin.systemd_service:
+    name: locust
+    daemon_reload: yes
+    enabled: yes
