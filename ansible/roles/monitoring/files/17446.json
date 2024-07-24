@@ -1,9 +1,55 @@
 {
+  "__inputs": [
+    {
+      "name": "Prometheus",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.2"
+    },
+    {
+      "type": "panel",
+      "id": "piechart",
+      "name": "Pie chart",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
         "builtIn": 1,
-        "datasource": "prometheus",
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -23,7 +69,7 @@
   "fiscalYearStartMonth": 0,
   "gnetId": 17446,
   "graphTooltip": 0,
-  "id": 7,
+  "id": null,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -41,7 +87,10 @@
       "type": "row"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -80,13 +129,15 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "auto"
       },
-      "pluginVersion": "10.2.2",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "sum(emqx_connections_count{instance=~\".*\",job=\"emqx\"})",
           "refId": "A"
         }
@@ -96,7 +147,10 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -134,13 +188,15 @@
           "fields": "/^Active Topics$/",
           "values": false
         },
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "auto"
       },
-      "pluginVersion": "10.2.2",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "max(emqx_topics_count{instance=~\".*\",job=\"emqx\"})",
           "interval": "",
@@ -154,7 +210,10 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -192,13 +251,15 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "auto"
       },
-      "pluginVersion": "10.2.2",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "sum(emqx_suboptions_count{instance=~\".*\",job=\"emqx\"})",
           "refId": "A"
         }
@@ -208,14 +269,16 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -229,7 +292,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 1,
             "pointSize": 5,
@@ -297,7 +359,10 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(emqx_connections_count{instance=~\".*\",job=\"emqx\"})",
           "legendFormat": "Connections",
@@ -309,14 +374,16 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -330,7 +397,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 1,
             "pointSize": 5,
@@ -412,7 +478,10 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "emqx_topics_count{instance=~\".*\",job=\"emqx\"}",
           "legendFormat": "Topics",
@@ -424,14 +493,16 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -445,7 +516,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 1,
             "pointSize": 5,
@@ -512,7 +582,10 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(emqx_suboptions_count{instance=~\".*\",job=\"emqx\"})",
           "legendFormat": "Subscriptions",
@@ -537,14 +610,16 @@
       "type": "row"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -558,7 +633,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineStyle": {
               "fill": "solid"
@@ -725,30 +799,39 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(rate(emqx_messages_received{instance=~\".*\",job=\"emqx\"}[20s]) or irate(emqx_messages_received{instance=~\".*\",job=\"emqx\"}[20s]))",
+          "expr": "sum(rate(emqx_messages_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_messages_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "interval": "20s",
           "legendFormat": "Messages Received",
           "range": true,
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_messages_sent{instance=~\".*\",job=\"emqx\"}[20s]) or irate(emqx_messages_sent{instance=~\".*\",job=\"emqx\"}[20s]))",
-          "hide": false,
+          "expr": "sum(rate(emqx_messages_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_messages_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
+          "hide": true,
           "interval": "20s",
           "legendFormat": "Messages Sent",
           "range": true,
           "refId": "B"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_messages_dropped{instance=~\".*\",job=\"emqx\"}[20s]) or irate(emqx_messages_dropped{instance=~\".*\",job=\"emqx\"}[20s]))",
-          "hide": false,
+          "expr": "sum(rate(emqx_messages_dropped{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_messages_dropped{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
+          "hide": true,
           "interval": "20s",
           "legendFormat": "Messages Dropped",
           "range": true,
@@ -759,7 +842,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -798,13 +884,15 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "auto"
       },
-      "pluginVersion": "10.2.2",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "sum(emqx_messages_sent{instance=~\".*\",job=\"emqx\"})",
           "refId": "A"
         }
@@ -813,7 +901,10 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -852,13 +943,15 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "auto"
       },
-      "pluginVersion": "10.2.2",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "sum(emqx_messages_received{instance=~\".*\",job=\"emqx\"})",
           "refId": "A"
         }
@@ -867,14 +960,16 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -888,7 +983,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineStyle": {
               "fill": "solid"
@@ -980,10 +1074,13 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(rate(emqx_bytes_received{instance=~\".*\",job=\"emqx\"}[20s]) or irate(emqx_bytes_received{instance=~\".*\",job=\"emqx\"}[20s]))",
+          "expr": "sum(rate(emqx_bytes_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_bytes_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "format": "time_series",
           "instant": false,
           "interval": "20s",
@@ -992,9 +1089,12 @@
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_bytes_sent{instance=~\".*\",job=\"emqx\"}[20s]) or irate(emqx_bytes_sent{instance=~\".*\",job=\"emqx\"}[20s]))",
+          "expr": "sum(rate(emqx_bytes_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_bytes_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "interval": "20s",
           "legendFormat": "Bytes sent",
@@ -1006,7 +1106,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1017,7 +1120,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#3eba9a"
+                "color": "#3eba9a",
+                "value": null
               }
             ]
           }
@@ -1045,10 +1149,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.0.5",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "sum(emqx_retained_count{instance=~\".*\",job=\"emqx\"})",
           "refId": "A"
         }
@@ -1057,7 +1164,10 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1068,7 +1178,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "light-red"
+                "color": "light-red",
+                "value": null
               }
             ]
           },
@@ -1097,10 +1208,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.0.5",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "sum(emqx_messages_dropped{instance=~\".*\",job=\"emqx\"})",
           "refId": "A"
         }
@@ -1122,7 +1236,10 @@
       "type": "row"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1165,10 +1282,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.0.5",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "count(count(node_cpu_seconds_total{instance=~\".*\"}) by (cpu))",
           "refId": "A"
         }
@@ -1177,7 +1297,10 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1221,10 +1344,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.0.5",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "node_memory_total_bytes{instance=~\".*\"}",
           "refId": "A"
         }
@@ -1233,7 +1359,10 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1277,10 +1406,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.0.5",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "node_filesystem_size_bytes{instance=~\".*\",mountpoint=\"/\",fstype!=\"rootfs\"}",
           "refId": "A"
         }
@@ -1289,7 +1421,10 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1333,10 +1468,13 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.0.5",
+      "pluginVersion": "10.0.2",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "expr": "node_time_seconds{instance=~\".*\"} - node_boot_time_seconds{instance=~\".*\"}",
           "refId": "A"
         }
@@ -1345,7 +1483,10 @@
       "type": "stat"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1429,7 +1570,10 @@
       "pluginVersion": "9.0.5",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "max(emqx_cluster_nodes_running{instance=~\".*\",job=\"emqx\"})",
           "legendFormat": "EMQX Nodes running",
@@ -1437,7 +1581,10 @@
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "max(emqx_cluster_nodes_stopped{instance=~\".*\",job=\"emqx\"})",
           "hide": false,
@@ -1450,7 +1597,10 @@
       "type": "piechart"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -1458,6 +1608,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1524,7 +1676,10 @@
       "pluginVersion": "9.0.5",
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "100 - (avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
           "legendFormat": "CPU Usage",
@@ -1536,13 +1691,18 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1604,7 +1764,10 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "exemplar": false,
           "expr": "sum(emqx_vm_used_memory{instance=~\".*\",job=\"emqx\"})",
@@ -1617,13 +1780,18 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1689,7 +1857,10 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(erlang_mnesia_memory_usage_bytes{instance=~\".*\",job=\"emqx\"})",
           "legendFormat": "Mnesia (built-in database) Memory Usage",
@@ -1701,13 +1872,18 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1772,7 +1948,10 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(erlang_vm_process_count{instance=~\".*\",job=\"emqx\"})",
           "legendFormat": "Process Count",
@@ -1780,7 +1959,10 @@
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(erlang_vm_statistics_run_queues_length_total{instance=~\".*\",job=\"emqx\"})",
           "hide": false,
@@ -1793,13 +1975,18 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1860,7 +2047,10 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(erlang_vm_threads{instance=~\".*\",job=\"emqx\"})",
           "legendFormat": "Threads",
@@ -1868,7 +2058,10 @@
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(erlang_vm_thread_pool_size{instance=~\".*\",job=\"emqx\"})",
           "hide": false,
@@ -1894,13 +2087,18 @@
       "type": "row"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2017,26 +2215,35 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_connect{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_connect{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_connect{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_connect{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "legendFormat": "Packets Connect",
           "range": true,
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_connack_sent{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_connack_sent{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_connack_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_connack_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Connack Sent",
           "range": true,
           "refId": "B"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_connack_error{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_connack_error{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_connack_error{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_connack_error{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Connack Error",
           "range": true,
@@ -2047,13 +2254,18 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2200,17 +2412,23 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_disconnect_sent{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_disconnect_sent{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_disconnect_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_disconnect_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "legendFormat": "Packets Disconnect Sent",
           "range": true,
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_disconnect_received{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_disconnect_received{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_disconnect_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_disconnect_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Disconnect Received",
           "range": true,
@@ -2221,13 +2439,18 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2385,35 +2608,47 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_publish_sent{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_publish_sent{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_publish_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_publish_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "legendFormat": "Packets Publish Sent",
           "range": true,
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_publish_received{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_publish_received{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_publish_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_publish_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Publish Received",
           "range": true,
           "refId": "B"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_publish_dropped{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_publish_dropped{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_publish_dropped{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_publish_dropped{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Publish Dropped",
           "range": true,
           "refId": "C"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_publish_error{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_publish_error{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_publish_error{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_publish_error{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Publish Error",
           "range": true,
@@ -2424,13 +2659,18 @@
       "type": "timeseries"
     },
     {
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2618,42 +2858,57 @@
       },
       "targets": [
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_subscribe_received{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_subscribe_received{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_subscribe_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_subscribe_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "legendFormat": "Packets Subscribe Received",
           "range": true,
           "refId": "A"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_suback_sent{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_suback_sent{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_suback_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_suback_sent{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Suback Sent",
           "range": true,
           "refId": "B"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_subscribe_error{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_subscribe_error{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_subscribe_error{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_subscribe_error{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Subscribe Error",
           "range": true,
           "refId": "C"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum(rate(emqx_packets_unsubscribe_received{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_unsubscribe_received{instance=~\".*\",job=\"emqx\"}[$__interval]))",
+          "expr": "sum(rate(emqx_packets_unsubscribe_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]) or irate(emqx_packets_unsubscribe_received{instance=~\".*\",job=\"emqx\"}[$__rate_interval]))",
           "hide": false,
           "legendFormat": "Packets Unsubscribe Received",
           "range": true,
           "refId": "D"
         },
         {
-          "datasource": {},
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
           "editorMode": "code",
           "expr": "sum(rate(emqx_packets_unsubscribe_error{instance=~\".*\",job=\"emqx\"}[$__interval]) or irate(emqx_packets_unsubscribe_error{instance=~\".*\",job=\"emqx\"}[$__interval]))",
           "hide": false,
@@ -2668,6 +2923,7 @@
   ],
   "refresh": "5s",
   "schemaVersion": 38,
+  "style": "dark",
   "tags": [
     "EMQX",
     "MQTT"
@@ -2676,13 +2932,13 @@
     "list": []
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "EMQX",
   "uid": "uAUUbySVze",
-  "version": 1,
+  "version": 9,
   "weekStart": ""
 }

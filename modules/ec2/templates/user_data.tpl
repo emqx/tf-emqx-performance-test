@@ -74,7 +74,25 @@ case $(uname -m) in
 esac
 install ./mqttx-cli-linux /usr/local/bin/mqttx
 
-# https://docs.emqx.com/en/enterprise/latest/performance/tune.html
+if grep -qiE 'amzn|rhel' /etc/*-release; then
+    wget -q -O gpg.key https://rpm.grafana.com/gpg.key
+    rpm --import gpg.key
+    echo -e '[grafana]\nname=grafana\nbaseurl=https://rpm.grafana.com\nrepo_gpgcheck=1\nenabled=1\ngpgcheck=1\ngpgkey=https://rpm.grafana.com/gpg.key\nsslverify=1\nsslcacert=/etc/pki/tls/certs/ca-bundle.crt' > /etc/yum.repos.d/grafana.repo
+    yum update -y
+    yum install alloy -y
+    echo 'CUSTOM_ARGS=--disable-reporting' >> /etc/sysconfig/alloy
+else
+    mkdir -p /etc/apt/keyrings/
+    wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" > /etc/apt/sources.list.d/grafana.list
+    apt-get update
+    apt-get install alloy -y
+    echo 'CUSTOM_ARGS=--disable-reporting' >> /etc/default/alloy
+fi
+
+systemctl enable --now alloy
+
+# https://docs.emqx.com/en/emqx/latest/performance/tune.html
 cat > /etc/sysctl.d/perftest.conf <<EOF
 net.core.somaxconn=32768
 net.ipv4.tcp_max_syn_backlog=16384

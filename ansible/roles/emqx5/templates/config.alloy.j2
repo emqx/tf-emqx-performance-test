@@ -1,0 +1,42 @@
+local.file_match "logs" {
+  path_targets = [
+    {__path__ = "/var/log/emqx/emqx.log.*"},
+    {__path__ = "/var/log/emqx/erlang.log.*"},
+  ]
+}
+
+loki.source.file "var_log_emqx" {
+  targets    = local.file_match.logs.targets
+  forward_to = [loki.process.add_hostname_label.receiver]
+}
+
+loki.process "add_hostname_label" {
+  forward_to = [loki.write.grafana_loki.receiver]
+  stage.static_labels {
+    values = {
+      hostname = "{{ ansible_hostname }}",
+    }
+  }
+}
+
+loki.relabel "journal" {
+  forward_to = []
+
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+}
+
+loki.source.journal "journald_emqx"  {
+  forward_to    = [loki.process.add_hostname_label.receiver]
+  relabel_rules = loki.relabel.journal.rules
+  labels        = {component = "loki.source.journal"}
+  matches       = "_SYSTEMD_UNIT=emqx.service"
+}
+
+loki.write "grafana_loki" {
+  endpoint {
+    url ="{{ loki_url }}/loki/api/v1/push"
+  }
+}

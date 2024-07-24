@@ -20,6 +20,9 @@
     - docker-compose.yaml
     - datasource.yaml
     - dashboards.yaml
+    - loki.yaml
+  tags:
+    - loki
 
 - name: Render prometheus.yml
   ansible.builtin.template:
@@ -38,7 +41,31 @@
   with_fileglob:
     - "*.json"
 
+- name: Ensure loki-data dir
+  become: yes
+  ansible.builtin.file:
+    path: "{{ home_dir }}/loki-data"
+    owner: 10001
+    group: 10001
+    state: directory
+  tags:
+    - loki
+
 - name: Create and start services
   become: yes
   community.docker.docker_compose_v2:
     project_src: "{{ home_dir }}"
+  tags:
+    - loki
+
+- name: Wait until loki returns 'ready' from /ready endpoint
+  uri:
+    url: "http://localhost:3100/ready"
+    status_code: 200
+    return_content: yes
+  register: loki_ready
+  until: loki_ready.status == 200
+  retries: 30
+  delay: 10
+  tags:
+    - loki

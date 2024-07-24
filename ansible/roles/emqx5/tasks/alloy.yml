@@ -1,0 +1,15 @@
+- name: Render /etc/alloy/config.alloy
+  become: yes
+  template:
+    src: config.alloy.j2
+    dest: /etc/alloy/config.alloy
+    mode: '0664'
+    owner: alloy
+    group: alloy
+
+- name: Restart alloy
+  become: yes
+  ansible.builtin.systemd:
+    name: alloy
+    state: restarted
+    enabled: yes

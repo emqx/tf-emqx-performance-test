@@ -1,7 +1,6 @@
-version: "3.8"
 services:
   emqx-exporter:
-    image: emqx/emqx-exporter:0.2.3
+    image: emqx/emqx-exporter:0.2.9
     container_name: emqx-exporter
     network_mode: host
     volumes:

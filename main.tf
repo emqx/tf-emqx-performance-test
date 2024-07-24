@@ -330,7 +330,8 @@ resource "local_file" "ansible_emqx_group_vars" {
     try({ emqx_durable_storage_data_dir = local.spec.emqx.durable_storage_data_dir }, {}),
     try({ emqx_durable_storage_n_shards = local.spec.emqx.durable_storage_n_shards }, {}),
     try({ emqx_durable_storage_n_sites = local.spec.emqx.durable_storage_n_sites }, {}),
-    try({ emqx_durable_storage_replication_factor = local.spec.emqx.durable_storage_replication_factor }, {})
+    try({ emqx_durable_storage_replication_factor = local.spec.emqx.durable_storage_replication_factor }, {}),
+    local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {}
   ))
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
@@ -349,7 +350,7 @@ resource "local_file" "ansible_loadgen_group_vars" {
   content = yamlencode(merge({
     loadgen_targets = local.loadgen_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn]
     },
-    local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091" } : {},
+    local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "${module.monitoring[0].fqdn}:3100" } : {},
     try({ emqttb_options = local.spec.loadgens.emqttb_options }, {}),
     try({ emqtt_bench_options = local.spec.loadgens.emqtt_bench_options }, {}),
     try({ locust_options = local.spec.loadgens.locust_options }, {})

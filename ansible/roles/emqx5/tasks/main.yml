@@ -5,3 +5,5 @@
 - include_tasks: configure.yml
 - include_tasks: service.yml
 - include_tasks: scripts.yml
+- include_tasks: alloy.yml
+  when: loki_url is defined and loki_url != ''

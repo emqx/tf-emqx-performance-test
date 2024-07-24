@@ -20,7 +20,7 @@
       "panels": [
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -92,8 +92,8 @@
           "span": "2",
           "targets": [
             {
-              "datasource": {},
-              "expr": "emqx_cluster_status{cluster=\"perftest\"}",
+              "datasource": null,
+              "expr": "emqx_cluster_status{cluster=\"$cluster\"}",
               "format": "stat",
               "hide": false,
               "instant": false,
@@ -101,7 +101,7 @@
               "intervalFactor": 1,
               "legendFormat": "Status",
               "metric": "",
-              "query": "emqx_cluster_status{cluster=\"perftest\"}",
+              "query": "emqx_cluster_status{cluster=\"$cluster\"}",
               "refId": "status",
               "step": 10,
               "target": ""
@@ -116,7 +116,281 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": {},
+          "color": {
+            "mode": "thresholds"
+          },
+          "columns": [],
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #days_remaining"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Days Remaining"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "red",
+                          "value": null
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 30
+                        },
+                        {
+                          "color": "green",
+                          "value": 90
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "gradient",
+                      "type": "color-background"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #expiry_at"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "dateTimeAsLocal"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #max_conns"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Max Conns"
+                  }
+                ]
+              }
+            ]
+          },
+          "fontSize": "100%",
+          "gridPos": {
+            "h": 3,
+            "w": 6,
+            "x": 0,
+            "y": 4
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 2,
+          "interval": null,
+          "links": [],
+          "mappings": [],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "options": {
+            "showHeader": true
+          },
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 2,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum(emqx_license_remaining_days{cluster=\"$cluster\"})",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Days Remaining",
+              "metric": "",
+              "query": "sum(emqx_license_remaining_days{cluster=\"$cluster\"})",
+              "refId": "days_remaining",
+              "step": 10,
+              "target": ""
+            },
+            {
+              "datasource": null,
+              "expr": "sum(emqx_license_expiration_time{cluster=\"$cluster\"})",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Expiry At",
+              "metric": "",
+              "query": "sum(emqx_license_expiration_time{cluster=\"$cluster\"})",
+              "refId": "expiry_at",
+              "step": 10,
+              "target": ""
+            },
+            {
+              "datasource": null,
+              "expr": "sum(emqx_license_max_client_limit{cluster=\"$cluster\"})",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Max Conns",
+              "metric": "",
+              "query": "sum(emqx_license_max_client_limit{cluster=\"$cluster\"})",
+              "refId": "max_conns",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "License",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {}
+            },
+            {
+              "id": "filterFieldsByName",
+              "options": {
+                "include": {
+                  "names": [
+                    "emqx_license_remaining_days{cluster=\"$cluster\"}",
+                    "Value #days_remaining",
+                    "Value #expiry_at",
+                    "Value #max_conns"
+                  ]
+                }
+              }
+            }
+          ],
+          "transparent": false,
+          "type": "table"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "calcs": [
+                "mean"
+              ],
+              "decimals": null,
+              "limit": null,
+              "links": [],
+              "mappings": [],
+              "max": null,
+              "min": 0,
+              "override": {},
+              "thresholds": {
+                "mode": "percentage",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 80
+                  },
+                  {
+                    "color": "red",
+                    "value": 90
+                  }
+                ]
+              },
+              "title": null,
+              "unit": "none",
+              "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 6,
+            "y": 1
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 3,
+          "interval": null,
+          "links": [],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 2,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum(emqx_connections_count{instance=~\".*\", cluster=\"$cluster\"})",
+              "format": "gauge",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Connections",
+              "metric": "",
+              "query": "sum(emqx_connections_count{instance=~\".*\", cluster=\"$cluster\"})",
+              "refId": "connections",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Active Connections",
+          "transformations": [],
+          "transparent": false,
+          "type": "gauge"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -177,7 +451,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 2,
+          "id": 4,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -198,8 +472,8 @@
           "span": 2,
           "targets": [
             {
-              "datasource": {},
-              "expr": "emqx_messages_input_period_second{cluster=\"perftest\"}",
+              "datasource": null,
+              "expr": "emqx_messages_input_period_second{cluster=\"$cluster\"}",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -207,14 +481,14 @@
               "intervalFactor": 1,
               "legendFormat": "Msg Input Period Second",
               "metric": "",
-              "query": "emqx_messages_input_period_second{cluster=\"perftest\"}",
+              "query": "emqx_messages_input_period_second{cluster=\"$cluster\"}",
               "refId": "msg_input_period_second",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": {},
-              "expr": "emqx_messages_output_period_second{cluster=\"perftest\"}",
+              "datasource": null,
+              "expr": "emqx_messages_output_period_second{cluster=\"$cluster\"}",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -222,7 +496,7 @@
               "intervalFactor": 1,
               "legendFormat": "Msg Output Period Second",
               "metric": "",
-              "query": "emqx_messages_output_period_second{cluster=\"perftest\"}",
+              "query": "emqx_messages_output_period_second{cluster=\"$cluster\"}",
               "refId": "msg_output_period_second",
               "step": 10,
               "target": ""
@@ -237,7 +511,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -329,7 +603,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 3,
+          "id": 5,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -350,8 +624,8 @@
           "span": 2,
           "targets": [
             {
-              "datasource": {},
-              "expr": "max(emqx_cluster_nodes_running{instance=~\".*\", cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "max(emqx_cluster_nodes_running{instance=~\".*\", cluster=\"$cluster\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -359,14 +633,14 @@
               "intervalFactor": 1,
               "legendFormat": "Running",
               "metric": "",
-              "query": "max(emqx_cluster_nodes_running{instance=~\".*\", cluster=\"perftest\"})",
+              "query": "max(emqx_cluster_nodes_running{instance=~\".*\", cluster=\"$cluster\"})",
               "refId": "running",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": {},
-              "expr": "max(emqx_cluster_nodes_stopped{instance=~\".*\", cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "max(emqx_cluster_nodes_stopped{instance=~\".*\", cluster=\"$cluster\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -374,7 +648,7 @@
               "intervalFactor": 1,
               "legendFormat": "Stopped",
               "metric": "",
-              "query": "max(emqx_cluster_nodes_stopped{instance=~\".*\", cluster=\"perftest\"})",
+              "query": "max(emqx_cluster_nodes_stopped{instance=~\".*\", cluster=\"$cluster\"})",
               "refId": "stopped",
               "step": 10,
               "target": ""
@@ -389,7 +663,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -450,7 +724,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 4,
+          "id": 6,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -471,8 +745,8 @@
           "span": 2,
           "targets": [
             {
-              "datasource": {},
-              "expr": "sum(emqx_scrape_collector_duration_seconds{cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "sum(emqx_scrape_collector_duration_seconds{cluster=\"$cluster\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -480,7 +754,7 @@
               "intervalFactor": 1,
               "legendFormat": "Latency",
               "metric": "",
-              "query": "sum(emqx_scrape_collector_duration_seconds{cluster=\"perftest\"})",
+              "query": "sum(emqx_scrape_collector_duration_seconds{cluster=\"$cluster\"})",
               "refId": "latency",
               "step": 10,
               "target": ""
@@ -495,7 +769,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -560,245 +834,6 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 5,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "maxPerRow": null,
-          "minSpan": null,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi"
-            }
-          },
-          "repeat": null,
-          "repeatDirection": null,
-          "span": 3,
-          "targets": [
-            {
-              "datasource": {},
-              "expr": "sum(emqx_license_max_client_limit{cluster=\"perftest\"})",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "Max",
-              "metric": "",
-              "query": "sum(emqx_license_max_client_limit{cluster=\"perftest\"})",
-              "refId": "max",
-              "step": 10,
-              "target": ""
-            },
-            {
-              "datasource": {},
-              "expr": "sum(emqx_sessions_count{instance=~\".*\", cluster=\"perftest\"})",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "Count",
-              "metric": "",
-              "query": "sum(emqx_sessions_count{instance=~\".*\", cluster=\"perftest\"})",
-              "refId": "count",
-              "step": 10,
-              "target": ""
-            },
-            {
-              "datasource": {},
-              "expr": "sum by(instance) (emqx_sessions_count{cluster=\"perftest\"})",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "{{ instance }}",
-              "metric": "",
-              "query": "sum by(instance) (emqx_sessions_count{cluster=\"perftest\"})",
-              "refId": "{{_instance_}}",
-              "step": 10,
-              "target": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Sessions",
-          "transformations": [],
-          "transparent": false,
-          "type": "timeseries"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "prometheus",
-          "description": null,
-          "editable": true,
-          "error": false,
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "log": 2,
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {},
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": []
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 14
-          },
-          "height": null,
-          "hideTimeOverride": false,
-          "id": 6,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "maxPerRow": null,
-          "minSpan": null,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi"
-            }
-          },
-          "repeat": null,
-          "repeatDirection": null,
-          "span": 3,
-          "targets": [
-            {
-              "datasource": {},
-              "expr": "sum(emqx_live_connections_count{instance=~\".*\", cluster=\"perftest\"})",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "Total",
-              "metric": "",
-              "query": "sum(emqx_live_connections_count{instance=~\".*\", cluster=\"perftest\"})",
-              "refId": "total",
-              "step": 10,
-              "target": ""
-            },
-            {
-              "datasource": {},
-              "expr": "sum by(instance) (emqx_connections_count{cluster=\"perftest\"})",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "{{ instance }}",
-              "metric": "",
-              "query": "sum by(instance) (emqx_connections_count{cluster=\"perftest\"})",
-              "refId": "{{_instance_}}",
-              "step": 10,
-              "target": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Connections",
-          "transformations": [],
-          "transparent": false,
-          "type": "timeseries"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "prometheus",
-          "description": null,
-          "editable": true,
-          "error": false,
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "log": 2,
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {},
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": []
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 14
-          },
-          "height": null,
-          "hideTimeOverride": false,
           "id": 7,
           "interval": null,
           "links": [],
@@ -820,23 +855,38 @@
           "span": 3,
           "targets": [
             {
-              "datasource": {},
-              "expr": "sum(emqx_suboptions_count{instance=~\".*\", cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "sum(emqx_license_max_client_limit{cluster=\"$cluster\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Subscriptions",
+              "legendFormat": "Max",
               "metric": "",
-              "query": "sum(emqx_suboptions_count{instance=~\".*\", cluster=\"perftest\"})",
-              "refId": "subscriptions",
+              "query": "sum(emqx_license_max_client_limit{cluster=\"$cluster\"})",
+              "refId": "max",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": {},
-              "expr": "sum by(instance) (emqx_suboptions_count{cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "sum(emqx_sessions_count{instance=~\".*\", cluster=\"$cluster\"})",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Count",
+              "metric": "",
+              "query": "sum(emqx_sessions_count{instance=~\".*\", cluster=\"$cluster\"})",
+              "refId": "count",
+              "step": 10,
+              "target": ""
+            },
+            {
+              "datasource": null,
+              "expr": "sum by(instance) (emqx_sessions_count{cluster=\"$cluster\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -844,7 +894,7 @@
               "intervalFactor": 1,
               "legendFormat": "{{ instance }}",
               "metric": "",
-              "query": "sum by(instance) (emqx_suboptions_count{cluster=\"perftest\"})",
+              "query": "sum by(instance) (emqx_sessions_count{cluster=\"$cluster\"})",
               "refId": "{{_instance_}}",
               "step": 10,
               "target": ""
@@ -852,14 +902,14 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Subscriptions",
+          "title": "Sessions",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -913,13 +963,7 @@
           "hideTimeOverride": false,
           "id": 8,
           "interval": null,
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Show Rule Engine Last 5m Exec Rate Node Detail",
-              "url": "/d/rule-engine-rate/Rule Engine Last 5m Exec Rate?orgId=1&refresh=10s&var-node=All&viewPanel=2"
-            }
-          ],
+          "links": [],
           "maxDataPoints": 100,
           "maxPerRow": null,
           "minSpan": null,
@@ -938,31 +982,46 @@
           "span": 3,
           "targets": [
             {
-              "datasource": {},
-              "expr": "sum by(rule) (emqx_rule_exec_last5m_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum(emqx_live_connections_count{instance=~\".*\", cluster=\"$cluster\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{ rule }}",
+              "legendFormat": "Total",
               "metric": "",
-              "query": "sum by(rule) (emqx_rule_exec_last5m_rate{cluster=\"perftest\", node=~\".*\"})",
-              "refId": "{{_rule_}}",
+              "query": "sum(emqx_live_connections_count{instance=~\".*\", cluster=\"$cluster\"})",
+              "refId": "total",
+              "step": 10,
+              "target": ""
+            },
+            {
+              "datasource": null,
+              "expr": "sum by(instance) (emqx_connections_count{cluster=\"$cluster\"})",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{ instance }}",
+              "metric": "",
+              "query": "sum by(instance) (emqx_connections_count{cluster=\"$cluster\"})",
+              "refId": "{{_instance_}}",
               "step": 10,
               "target": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Rule Engine Last 5m Exec Rate",
+          "title": "Connections",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -1000,16 +1059,7 @@
               "mappings": [],
               "thresholds": {
                 "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
+                "steps": []
               },
               "unit": "short"
             },
@@ -1044,46 +1094,149 @@
           "span": 3,
           "targets": [
             {
-              "datasource": {},
-              "expr": "sum(irate(emqx_packets_connect{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval])) - sum(irate(emqx_packets_connack_error {instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(emqx_suboptions_count{instance=~\".*\", cluster=\"$cluster\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Auth Success",
+              "legendFormat": "Subscriptions",
               "metric": "",
-              "query": "sum(irate(emqx_packets_connect{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval])) - sum(irate(emqx_packets_connack_error {instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "refId": "auth_success",
+              "query": "sum(emqx_suboptions_count{instance=~\".*\", cluster=\"$cluster\"})",
+              "refId": "subscriptions",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": {},
-              "expr": "sum(irate(emqx_packets_connack_auth_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum by(instance) (emqx_suboptions_count{cluster=\"$cluster\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Auth Failure",
+              "legendFormat": "{{ instance }}",
               "metric": "",
-              "query": "sum(irate(emqx_packets_connack_auth_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "refId": "auth_failure",
+              "query": "sum by(instance) (emqx_suboptions_count{cluster=\"$cluster\"})",
+              "refId": "{{_instance_}}",
               "step": 10,
               "target": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Connect Auth",
+          "title": "Subscriptions",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "log": 2,
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {},
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 6,
+            "x": 0,
+            "y": 14
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 10,
+          "interval": null,
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Show Rule Engine Last 5m Exec Rate Node Detail",
+              "url": "/d/rule-engine-rate/Rule Engine Last 5m Exec Rate?orgId=1&refresh=10s&var-node=All&viewPanel=2"
+            }
+          ],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 3,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum by(rule) (emqx_rule_exec_last5m_rate{cluster=\"$cluster\", node=~\".*\"})",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{ rule }}",
+              "metric": "",
+              "query": "sum by(rule) (emqx_rule_exec_last5m_rate{cluster=\"$cluster\", node=~\".*\"})",
+              "refId": "{{_rule_}}",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Rule Engine Last 5m Exec Rate",
+          "transformations": [],
+          "transparent": false,
+          "type": "timeseries"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -1131,118 +1284,6 @@
                     "value": 80
                   }
                 ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 14
-          },
-          "height": null,
-          "hideTimeOverride": false,
-          "id": 10,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "maxPerRow": null,
-          "minSpan": null,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi"
-            }
-          },
-          "repeat": null,
-          "repeatDirection": null,
-          "span": 3,
-          "targets": [
-            {
-              "datasource": {},
-              "expr": "sum(irate(emqx_packets_publish_auth_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "Publish ACL Failure",
-              "metric": "",
-              "query": "sum(irate(emqx_packets_publish_auth_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "refId": "publish_acl_failure",
-              "step": 10,
-              "target": ""
-            },
-            {
-              "datasource": {},
-              "expr": "sum(irate(emqx_packets_subscribe_auth_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "Sub ACL Failure ",
-              "metric": "",
-              "query": "sum(irate(emqx_packets_subscribe_auth_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "refId": "sub_acl_failure",
-              "step": 10,
-              "target": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "ACL Auth",
-          "transformations": [],
-          "transparent": false,
-          "type": "timeseries"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "prometheus",
-          "description": null,
-          "editable": true,
-          "error": false,
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "log": 2,
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {},
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": []
               },
               "unit": "short"
             },
@@ -1277,31 +1318,167 @@
           "span": 3,
           "targets": [
             {
-              "datasource": {},
-              "expr": "sum by(type, name) (emqx_rule_bridge_queuing{cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_connect{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval])) - sum(irate(emqx_packets_connack_error {instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{type}}-{{name}}",
+              "legendFormat": "Auth Success",
               "metric": "",
-              "query": "sum by(type, name) (emqx_rule_bridge_queuing{cluster=\"perftest\"})",
-              "refId": "{{type}}-{{name}}",
+              "query": "sum(irate(emqx_packets_connect{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval])) - sum(irate(emqx_packets_connack_error {instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "refId": "auth_success",
+              "step": 10,
+              "target": ""
+            },
+            {
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_connack_auth_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Auth Failure",
+              "metric": "",
+              "query": "sum(irate(emqx_packets_connack_auth_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "refId": "auth_failure",
               "step": 10,
               "target": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Data Bridge Queuing",
+          "title": "Connect Auth",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "log": 2,
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {},
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 6,
+            "x": 0,
+            "y": 14
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 12,
+          "interval": null,
+          "links": [],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 3,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_publish_auth_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Publish ACL Failure",
+              "metric": "",
+              "query": "sum(irate(emqx_packets_publish_auth_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "refId": "publish_acl_failure",
+              "step": 10,
+              "target": ""
+            },
+            {
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_subscribe_auth_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Sub ACL Failure ",
+              "metric": "",
+              "query": "sum(irate(emqx_packets_subscribe_auth_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "refId": "sub_acl_failure",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "ACL Auth",
+          "transformations": [],
+          "transparent": false,
+          "type": "timeseries"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -1353,7 +1530,104 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 12,
+          "id": 13,
+          "interval": null,
+          "links": [],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 3,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum by(type, name) (emqx_rule_bridge_queuing{cluster=\"$cluster\"})",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{type}}-{{name}}",
+              "metric": "",
+              "query": "sum by(type, name) (emqx_rule_bridge_queuing{cluster=\"$cluster\"})",
+              "refId": "{{type}}-{{name}}",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Data Bridge Queuing",
+          "transformations": [],
+          "transparent": false,
+          "type": "timeseries"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "log": 2,
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {},
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 6,
+            "x": 0,
+            "y": 14
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 14,
           "interval": null,
           "links": [
             {
@@ -1380,8 +1654,8 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (emqx_rule_exec_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(rule) (emqx_rule_exec_rate{cluster=\"$cluster\", node=~\".*\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -1389,7 +1663,7 @@
               "intervalFactor": 1,
               "legendFormat": "{{ rule }}",
               "metric": "",
-              "query": "sum by(rule) (emqx_rule_exec_rate{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(rule) (emqx_rule_exec_rate{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "{{_rule_}}",
               "step": 10,
               "target": ""
@@ -1404,231 +1678,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
-          "description": null,
-          "editable": true,
-          "error": false,
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "log": 2,
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {},
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 14
-          },
-          "height": null,
-          "hideTimeOverride": false,
-          "id": 13,
-          "interval": null,
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Show Rule Engine Exec Success Node Detail",
-              "url": "/d/rule-engine-count/Rule Engine Exec Success?orgId=1&refresh=10s&var-node=All&viewPanel=2"
-            }
-          ],
-          "maxDataPoints": 100,
-          "maxPerRow": null,
-          "minSpan": null,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi"
-            }
-          },
-          "repeat": null,
-          "repeatDirection": null,
-          "span": 3,
-          "targets": [
-            {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (irate(emqx_rule_exec_pass_count{cluster=\"perftest\", node=~\".*\"}[$__rate_interval]))",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "{{rule}}",
-              "metric": "",
-              "query": "sum by(rule) (irate(emqx_rule_exec_pass_count{cluster=\"perftest\", node=~\".*\"}[$__rate_interval]))",
-              "refId": "{{rule}}",
-              "step": 10,
-              "target": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Rule Engine Exec Success",
-          "transformations": [],
-          "transparent": false,
-          "type": "timeseries"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "prometheus",
-          "description": null,
-          "editable": true,
-          "error": false,
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "log": 2,
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {},
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 14
-          },
-          "height": null,
-          "hideTimeOverride": false,
-          "id": 14,
-          "interval": null,
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Show Rule Engine Exec Failure Node Detail",
-              "url": "/d/rule-engine-count/Rule Engine Exec Failure?orgId=1&refresh=10s&var-node=All&viewPanel=3"
-            }
-          ],
-          "maxDataPoints": 100,
-          "maxPerRow": null,
-          "minSpan": null,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi"
-            }
-          },
-          "repeat": null,
-          "repeatDirection": null,
-          "span": 3,
-          "targets": [
-            {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (irate(emqx_rule_exec_failure_count{cluster=\"perftest\", node=~\".*\"}[$__rate_interval]))",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "{{rule}}",
-              "metric": "",
-              "query": "sum by(rule) (irate(emqx_rule_exec_failure_count{cluster=\"perftest\", node=~\".*\"}[$__rate_interval]))",
-              "refId": "{{rule}}",
-              "step": 10,
-              "target": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Rule Engine Exec Failure",
-          "transformations": [],
-          "transparent": false,
-          "type": "timeseries"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -1694,8 +1744,8 @@
           "links": [
             {
               "targetBlank": true,
-              "title": "Show Rule Engine Action Success Node Detail",
-              "url": "/d/rule-engine-count/Rule Engine Action Success?orgId=1&refresh=10s&var-node=All&viewPanel=4"
+              "title": "Show Rule Engine Exec Success Node Detail",
+              "url": "/d/rule-engine-count/Rule Engine Exec Success?orgId=1&refresh=10s&var-node=All&viewPanel=2"
             }
           ],
           "maxDataPoints": 100,
@@ -1716,8 +1766,8 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (irate(emqx_rule_action_success{cluster=\"perftest\", node=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum by(rule) (irate(emqx_rule_exec_pass_count{cluster=\"$cluster\", node=~\".*\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -1725,7 +1775,7 @@
               "intervalFactor": 1,
               "legendFormat": "{{rule}}",
               "metric": "",
-              "query": "sum by(rule) (irate(emqx_rule_action_success{cluster=\"perftest\", node=~\".*\"}[$__rate_interval]))",
+              "query": "sum by(rule) (irate(emqx_rule_exec_pass_count{cluster=\"$cluster\", node=~\".*\"}[$__rate_interval]))",
               "refId": "{{rule}}",
               "step": 10,
               "target": ""
@@ -1733,14 +1783,14 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Rule Engine Action Success",
+          "title": "Rule Engine Exec Success",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -1806,8 +1856,8 @@
           "links": [
             {
               "targetBlank": true,
-              "title": "Show Rule Engine Action Failure Node Detail",
-              "url": "/d/rule-engine-count/Rule Engine Action Failure?orgId=1&refresh=10s&var-node=All&viewPanel=5"
+              "title": "Show Rule Engine Exec Failure Node Detail",
+              "url": "/d/rule-engine-count/Rule Engine Exec Exception?orgId=1&refresh=10s&var-node=All&viewPanel=3"
             }
           ],
           "maxDataPoints": 100,
@@ -1828,8 +1878,8 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (irate(emqx_rule_action_failed{cluster=\"perftest\", node=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum by(rule) (irate(emqx_rule_exec_exception_count{cluster=\"$cluster\", node=~\".*\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -1837,7 +1887,7 @@
               "intervalFactor": 1,
               "legendFormat": "{{rule}}",
               "metric": "",
-              "query": "sum by(rule) (irate(emqx_rule_action_failed{cluster=\"perftest\", node=~\".*\"}[$__rate_interval]))",
+              "query": "sum by(rule) (irate(emqx_rule_exec_exception_count{cluster=\"$cluster\", node=~\".*\"}[$__rate_interval]))",
               "refId": "{{rule}}",
               "step": 10,
               "target": ""
@@ -1845,24 +1895,14 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Rule Engine Action Failure",
+          "title": "Rule Engine Exec Exception",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
-        }
-      ],
-      "repeat": null,
-      "showTitle": true,
-      "title": "General"
-    },
-    {
-      "collapse": true,
-      "editable": true,
-      "height": "250px",
-      "panels": [
+        },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -1928,13 +1968,8 @@
           "links": [
             {
               "targetBlank": true,
-              "title": "Show Client Connection Events Node Detail",
-              "url": "/d/client-events/Client Connection Events?orgId=1&refresh=10s&var-node=All&viewPanel=1"
-            },
-            {
-              "targetBlank": true,
-              "title": "Show Client Disconnection Events Node Detail",
-              "url": "/d/client-events/Client Disconnection Events?orgId=1&refresh=10s&var-node=All&viewPanel=2"
+              "title": "Show Rule Engine Action Success Node Detail",
+              "url": "/d/rule-engine-count/Rule Engine Action Success?orgId=1&refresh=10s&var-node=All&viewPanel=4"
             }
           ],
           "maxDataPoints": 100,
@@ -1942,14 +1977,8 @@
           "minSpan": null,
           "options": {
             "legend": {
-              "calcs": [
-                "lastNotNull",
-                "min",
-                "max",
-                "mean",
-                "sum"
-              ],
-              "displayMode": "table",
+              "calcs": [],
+              "displayMode": "list",
               "placement": "bottom"
             },
             "tooltip": {
@@ -1961,46 +1990,31 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_client_connected{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum by(rule) (irate(emqx_rule_action_success{cluster=\"$cluster\", node=~\".*\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Connections",
+              "legendFormat": "{{rule}}",
               "metric": "",
-              "query": "sum(irate(emqx_client_connected{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "refId": "connections",
-              "step": 10,
-              "target": ""
-            },
-            {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_client_disconnected{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "Disconnections",
-              "metric": "",
-              "query": "sum(irate(emqx_client_disconnected{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
-              "refId": "disconnections",
+              "query": "sum by(rule) (irate(emqx_rule_action_success{cluster=\"$cluster\", node=~\".*\"}[$__rate_interval]))",
+              "refId": "{{rule}}",
               "step": 10,
               "target": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Client Connection Events",
+          "title": "Rule Engine Action Success",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -2066,13 +2080,8 @@
           "links": [
             {
               "targetBlank": true,
-              "title": "Show Client Sub Events Node Detail",
-              "url": "/d/client-events/Client Sub Events?orgId=1&refresh=10s&var-node=All&viewPanel=3"
-            },
-            {
-              "targetBlank": true,
-              "title": "Show Client Unsub Events Node Detail",
-              "url": "/d/client-events/Client Unsub Events?orgId=1&refresh=10s&var-node=All&viewPanel=4"
+              "title": "Show Rule Engine Action Failure Node Detail",
+              "url": "/d/rule-engine-count/Rule Engine Action Failure?orgId=1&refresh=10s&var-node=All&viewPanel=5"
             }
           ],
           "maxDataPoints": 100,
@@ -2080,14 +2089,8 @@
           "minSpan": null,
           "options": {
             "legend": {
-              "calcs": [
-                "lastNotNull",
-                "min",
-                "max",
-                "mean",
-                "sum"
-              ],
-              "displayMode": "table",
+              "calcs": [],
+              "displayMode": "list",
               "placement": "bottom"
             },
             "tooltip": {
@@ -2099,46 +2102,41 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_client_subscribe{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum by(rule) (irate(emqx_rule_action_failed{cluster=\"$cluster\", node=~\".*\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Subscribes",
+              "legendFormat": "{{rule}}",
               "metric": "",
-              "query": "sum(irate(emqx_client_subscribe{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
-              "refId": "subscribes",
-              "step": 10,
-              "target": ""
-            },
-            {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_client_unsubscribe{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "Unsubscribes",
-              "metric": "",
-              "query": "sum(irate(emqx_client_unsubscribe{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
-              "refId": "unsubscribes",
+              "query": "sum by(rule) (irate(emqx_rule_action_failed{cluster=\"$cluster\", node=~\".*\"}[$__rate_interval]))",
+              "refId": "{{rule}}",
               "step": 10,
               "target": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Client Sub Events",
+          "title": "Rule Engine Action Failure",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
-        },
+        }
+      ],
+      "repeat": null,
+      "showTitle": true,
+      "title": "General"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -2204,8 +2202,13 @@
           "links": [
             {
               "targetBlank": true,
-              "title": "Show Client Connect Auth Events Node Detail",
-              "url": "/d/client-events/Client Connect Auth Events?orgId=1&refresh=10s&var-node=All&viewPanel=5"
+              "title": "Show Client Connection Events Node Detail",
+              "url": "/d/client-events/Client Connection Events?orgId=1&refresh=10s&var-node=All&viewPanel=1"
+            },
+            {
+              "targetBlank": true,
+              "title": "Show Client Disconnection Events Node Detail",
+              "url": "/d/client-events/Client Disconnection Events?orgId=1&refresh=10s&var-node=All&viewPanel=2"
             }
           ],
           "maxDataPoints": 100,
@@ -2232,46 +2235,46 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_client_authenticate{cluster=\"perftest\",instance=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_client_connected{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Connect Auth",
+              "legendFormat": "Connections",
               "metric": "",
-              "query": "sum(irate(emqx_client_authenticate{cluster=\"perftest\",instance=~\".*\"}[$__rate_interval]))",
-              "refId": "connect_auth",
+              "query": "sum(irate(emqx_client_connected{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "refId": "connections",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_client_auth_anonymous{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_client_disconnected{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
               "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "Anonymous Auth",
+              "legendFormat": "Disconnections",
               "metric": "",
-              "query": "sum(irate(emqx_client_auth_anonymous{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
-              "refId": "anonymous_auth",
+              "query": "sum(irate(emqx_client_disconnected{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
+              "refId": "disconnections",
               "step": 10,
               "target": ""
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Client Connect Auth Events",
+          "title": "Client Connection Events",
           "transformations": [],
           "transparent": false,
           "type": "timeseries"
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -2337,6 +2340,277 @@
           "links": [
             {
               "targetBlank": true,
+              "title": "Show Client Sub Events Node Detail",
+              "url": "/d/client-events/Client Sub Events?orgId=1&refresh=10s&var-node=All&viewPanel=3"
+            },
+            {
+              "targetBlank": true,
+              "title": "Show Client Unsub Events Node Detail",
+              "url": "/d/client-events/Client Unsub Events?orgId=1&refresh=10s&var-node=All&viewPanel=4"
+            }
+          ],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "min",
+                "max",
+                "mean",
+                "sum"
+              ],
+              "displayMode": "table",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 3,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum(irate(emqx_client_subscribe{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Subscribes",
+              "metric": "",
+              "query": "sum(irate(emqx_client_subscribe{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
+              "refId": "subscribes",
+              "step": 10,
+              "target": ""
+            },
+            {
+              "datasource": null,
+              "expr": "sum(irate(emqx_client_unsubscribe{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Unsubscribes",
+              "metric": "",
+              "query": "sum(irate(emqx_client_unsubscribe{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
+              "refId": "unsubscribes",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Client Sub Events",
+          "transformations": [],
+          "transparent": false,
+          "type": "timeseries"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "log": 2,
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {},
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 6,
+            "x": 0,
+            "y": 14
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 21,
+          "interval": null,
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Show Client Connect Auth Events Node Detail",
+              "url": "/d/client-events/Client Connect Auth Events?orgId=1&refresh=10s&var-node=All&viewPanel=5"
+            }
+          ],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "min",
+                "max",
+                "mean",
+                "sum"
+              ],
+              "displayMode": "table",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 3,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum(irate(emqx_client_authenticate{cluster=\"$cluster\",instance=~\".*\"}[$__rate_interval]))",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Connect Auth",
+              "metric": "",
+              "query": "sum(irate(emqx_client_authenticate{cluster=\"$cluster\",instance=~\".*\"}[$__rate_interval]))",
+              "refId": "connect_auth",
+              "step": 10,
+              "target": ""
+            },
+            {
+              "datasource": null,
+              "expr": "sum(irate(emqx_client_auth_anonymous{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "Anonymous Auth",
+              "metric": "",
+              "query": "sum(irate(emqx_client_auth_anonymous{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
+              "refId": "anonymous_auth",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Client Connect Auth Events",
+          "transformations": [],
+          "transparent": false,
+          "type": "timeseries"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "log": 2,
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {},
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 6,
+            "x": 0,
+            "y": 14
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 22,
+          "interval": null,
+          "links": [
+            {
+              "targetBlank": true,
               "title": "Show Client Acl Auth Events V5 Node Detail",
               "url": "/d/client-events/Client ACL Auth Events?orgId=1&refresh=10s&var-node=All&viewPanel=7"
             }
@@ -2365,8 +2639,8 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_client_authorize{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_client_authorize{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2374,7 +2648,7 @@
               "intervalFactor": 1,
               "legendFormat": "ACL Auth",
               "metric": "",
-              "query": "sum(irate(emqx_client_authorize{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_client_authorize{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
               "refId": "acl_auth",
               "step": 10,
               "target": ""
@@ -2399,7 +2673,7 @@
       "panels": [
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -2506,7 +2780,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 21,
+          "id": 23,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -2533,8 +2807,8 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_connect{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_connect{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2542,14 +2816,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Connect",
               "metric": "",
-              "query": "sum(irate(emqx_packets_connect{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_connect{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_connect",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_connack_sent{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_connack_sent{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2557,14 +2831,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Connack Sent",
               "metric": "",
-              "query": "sum(irate(emqx_packets_connack_sent{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_connack_sent{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_connack_sent",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_connack_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_connack_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2572,7 +2846,7 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Connack Error",
               "metric": "",
-              "query": "sum(irate(emqx_packets_connack_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_connack_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_connack_error",
               "step": 10,
               "target": ""
@@ -2587,7 +2861,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -2679,7 +2953,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 22,
+          "id": 24,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -2706,8 +2980,8 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_disconnect_sent{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_disconnect_sent{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2715,14 +2989,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Disconnect Sent",
               "metric": "",
-              "query": "sum(irate(emqx_packets_disconnect_sent{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_disconnect_sent{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_disconnect_sent",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_disconnect_received{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_disconnect_received{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2730,7 +3004,7 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Disconnect Received",
               "metric": "",
-              "query": "sum(irate(emqx_packets_disconnect_received{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_disconnect_received{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_disconnect_received",
               "step": 10,
               "target": ""
@@ -2745,7 +3019,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -2867,7 +3141,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 23,
+          "id": 25,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -2894,8 +3168,8 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_publish_sent{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_publish_sent{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2903,14 +3177,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Publish Sent",
               "metric": "",
-              "query": "sum(irate(emqx_packets_publish_sent{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_publish_sent{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_publish_sent",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_publish_received{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_publish_received{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2918,14 +3192,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Publish Received",
               "metric": "",
-              "query": "sum(irate(emqx_packets_publish_received{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_publish_received{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_publish_received",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_publish_dropped{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_publish_dropped{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2933,14 +3207,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Publish Dropped",
               "metric": "",
-              "query": "sum(irate(emqx_packets_publish_dropped{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_publish_dropped{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_publish_dropped",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_publish_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_publish_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -2948,7 +3222,7 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Publish Error",
               "metric": "",
-              "query": "sum(irate(emqx_packets_publish_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_publish_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_publish_error",
               "step": 10,
               "target": ""
@@ -2963,7 +3237,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -3100,7 +3374,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 24,
+          "id": 26,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -3127,8 +3401,8 @@
           "span": 3,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_subscribe_received{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_subscribe_received{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3136,14 +3410,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Subscribe Received",
               "metric": "",
-              "query": "sum(irate(emqx_packets_subscribe_received{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_subscribe_received{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_subscribe_received",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_suback_sent{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_suback_sent{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3151,14 +3425,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Suback Sent",
               "metric": "",
-              "query": "sum(irate(emqx_packets_suback_sent{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_suback_sent{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_suback_sent",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_subscribe_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_subscribe_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3166,14 +3440,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Subscribe Error",
               "metric": "",
-              "query": "sum(irate(emqx_packets_subscribe_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_subscribe_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_subscribe_error",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_unsubscribe_received{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_unsubscribe_received{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3181,14 +3455,14 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Unsubscribe Received",
               "metric": "",
-              "query": "sum(irate(emqx_packets_unsubscribe_received{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_unsubscribe_received{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_unsubscribe_received",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_packets_unsubscribe_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_packets_unsubscribe_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3196,7 +3470,7 @@
               "intervalFactor": 1,
               "legendFormat": "Packets Unsubscribe Error",
               "metric": "",
-              "query": "sum(irate(emqx_packets_unsubscribe_error{instance=~\".*\", cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_packets_unsubscribe_error{instance=~\".*\", cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "packets_unsubscribe_error",
               "step": 10,
               "target": ""
@@ -3221,7 +3495,7 @@
       "panels": [
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -3319,7 +3593,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 25,
+          "id": 27,
           "interval": null,
           "links": [
             {
@@ -3362,8 +3636,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_messages_received{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_messages_received{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3371,14 +3645,14 @@
               "intervalFactor": 1,
               "legendFormat": "Messages Received",
               "metric": "",
-              "query": "sum(irate(emqx_messages_received{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_messages_received{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "messages_received",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_messages_sent{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_messages_sent{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3386,14 +3660,14 @@
               "intervalFactor": 1,
               "legendFormat": "Messages Sent",
               "metric": "",
-              "query": "sum(irate(emqx_messages_sent{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_messages_sent{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "messages_sent",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_messages_dropped{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_messages_dropped{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3401,7 +3675,7 @@
               "intervalFactor": 1,
               "legendFormat": "Messages Dropped",
               "metric": "",
-              "query": "sum(irate(emqx_messages_dropped{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_messages_dropped{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "messages_dropped",
               "step": 10,
               "target": ""
@@ -3416,7 +3690,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -3477,7 +3751,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 26,
+          "id": 28,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -3498,8 +3772,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_messages_qos0_received{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_messages_qos0_received{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3507,14 +3781,14 @@
               "intervalFactor": 1,
               "legendFormat": "QOS0",
               "metric": "",
-              "query": "sum(irate(emqx_messages_qos0_received{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_messages_qos0_received{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
               "refId": "qos0",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_messages_qos1_received{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_messages_qos1_received{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3522,14 +3796,14 @@
               "intervalFactor": 1,
               "legendFormat": "QOS1",
               "metric": "",
-              "query": "sum(irate(emqx_messages_qos1_received{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_messages_qos1_received{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
               "refId": "qos1",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_messages_qos2_received{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_messages_qos2_received{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3537,7 +3811,7 @@
               "intervalFactor": 1,
               "legendFormat": "QOS2",
               "metric": "",
-              "query": "sum(irate(emqx_messages_qos2_received{cluster=\"perftest\", instance=~\".*\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_messages_qos2_received{cluster=\"$cluster\", instance=~\".*\"}[$__rate_interval]))",
               "refId": "qos2",
               "step": 10,
               "target": ""
@@ -3552,7 +3826,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -3604,7 +3878,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 27,
+          "id": 29,
           "interval": null,
           "links": [],
           "maxDataPoints": 100,
@@ -3631,8 +3905,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_bytes_received{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_bytes_received{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3640,14 +3914,14 @@
               "intervalFactor": 1,
               "legendFormat": "Bytes received",
               "metric": "",
-              "query": "sum(irate(emqx_bytes_received{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_bytes_received{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "bytes_received",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum(irate(emqx_bytes_sent{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "datasource": null,
+              "expr": "sum(irate(emqx_bytes_sent{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -3655,7 +3929,7 @@
               "intervalFactor": 1,
               "legendFormat": "Bytes sent",
               "metric": "",
-              "query": "sum(irate(emqx_bytes_sent{instance=~\".*\",cluster=\"perftest\"}[$__rate_interval]))",
+              "query": "sum(irate(emqx_bytes_sent{instance=~\".*\",cluster=\"$cluster\"}[$__rate_interval]))",
               "refId": "bytes_sent",
               "step": 10,
               "target": ""
@@ -3684,7 +3958,7 @@
             "mode": "thresholds"
           },
           "columns": [],
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -3806,7 +4080,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 28,
+          "id": 30,
           "interval": null,
           "links": [],
           "mappings": [],
@@ -3821,8 +4095,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(type, name) (emqx_rule_bridge_status{cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "sum by(type, name) (emqx_rule_bridge_status{cluster=\"$cluster\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -3830,14 +4104,14 @@
               "intervalFactor": 1,
               "legendFormat": "Status",
               "metric": "",
-              "query": "sum by(type, name) (emqx_rule_bridge_status{cluster=\"perftest\"})",
+              "query": "sum by(type, name) (emqx_rule_bridge_status{cluster=\"$cluster\"})",
               "refId": "status",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(type, name) (emqx_rule_bridge_queuing{cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "sum by(type, name) (emqx_rule_bridge_queuing{cluster=\"$cluster\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -3845,7 +4119,7 @@
               "intervalFactor": 1,
               "legendFormat": "Queuing",
               "metric": "",
-              "query": "sum by(type, name) (emqx_rule_bridge_queuing{cluster=\"perftest\"})",
+              "query": "sum by(type, name) (emqx_rule_bridge_queuing{cluster=\"$cluster\"})",
               "refId": "queuing",
               "step": 10,
               "target": ""
@@ -3882,7 +4156,7 @@
             "mode": "thresholds"
           },
           "columns": [],
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -4084,7 +4358,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 29,
+          "id": 31,
           "interval": null,
           "links": [],
           "mappings": [],
@@ -4099,8 +4373,8 @@
           "span": 8,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (emqx_rule_topic_hit_count{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(rule) (emqx_rule_topic_hit_count{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4108,14 +4382,14 @@
               "intervalFactor": 1,
               "legendFormat": "Topic Hit Cout",
               "metric": "",
-              "query": "sum by(rule) (emqx_rule_topic_hit_count{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(rule) (emqx_rule_topic_hit_count{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "topic_hit_cout",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "max by(rule) (emqx_rule_exec_max_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "max by(rule) (emqx_rule_exec_max_rate{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4123,14 +4397,14 @@
               "intervalFactor": 1,
               "legendFormat": "Max Rate",
               "metric": "",
-              "query": "max by(rule) (emqx_rule_exec_max_rate{cluster=\"perftest\", node=~\".*\"})",
+              "query": "max by(rule) (emqx_rule_exec_max_rate{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "max_rate",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (emqx_rule_exec_pass_count{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(rule) (emqx_rule_exec_pass_count{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4138,14 +4412,14 @@
               "intervalFactor": 1,
               "legendFormat": "Exec Pass",
               "metric": "",
-              "query": "sum by(rule) (emqx_rule_exec_pass_count{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(rule) (emqx_rule_exec_pass_count{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "exec_pass",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (irate(emqx_rule_exec_exception_count{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "datasource": null,
+              "expr": "sum by(rule) (irate(emqx_rule_exec_exception_count{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4153,14 +4427,14 @@
               "intervalFactor": 1,
               "legendFormat": "Exec Exception last 15m",
               "metric": "",
-              "query": "sum by(rule) (irate(emqx_rule_exec_exception_count{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "query": "sum by(rule) (irate(emqx_rule_exec_exception_count{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "refId": "exec_exception_last_15m",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (irate(emqx_rule_exec_no_result_count{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "datasource": null,
+              "expr": "sum by(rule) (irate(emqx_rule_exec_no_result_count{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4168,14 +4442,14 @@
               "intervalFactor": 1,
               "legendFormat": "Exec No Result 15m",
               "metric": "",
-              "query": "sum by(rule) (irate(emqx_rule_exec_no_result_count{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "query": "sum by(rule) (irate(emqx_rule_exec_no_result_count{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "refId": "exec_no_result_15m",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (emqx_rule_action_total{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(rule) (emqx_rule_action_total{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4183,14 +4457,14 @@
               "intervalFactor": 1,
               "legendFormat": "Call Action Total",
               "metric": "",
-              "query": "sum by(rule) (emqx_rule_action_total{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(rule) (emqx_rule_action_total{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "call_action_total",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (emqx_rule_action_success{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(rule) (emqx_rule_action_success{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4198,14 +4472,14 @@
               "intervalFactor": 1,
               "legendFormat": "Action Success",
               "metric": "",
-              "query": "sum by(rule) (emqx_rule_action_success{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(rule) (emqx_rule_action_success{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "action_success",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(rule) (increase(emqx_rule_action_failed{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "datasource": null,
+              "expr": "sum by(rule) (increase(emqx_rule_action_failed{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4213,7 +4487,7 @@
               "intervalFactor": 1,
               "legendFormat": "Action Failed last 15m",
               "metric": "",
-              "query": "sum by(rule) (increase(emqx_rule_action_failed{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "query": "sum by(rule) (increase(emqx_rule_action_failed{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "refId": "action_failed_last_15m",
               "step": 10,
               "target": ""
@@ -4265,7 +4539,7 @@
             "mode": "thresholds"
           },
           "columns": [],
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -4423,7 +4697,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 30,
+          "id": 32,
           "interval": null,
           "links": [
             {
@@ -4444,8 +4718,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authentication_resource_status{cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authentication_resource_status{cluster=\"$cluster\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4453,14 +4727,14 @@
               "intervalFactor": 1,
               "legendFormat": "Status",
               "metric": "",
-              "query": "sum by(resource) (emqx_authentication_resource_status{cluster=\"perftest\"})",
+              "query": "sum by(resource) (emqx_authentication_resource_status{cluster=\"$cluster\"})",
               "refId": "status",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "max by(resource) (emqx_authentication_exec_max_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "max by(resource) (emqx_authentication_exec_max_rate{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4468,14 +4742,14 @@
               "intervalFactor": 1,
               "legendFormat": "Max Rate",
               "metric": "",
-              "query": "max by(resource) (emqx_authentication_exec_max_rate{cluster=\"perftest\", node=~\".*\"})",
+              "query": "max by(resource) (emqx_authentication_exec_max_rate{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "max_rate",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authentication_total{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authentication_total{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4483,14 +4757,14 @@
               "intervalFactor": 1,
               "legendFormat": "Total",
               "metric": "",
-              "query": "sum by(resource) (emqx_authentication_total{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(resource) (emqx_authentication_total{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "total",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authentication_allow_count{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authentication_allow_count{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4498,14 +4772,14 @@
               "intervalFactor": 1,
               "legendFormat": "Allow",
               "metric": "",
-              "query": "sum by(resource) (emqx_authentication_allow_count{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(resource) (emqx_authentication_allow_count{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "allow",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (irate(emqx_authentication_deny_count{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "datasource": null,
+              "expr": "sum by(resource) (irate(emqx_authentication_deny_count{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4513,7 +4787,7 @@
               "intervalFactor": 1,
               "legendFormat": "Deny last 15m",
               "metric": "",
-              "query": "sum by(resource) (irate(emqx_authentication_deny_count{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "query": "sum by(resource) (irate(emqx_authentication_deny_count{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "refId": "deny_last_15m",
               "step": 10,
               "target": ""
@@ -4548,7 +4822,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -4600,7 +4874,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 31,
+          "id": 33,
           "interval": null,
           "links": [
             {
@@ -4627,8 +4901,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authentication_exec_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authentication_exec_rate{cluster=\"$cluster\", node=~\".*\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -4636,7 +4910,7 @@
               "intervalFactor": 1,
               "legendFormat": "{{resource}}",
               "metric": "",
-              "query": "sum by(resource) (emqx_authentication_exec_rate{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(resource) (emqx_authentication_exec_rate{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "{{resource}}",
               "step": 10,
               "target": ""
@@ -4651,7 +4925,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -4703,7 +4977,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 32,
+          "id": 34,
           "interval": null,
           "links": [
             {
@@ -4730,8 +5004,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authentication_exec_last5m_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authentication_exec_last5m_rate{cluster=\"$cluster\", node=~\".*\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -4739,7 +5013,7 @@
               "intervalFactor": 1,
               "legendFormat": "{{resource}}",
               "metric": "",
-              "query": "sum by(resource) (emqx_authentication_exec_last5m_rate{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(resource) (emqx_authentication_exec_last5m_rate{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "{{resource}}",
               "step": 10,
               "target": ""
@@ -4768,7 +5042,7 @@
             "mode": "thresholds"
           },
           "columns": [],
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -4926,7 +5200,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 33,
+          "id": 35,
           "interval": null,
           "links": [
             {
@@ -4947,8 +5221,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authorization_resource_status{cluster=\"perftest\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authorization_resource_status{cluster=\"$cluster\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4956,14 +5230,14 @@
               "intervalFactor": 1,
               "legendFormat": "Status",
               "metric": "",
-              "query": "sum by(resource) (emqx_authorization_resource_status{cluster=\"perftest\"})",
+              "query": "sum by(resource) (emqx_authorization_resource_status{cluster=\"$cluster\"})",
               "refId": "status",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "max by(resource) (emqx_authorization_exec_max_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "max by(resource) (emqx_authorization_exec_max_rate{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4971,14 +5245,14 @@
               "intervalFactor": 1,
               "legendFormat": "Max Rate",
               "metric": "",
-              "query": "max by(resource) (emqx_authorization_exec_max_rate{cluster=\"perftest\", node=~\".*\"})",
+              "query": "max by(resource) (emqx_authorization_exec_max_rate{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "max_rate",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authorization_total{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authorization_total{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -4986,14 +5260,14 @@
               "intervalFactor": 1,
               "legendFormat": "Total",
               "metric": "",
-              "query": "sum by(resource) (emqx_authorization_total{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(resource) (emqx_authorization_total{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "total",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authorization_allow_count{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authorization_allow_count{cluster=\"$cluster\", node=~\".*\"})",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -5001,14 +5275,14 @@
               "intervalFactor": 1,
               "legendFormat": "Allow",
               "metric": "",
-              "query": "sum by(resource) (emqx_authorization_allow_count{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(resource) (emqx_authorization_allow_count{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "allow",
               "step": 10,
               "target": ""
             },
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (irate(emqx_authorization_deny_count{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "datasource": null,
+              "expr": "sum by(resource) (irate(emqx_authorization_deny_count{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -5016,7 +5290,7 @@
               "intervalFactor": 1,
               "legendFormat": "Deny last 15m",
               "metric": "",
-              "query": "sum by(resource) (irate(emqx_authorization_deny_count{cluster=\"perftest\", node=~\".*\"}[15m]))",
+              "query": "sum by(resource) (irate(emqx_authorization_deny_count{cluster=\"$cluster\", node=~\".*\"}[15m]))",
               "refId": "deny_last_15m",
               "step": 10,
               "target": ""
@@ -5051,7 +5325,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -5103,7 +5377,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 34,
+          "id": 36,
           "interval": null,
           "links": [
             {
@@ -5130,8 +5404,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authorization_exec_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authorization_exec_rate{cluster=\"$cluster\", node=~\".*\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -5139,7 +5413,7 @@
               "intervalFactor": 1,
               "legendFormat": "{{resource}}",
               "metric": "",
-              "query": "sum by(resource) (emqx_authorization_exec_rate{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(resource) (emqx_authorization_exec_rate{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "{{resource}}",
               "step": 10,
               "target": ""
@@ -5154,7 +5428,7 @@
         },
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -5206,7 +5480,7 @@
           },
           "height": null,
           "hideTimeOverride": false,
-          "id": 35,
+          "id": 37,
           "interval": null,
           "links": [
             {
@@ -5233,8 +5507,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(resource) (emqx_authorization_exec_last5m_rate{cluster=\"perftest\", node=~\".*\"})",
+              "datasource": null,
+              "expr": "sum by(resource) (emqx_authorization_exec_last5m_rate{cluster=\"$cluster\", node=~\".*\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -5242,7 +5516,7 @@
               "intervalFactor": 1,
               "legendFormat": "{{resource}}",
               "metric": "",
-              "query": "sum by(resource) (emqx_authorization_exec_last5m_rate{cluster=\"perftest\", node=~\".*\"})",
+              "query": "sum by(resource) (emqx_authorization_exec_last5m_rate{cluster=\"$cluster\", node=~\".*\"})",
               "refId": "{{resource}}",
               "step": 10,
               "target": ""
@@ -5267,219 +5541,7 @@
       "panels": [
         {
           "cacheTimeout": null,
-          "datasource": "prometheus",
-          "description": null,
-          "editable": true,
-          "error": false,
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "log": 2,
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {},
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 14
-          },
-          "height": null,
-          "hideTimeOverride": false,
-          "id": 36,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "maxPerRow": null,
-          "minSpan": null,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi"
-            }
-          },
-          "repeat": null,
-          "repeatDirection": null,
-          "span": 4,
-          "targets": [
-            {
-              "datasource": "prometheus",
-              "expr": "sum by(node) (emqx_cluster_cpu_load{cluster=\"perftest\", load=\"load1\"})",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "{{node}}",
-              "metric": "",
-              "query": "sum by(node) (emqx_cluster_cpu_load{cluster=\"perftest\", load=\"load1\"})",
-              "refId": "{{node}}",
-              "step": 10,
-              "target": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Last 1m CPU Load",
-          "transformations": [],
-          "transparent": false,
-          "type": "timeseries"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "prometheus",
-          "description": null,
-          "editable": true,
-          "error": false,
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "log": 2,
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {},
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 14
-          },
-          "height": null,
-          "hideTimeOverride": false,
-          "id": 37,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "maxPerRow": null,
-          "minSpan": null,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi"
-            }
-          },
-          "repeat": null,
-          "repeatDirection": null,
-          "span": 4,
-          "targets": [
-            {
-              "datasource": "prometheus",
-              "expr": "sum by(node) (emqx_cluster_cpu_load{cluster=\"perftest\", load=\"load5\"})",
-              "format": "timeseries",
-              "hide": false,
-              "instant": false,
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "{{node}}",
-              "metric": "",
-              "query": "sum by(node) (emqx_cluster_cpu_load{cluster=\"perftest\", load=\"load5\"})",
-              "refId": "{{node}}",
-              "step": 10,
-              "target": ""
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Last 5m CPU Load",
-          "transformations": [],
-          "transparent": false,
-          "type": "timeseries"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "prometheus",
+          "datasource": "${datasource}",
           "description": null,
           "editable": true,
           "error": false,
@@ -5561,8 +5623,8 @@
           "span": 4,
           "targets": [
             {
-              "datasource": "prometheus",
-              "expr": "sum by(node) (emqx_cluster_cpu_load{cluster=\"perftest\", load=\"load15\"})",
+              "datasource": null,
+              "expr": "sum by(node) (emqx_cluster_cpu_load{cluster=\"$cluster\", load=\"load1\"})",
               "format": "timeseries",
               "hide": false,
               "instant": false,
@@ -5570,7 +5632,219 @@
               "intervalFactor": 1,
               "legendFormat": "{{node}}",
               "metric": "",
-              "query": "sum by(node) (emqx_cluster_cpu_load{cluster=\"perftest\", load=\"load15\"})",
+              "query": "sum by(node) (emqx_cluster_cpu_load{cluster=\"$cluster\", load=\"load1\"})",
+              "refId": "{{node}}",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Last 1m CPU Load",
+          "transformations": [],
+          "transparent": false,
+          "type": "timeseries"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "log": 2,
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {},
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 6,
+            "x": 0,
+            "y": 14
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 39,
+          "interval": null,
+          "links": [],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 4,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum by(node) (emqx_cluster_cpu_load{cluster=\"$cluster\", load=\"load5\"})",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{node}}",
+              "metric": "",
+              "query": "sum by(node) (emqx_cluster_cpu_load{cluster=\"$cluster\", load=\"load5\"})",
+              "refId": "{{node}}",
+              "step": 10,
+              "target": ""
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Last 5m CPU Load",
+          "transformations": [],
+          "transparent": false,
+          "type": "timeseries"
+        },
+        {
+          "cacheTimeout": null,
+          "datasource": "${datasource}",
+          "description": null,
+          "editable": true,
+          "error": false,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "log": 2,
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {},
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 6,
+            "x": 0,
+            "y": 14
+          },
+          "height": null,
+          "hideTimeOverride": false,
+          "id": 40,
+          "interval": null,
+          "links": [],
+          "maxDataPoints": 100,
+          "maxPerRow": null,
+          "minSpan": null,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "repeat": null,
+          "repeatDirection": null,
+          "span": 4,
+          "targets": [
+            {
+              "datasource": null,
+              "expr": "sum by(node) (emqx_cluster_cpu_load{cluster=\"$cluster\", load=\"load15\"})",
+              "format": "timeseries",
+              "hide": false,
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{node}}",
+              "metric": "",
+              "query": "sum by(node) (emqx_cluster_cpu_load{cluster=\"$cluster\", load=\"load15\"})",
               "refId": "{{node}}",
               "step": 10,
               "target": ""
@@ -5609,7 +5883,7 @@
           "text": null,
           "value": null
         },
-        "datasource": "prometheus",
+        "datasource": null,
         "hide": 0,
         "includeAll": false,
         "label": "datasource",
@@ -5636,7 +5910,7 @@
           "text": null,
           "value": null
         },
-        "datasource": "$datasource",
+        "datasource": "${datasource}",
         "hide": 0,
         "includeAll": false,
         "label": null,
@@ -5655,7 +5929,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
