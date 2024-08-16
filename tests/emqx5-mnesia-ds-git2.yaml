@@ -1,0 +1,31 @@
+id: mnesia-ds-git2
+region: sa-east-1
+use_spot_instances: true
+emqx:
+  instance_type: m7i.large
+  edition: emqx
+  dashboard_default_password: admin
+  data_dir: /data/emqx
+  durable_sessions_enabled: true
+  extra_volumes:
+    - mount_point: /data
+      volume_size: 30
+      volume_type: gp3
+      mount_options: defaults,noatime,discard
+  scripts:
+    - scripts/create-mqtt-user.sh
+  install_source: git
+  # git_repo: git@github.com:thalesmg/emqx.git
+  git_repo: https://github.com/thalesmg/emqx.git
+  git_ref: 20240815-r58-session-ds-data-mnesia
+  cluster_discovery_strategy: singleton
+  durable_storage_backend: builtin_local
+  nodes:
+    - role: core
+      instance_count: 1
+
+loadgens:
+  instance_type: m7i.large
+  nodes:
+    - type: emqttb
+      scenario: '--motto "persistent_session" --log-level info @persistent_session --max-stuck-time 20s --pubtime 5s --pubinterval 19us -P 10 -S 10 --cycles 5 @g --inflight 1000 --username perftest --password perftest'
