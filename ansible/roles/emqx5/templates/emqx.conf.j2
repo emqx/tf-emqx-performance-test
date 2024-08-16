@@ -118,7 +118,7 @@ durable_sessions {
 }
 durable_storage {
   messages {
-    backend = {{ emqx_durable_storage_backend | default('builtin') }}
+    backend = {{ emqx_durable_storage_backend | default('builtin_raft') }}
 {% if emqx_durable_storage_data_dir is defined %}
     data_dir = "{{ emqx_durable_storage_data_dir }}"
 {% endif -%}
