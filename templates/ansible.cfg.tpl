@@ -15,7 +15,7 @@ pipelining=True
 control_path_dir={{ ANSIBLE_HOME ~ "/pc" }}
 
 [ssh_connection]
-ssh_args = -o ControlMaster=auto -o ControlPersist=60s
+ssh_args = -o ControlMaster=auto -o ControlPersist=60s -o ForwardAgent=yes
 retries = 10
 pipelining = True
 
