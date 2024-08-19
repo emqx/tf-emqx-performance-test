@@ -292,7 +292,7 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_git_repo                        = try(local.spec.emqx.git_repo, "https://github.com/emqx/emqx.git")
     emqx_git_ref                         = try(local.spec.emqx.git_ref, "master")
     emqx_edition                         = try(local.spec.emqx.edition, "emqx")
-    emqx_builder_image                   = try(local.spec.emqx.builder_image, "")
+    emqx_builder_image                   = try(local.spec.emqx.builder_image, "ghcr.io/emqx/emqx-builder/5.3-9:1.15.7-26.2.5-3-ubuntu22.04")
     emqx_cluster_discovery_strategy      = try(local.spec.emqx.cluster_discovery_strategy, "static")
     emqx_cluster_static_seeds            = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds)
     emqx_cluster_dns_name                = local.emqx_cluster_dns_name
