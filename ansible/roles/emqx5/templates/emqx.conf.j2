@@ -39,11 +39,11 @@ listeners {
 
 log {
   console_handler {
-    level = "{{ emqx_log_console_level | default('notice') }}"
+    level = "{{ emqx_log_console_handler_level | default('info') }}"
   }
   file_handlers {
     default {
-      level = "{{ emqx_log_file_level | default('notice') }}"
+      level = "{{ emqx_log_file_handlers_default_level | default('info') }}"
     }
   }
 }
