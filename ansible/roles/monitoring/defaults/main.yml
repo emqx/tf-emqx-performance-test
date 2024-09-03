@@ -33,7 +33,7 @@ prometheus_scrape_configs:
     scrape_interval: 1s
     static_configs:
       - targets:
-        - "localhost:9091"
+        - "pushgateway:9091"
   - job_name: 'emqx'
     metrics_path: "{{ (emqx_version_family == 5) | ternary('/api/v5/prometheus/stats', '/api/v4/emqx_prometheus') }}"
     scrape_interval: 1s
