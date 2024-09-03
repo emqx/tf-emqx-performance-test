@@ -37,7 +37,7 @@ locals {
   emqx_remote_user      = try(local.spec.emqx.remote_user, local.remote_user)
   emqx_root_volume_size = try(local.spec.emqx.root_volume_size, 20)
   emqx_version          = try(local.spec.emqx.version, "latest")
-  emqx_version_family = try(local.spec.emqx.version_family, local.emqx_version == "latest" ? 5 :
+  emqx_version_family   = try(local.spec.emqx.version_family, local.emqx_version == "latest" ? 5 :
   parseint(substr(local.emqx_version, 0, 1), 10))
   emqx_http_api_port              = local.emqx_version_family == 4 ? 8081 : 18083
   emqx_api_version                = format("v%d", local.emqx_version_family)

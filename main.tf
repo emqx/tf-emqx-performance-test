@@ -232,30 +232,45 @@ resource "aws_lb_target_group_attachment" "prometheus" {
   provider         = aws.default
 }
 
-resource "local_file" "ansible_cfg" {
-  content = templatefile("${path.module}/templates/ansible.cfg.tpl",
-    {
-      private_key_file = local.ssh_key_path
-      remote_user      = local.remote_user
-  })
-  filename = "${path.module}/ansible.cfg"
-}
-
 resource "local_file" "ansible_inventory" {
-  content = templatefile("${path.module}/templates/inventory.ini.tpl",
-    {
-      emqx_version_family = local.emqx_version_family
-      emqx_nodes          = [for node in module.emqx : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.emqx_remote_user}"]
-      loadgen_nodes       = [for node in module.loadgen : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.loadgen_remote_user}"]
-      emqttb_nodes        = [for node in module.loadgen : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.loadgen_remote_user}" if node.type == "emqttb"]
-      emqtt_bench_nodes   = [for node in module.loadgen : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.loadgen_remote_user}" if node.type == "emqtt_bench"]
-      locust_nodes        = [for node in module.loadgen : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.loadgen_remote_user}" if node.type == "locust"]
-      integration_nodes   = [for node in module.integration : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.integration_remote_user}"]
-      http_nodes          = [for node in module.integration : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.integration_remote_user}" if node.type == "http"]
-      rabbitmq_nodes      = [for node in module.integration : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.integration_remote_user}" if node.type == "rabbitmq"]
-      monitoring_nodes    = [for node in module.monitoring : "${node.fqdn} ansible_host=${node.public_ips[0]} private_ip=${node.private_ips[0]} ansible_user=${local.monitoring_remote_user}"]
+  content = yamlencode({
+    all = {
+      hosts = merge(
+        { for node in module.emqx : node.fqdn => {
+          ansible_host = node.public_ips[0]
+          private_ip = node.private_ips[0]
+          ansible_user = local.emqx_remote_user
+        }},
+        {for node in module.loadgen : node.fqdn => {
+          ansible_host = node.public_ips[0]
+          private_ip = node.private_ips[0]
+          ansible_user = local.loadgen_remote_user
+        }},
+        {for node in module.integration : node.fqdn => {
+          ansible_host = node.public_ips[0]
+          private_ip = node.private_ips[0]
+          ansible_user = local.integration_remote_user
+        }},
+        {for node in module.monitoring : node.fqdn => {
+          ansible_host = node.public_ips[0]
+          private_ip = node.private_ips[0]
+          ansible_user = local.monitoring_remote_user
+        }}
+        )
+    }
+    emqx4 = { hosts = { for node in module.emqx : node.fqdn => {} if local.emqx_version_family == 4 } }
+    emqx5 = { hosts = { for node in module.emqx : node.fqdn => {} if local.emqx_version_family == 5 } }
+    emqx = { children = { emqx4 = {}, emqx5 = {} } }
+    emqttb = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "emqttb" } }
+    emqtt_bench = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "emqtt_bench" } }
+    locust = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "locust" } }
+    loadgen = { children = { emqttb = {}, emqtt_bench = {}, locust = {} } }
+    http = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "http" } }
+    rabbitmq = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "rabbitmq" } }
+    integration = { children = { http = {}, rabbitmq = {} } }
+    monitoring = { hosts = { for node in module.monitoring : node.fqdn => {} } }
   })
-  filename = "${path.module}/ansible/inventory.ini"
+  filename = "${path.module}/ansible/inventory.yml"
 }
 
 locals {
@@ -270,6 +285,7 @@ resource "local_file" "ansible_common_group_vars" {
     emqx_dashboard_url               = "http://${module.public_nlb.dns_name}:18083"
     node_exporter_enabled_collectors = var.node_exporter_enabled_collectors
     deb_architecture_map             = var.deb_architecture_map
+    ansible_ssh_private_key_file     = local.ssh_key_path
     emqx_script_env = {
       EMQX_ADMIN_PASSWORD = local.emqx_dashboard_default_password
       HTTP_SERVER_URL     = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
@@ -380,8 +396,7 @@ resource "local_file" "ansible_locust_group_vars" {
 
 resource "terraform_data" "ansible_init" {
   depends_on = [
-    local_file.ansible_inventory,
-    local_file.ansible_cfg
+    local_file.ansible_inventory
   ]
 
   provisioner "local-exec" {
