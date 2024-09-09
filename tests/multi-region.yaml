@@ -1,9 +1,8 @@
 id: multi
 region: eu-north-1
-use_spot_instances: false
+use_spot_instances: true
 emqx:
-  instance_type: t4g.large
-  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  instance_type: t3.large
   dashboard_default_password: admin
   nodes:
     - role: core
