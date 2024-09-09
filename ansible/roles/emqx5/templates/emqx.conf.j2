@@ -26,11 +26,13 @@ cluster {
 listeners {
   ssl {
     default {
+      bind = ":::8883"
       acceptors = 32
     }
   }
   tcp {
     default {
+      bind = ":::1883"
       acceptors = 64
       max_connections = infinity
     }

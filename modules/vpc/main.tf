@@ -13,22 +13,29 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_vpc" "vpc" {
-  cidr_block           = var.cidr
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-  provider             = aws
+  cidr_block                       = var.cidr
+  assign_generated_ipv6_cidr_block = true
+  enable_dns_hostnames             = true
+  enable_dns_support               = true
+  provider                         = aws
   tags = {
     Name = var.prefix
   }
 }
 
+data "aws_vpc" "vpc" {
+  id = aws_vpc.vpc.id
+}
+
 resource "aws_subnet" "public" {
-  count                   = length(data.aws_availability_zones.available.names)
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = cidrsubnet(var.cidr, 8, count.index)
-  map_public_ip_on_launch = true
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
-  provider                = aws
+  count                           = length(data.aws_availability_zones.available.names)
+  vpc_id                          = aws_vpc.vpc.id
+  cidr_block                      = cidrsubnet(var.cidr, 8, count.index)
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.vpc.ipv6_cidr_block, 8, count.index)
+  map_public_ip_on_launch         = true
+  assign_ipv6_address_on_creation = true
+  availability_zone               = data.aws_availability_zones.available.names[count.index]
+  provider                        = aws
   tags = {
     Name = var.prefix
   }
