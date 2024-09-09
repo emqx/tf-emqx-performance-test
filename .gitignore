@@ -9,3 +9,4 @@ terraform.tfstate*
 /ansible.cfg
 /ansible/inventory.ini
 __pycache__/
+/ansible/inventory.yml

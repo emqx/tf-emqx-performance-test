@@ -56,6 +56,14 @@ prometheus_scrape_configs:
         labels:
           cluster: perftest
           from: exporter
+  - job_name: 'emqtt-bench'
+    metrics_path: /metrics
+    scrape_interval: 5s
+    static_configs:
+      - targets: "{{ groups['emqtt_bench'] | map('regex_replace', '$', ':9090') | list }}"
+        labels:
+          cluster: perftest
+          from: emqtt-bench
   - job_name: "node"
     static_configs:
       - targets: "{{ groups['all'] | map('regex_replace', '$', ':9100') | list }}"
