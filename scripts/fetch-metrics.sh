@@ -35,10 +35,6 @@ emqx_messages_input_period_second=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query
 emqx_messages_output_period_second=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqx_messages_output_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
 emqx_cluster_cpu_load=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum%20by(node)%20(emqx_cluster_cpu_load{load=\"load15\"})" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
 
-# emqtt-bench metrics
-e2e_latency_ms_95th=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.95%2C%20sum(rate(e2e_latency_bucket%5B$PERIOD%5D))%20by%20(le))" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
-e2e_latency_ms_99th=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.99%2C%20sum(rate(e2e_latency_bucket%5B$PERIOD%5D))%20by%20(le))" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
-
 cat << EOF > summary.txt
 $node_data
 
@@ -72,10 +68,53 @@ messages_acked:                $emqx_messages_acked
 messages_publish:              $emqx_messages_publish
 messages_delivered:            $emqx_messages_delivered
 messages_dropped:              $emqx_messages_dropped
+EOF
+
+if [ $(terraform output -json emqtt_bench_nodes | jq length) -ge 1 ]; then
+    e2e_latency_ms_95th=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.95%2C%20sum(rate(e2e_latency_bucket%5B$PERIOD%5D))%20by%20(le))" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+    e2e_latency_ms_99th=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.99%2C%20sum(rate(e2e_latency_bucket%5B$PERIOD%5D))%20by%20(le))" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+    cat << EOF >> summary.txt
 
 Loadgen metrics
 e2e_latency_ms_95th:           $e2e_latency_ms_95th
 e2e_latency_ms_99th:           $e2e_latency_ms_99th
 EOF
+fi
+
+if [ $(terraform output -json emqttb_nodes | jq length) -ge 1 ]; then
+    e2e_latency_persistent_session_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_e2e_latency{group='persistent_session/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+    e2e_latency_pubsub_fwd_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_e2e_latency{group='pubsub_fwd/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+    e2e_latency_sub_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_e2e_latency{group='sub/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+    e2e_latency_sub_flapping_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_e2e_latency{group='sub_flapping/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+
+    published_messages_persistent_session_pub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_published_messages{group='persistent_session/pub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+    published_messages_pub_pub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_published_messages{group='pub/pub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+    published_messages_pubsub_fwd=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_published_messages{group='pubsub_fwd'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+    published_messages_pubsub_fwd_pub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_published_messages{group='pubsub_fwd/pub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+    received_messages_persistent_session_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_received_messages{group='persistent_session/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+    received_messages_sub_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_received_messages{group='sub/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+    published_messages_pubsub_fwd_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_received_messages{group='pubsub_fwd/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+    published_messages_sub_flapping_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_received_messages{group='sub_flapping/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+    cat << EOF >> summary.txt
+
+Loadgen metrics
+e2e_latency{persistent_session/sub}: $e2e_latency_persistent_session_sub
+e2e_latency{pubsub_fwd/sub}:         $e2e_latency_pubsub_fwd_sub
+e2e_latency{sub/sub}:                $e2e_latency_sub_sub
+e2e_latency{sub_flapping/sub}:       $e2e_latency_sub_flapping_sub
+
+published_messages{persistent_session/pub}: $published_messages_persistent_session_pub
+published_messages{pub/pub}:                $published_messages_pub_pub
+published_messages{pubsub_fwd}:             $published_messages_pubsub_fwd
+published_messages{pubsub_fwd/pub}:         $published_messages_pubsub_fwd_pub
+
+received_messages{persistent_session/sub}:  $received_messages_persistent_session_sub
+received_messages{sub/sub}:                 $received_messages_sub_sub
+received_messages{pubsub_fwd/sub}:          $published_messages_pubsub_fwd_sub
+received_messages{sub_flapping/sub}:        $published_messages_sub_flapping_sub
+EOF
+fi
 
 cat summary.txt
