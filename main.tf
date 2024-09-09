@@ -238,37 +238,37 @@ resource "local_file" "ansible_inventory" {
       hosts = merge(
         { for node in module.emqx : node.fqdn => {
           ansible_host = node.public_ips[0]
-          private_ip = node.private_ips[0]
+          private_ip   = node.private_ips[0]
           ansible_user = local.emqx_remote_user
-        }},
-        {for node in module.loadgen : node.fqdn => {
+        } },
+        { for node in module.loadgen : node.fqdn => {
           ansible_host = node.public_ips[0]
-          private_ip = node.private_ips[0]
+          private_ip   = node.private_ips[0]
           ansible_user = local.loadgen_remote_user
-        }},
-        {for node in module.integration : node.fqdn => {
+        } },
+        { for node in module.integration : node.fqdn => {
           ansible_host = node.public_ips[0]
-          private_ip = node.private_ips[0]
+          private_ip   = node.private_ips[0]
           ansible_user = local.integration_remote_user
-        }},
-        {for node in module.monitoring : node.fqdn => {
+        } },
+        { for node in module.monitoring : node.fqdn => {
           ansible_host = node.public_ips[0]
-          private_ip = node.private_ips[0]
+          private_ip   = node.private_ips[0]
           ansible_user = local.monitoring_remote_user
-        }}
-        )
+        } }
+      )
     }
-    emqx4 = { hosts = { for node in module.emqx : node.fqdn => {} if local.emqx_version_family == 4 } }
-    emqx5 = { hosts = { for node in module.emqx : node.fqdn => {} if local.emqx_version_family == 5 } }
-    emqx = { children = { emqx4 = {}, emqx5 = {} } }
-    emqttb = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "emqttb" } }
+    emqx4       = { hosts = { for node in module.emqx : node.fqdn => {} if local.emqx_version_family == 4 } }
+    emqx5       = { hosts = { for node in module.emqx : node.fqdn => {} if local.emqx_version_family == 5 } }
+    emqx        = { children = { emqx4 = {}, emqx5 = {} } }
+    emqttb      = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "emqttb" } }
     emqtt_bench = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "emqtt_bench" } }
-    locust = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "locust" } }
-    loadgen = { children = { emqttb = {}, emqtt_bench = {}, locust = {} } }
-    http = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "http" } }
-    rabbitmq = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "rabbitmq" } }
+    locust      = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "locust" } }
+    loadgen     = { children = { emqttb = {}, emqtt_bench = {}, locust = {} } }
+    http        = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "http" } }
+    rabbitmq    = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "rabbitmq" } }
     integration = { children = { http = {}, rabbitmq = {} } }
-    monitoring = { hosts = { for node in module.monitoring : node.fqdn => {} } }
+    monitoring  = { hosts = { for node in module.monitoring : node.fqdn => {} } }
   })
   filename = "${path.module}/ansible/inventory.yml"
 }
