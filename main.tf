@@ -33,7 +33,7 @@ module "emqx" {
   ami_owner          = each.value.ami_owner
   remote_user        = each.value.remote_user
   vpc_id             = local.vpcs[each.value.region].vpc_id
-  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[each.value.az]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   use_spot_instances = local.emqx_use_spot_instances
   root_volume_size   = local.emqx_root_volume_size
@@ -121,7 +121,7 @@ module "loadgen" {
   use_spot_instances = each.value.use_spot_instances
   remote_user        = each.value.remote_user
   vpc_id             = local.vpcs[each.value.region].vpc_id
-  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[each.value.az]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   prefix             = local.prefix
   region_aliases     = local.region_aliases
@@ -158,7 +158,7 @@ module "integration" {
   use_spot_instances = each.value.use_spot_instances
   remote_user        = each.value.remote_user
   vpc_id             = local.vpcs[each.value.region].vpc_id
-  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[0]
+  subnet_id          = local.vpcs[each.value.region].public_subnet_ids[each.value.az]
   security_group_id  = local.vpcs[each.value.region].security_group_id
   prefix             = local.prefix
   region_aliases     = local.region_aliases

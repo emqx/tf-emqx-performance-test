@@ -1,4 +1,4 @@
-id: emqx5
+id: cross-az
 region: eu-north-1
 use_spot_instances: true
 emqx:
@@ -6,7 +6,14 @@ emqx:
   dashboard_default_password: admin
   nodes:
     - role: core
-      instance_count: 2
+      az: 0
+      instance_count: 1
+    - role: core
+      az: 1
+      instance_count: 1
+    - role: core
+      az: 2
+      instance_count: 1
 loadgens:
   instance_type: t3.large
   nodes:

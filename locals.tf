@@ -53,6 +53,7 @@ locals {
         instance_type    = try(node.instance_type, local.emqx_instance_type)
         role             = try(node.role, "core")
         region           = try(node.region, local.emqx_region)
+        az               = try(node.az, 0)
         ami_filter       = try(node.ami_filter, local.emqx_ami_filter)
         ami_owner        = try(node.ami_owner, local.emqx_ami_owner)
         remote_user      = try(node.remote_user, local.emqx_remote_user)
@@ -94,6 +95,7 @@ locals {
       for i in range(0, try(node.instance_count, 1)) : {
         type                 = try(node.type, local.loadgen_type)
         region               = try(node.region, local.loadgen_region)
+        az                   = try(node.az, 0)
         ami_filter           = try(node.ami_filter, local.loadgen_ami_filter)
         ami_owner            = try(node.ami_owner, local.loadgen_ami_owner)
         remote_user          = try(node.remote_user, local.loadgen_remote_user)
@@ -138,6 +140,7 @@ locals {
       for i in range(0, try(node.instance_count, 1)) : {
         type               = node.type
         region             = try(node.region, local.integration_region)
+        az                 = try(node.az, 0)
         ami_filter         = try(node.ami_filter, local.integration_ami_filter)
         ami_owner          = try(node.ami_owner, local.integration_ami_owner)
         remote_user        = try(node.remote_user, local.integration_remote_user)
