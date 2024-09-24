@@ -417,6 +417,7 @@ resource "terraform_data" "ansible_playbook_http" {
     command = "ansible-playbook -i ansible/inventory.yml ansible/http.yml"
     environment = {
       no_proxy = "*"
+      ANSIBLE_HOST_KEY_CHECKING = "False"
     }
   }
 }
@@ -431,6 +432,7 @@ resource "terraform_data" "ansible_playbook_rabbitmq" {
     command = "ansible-playbook -i ansible/inventory.yml ansible/rabbitmq.yml"
     environment = {
       no_proxy = "*"
+      ANSIBLE_HOST_KEY_CHECKING = "False"
     }
   }
 }
@@ -446,6 +448,7 @@ resource "terraform_data" "ansible_playbook_emqx" {
     command = "ansible-playbook -i ansible/inventory.yml ansible/emqx.yml"
     environment = {
       no_proxy = "*"
+      ANSIBLE_HOST_KEY_CHECKING = "False"
     }
   }
 }
@@ -462,6 +465,7 @@ resource "terraform_data" "ansible_playbook_loadgen" {
     command = "ansible-playbook -i ansible/inventory.yml ansible/loadgen.yml"
     environment = {
       no_proxy = "*"
+      ANSIBLE_HOST_KEY_CHECKING = "False"
     }
   }
 }
@@ -473,6 +477,9 @@ resource "terraform_data" "ansible_playbook_tuning" {
   ]
   provisioner "local-exec" {
     command = "ansible-playbook -i ansible/inventory.yml ansible/tuning.yml"
+    environment = {
+      ANSIBLE_HOST_KEY_CHECKING = "False"
+    }
   }
 }
 
@@ -485,6 +492,7 @@ resource "terraform_data" "ansible_playbook_monitoring" {
     command = "ansible-playbook -i ansible/inventory.yml ansible/monitoring.yml"
     environment = {
       no_proxy = "*"
+      ANSIBLE_HOST_KEY_CHECKING = "False"
     }
   }
 }
@@ -498,6 +506,7 @@ resource "terraform_data" "ansible_playbook_node_exporter" {
     command = "ansible-playbook -i ansible/inventory.yml ansible/node_exporter.yml"
     environment = {
       no_proxy = "*"
+      ANSIBLE_HOST_KEY_CHECKING = "False"
     }
   }
 }
