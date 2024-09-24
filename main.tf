@@ -414,7 +414,7 @@ resource "terraform_data" "ansible_playbook_http" {
     local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/http.yml"
+    command = "ansible-playbook -i ansible/inventory.yml ansible/http.yml"
     environment = {
       no_proxy = "*"
     }
@@ -428,7 +428,7 @@ resource "terraform_data" "ansible_playbook_rabbitmq" {
     local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/rabbitmq.yml"
+    command = "ansible-playbook -i ansible/inventory.yml ansible/rabbitmq.yml"
     environment = {
       no_proxy = "*"
     }
@@ -443,7 +443,7 @@ resource "terraform_data" "ansible_playbook_emqx" {
     local_file.ansible_emqx_host_vars
   ]
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/emqx.yml"
+    command = "ansible-playbook -i ansible/inventory.yml ansible/emqx.yml"
     environment = {
       no_proxy = "*"
     }
@@ -459,7 +459,7 @@ resource "terraform_data" "ansible_playbook_loadgen" {
     local_file.ansible_loadgen_host_vars
   ]
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/loadgen.yml"
+    command = "ansible-playbook -i ansible/inventory.yml ansible/loadgen.yml"
     environment = {
       no_proxy = "*"
     }
@@ -472,7 +472,7 @@ resource "terraform_data" "ansible_playbook_tuning" {
     local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/tuning.yml"
+    command = "ansible-playbook -i ansible/inventory.yml ansible/tuning.yml"
   }
 }
 
@@ -482,7 +482,7 @@ resource "terraform_data" "ansible_playbook_monitoring" {
     local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/monitoring.yml"
+    command = "ansible-playbook -i ansible/inventory.yml ansible/monitoring.yml"
     environment = {
       no_proxy = "*"
     }
@@ -495,7 +495,7 @@ resource "terraform_data" "ansible_playbook_node_exporter" {
     local_file.ansible_common_group_vars
   ]
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/node_exporter.yml"
+    command = "ansible-playbook -i ansible/inventory.yml ansible/node_exporter.yml"
     environment = {
       no_proxy = "*"
     }
