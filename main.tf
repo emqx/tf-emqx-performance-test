@@ -332,6 +332,7 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_dashboard_default_password = local.emqx_dashboard_default_password
     emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
     emqx_durable_sessions_enabled   = try(local.spec.emqx.durable_sessions_enabled, false)
+    emqx_enable_perf                = try(local.spec.emqx.enable_perf, false)
     },
     try({ emqx_durable_sessions_batch_size = local.spec.emqx.durable_sessions_batch_size }, {}),
     try({ emqx_durable_sessions_idle_poll_interval = local.spec.emqx.durable_sessions_idle_poll_interval }, {}),
@@ -348,7 +349,7 @@ resource "local_file" "ansible_emqx_group_vars" {
     try({ emqx_durable_storage_n_sites = local.spec.emqx.durable_storage_n_sites }, {}),
     try({ emqx_durable_storage_replication_factor = local.spec.emqx.durable_storage_replication_factor }, {}),
     local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {}
-  ))
+    ))
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
 

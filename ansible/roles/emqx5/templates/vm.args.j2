@@ -116,3 +116,8 @@
 
 ## Disable os_mon's disksup by default
 -os_mon start_disksup false
+
+{% if emqx_enable_perf %}
+## enable perf support
++JPperf true
+{% endif -%}
