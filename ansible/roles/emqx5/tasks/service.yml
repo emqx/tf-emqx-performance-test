@@ -1,6 +1,6 @@
 - name: Restart emqx
   become: yes
-  when: _emqx_conf.changed or _bootstrap_api.changed or _env.changed or _override.changed
+  when: _emqx_conf.changed or _bootstrap_api.changed or _env.changed or _override.changed or _emqx_vm_args.changed
   ansible.builtin.systemd:
     name: emqx.service
     state: restarted
