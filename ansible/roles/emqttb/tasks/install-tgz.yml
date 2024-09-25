@@ -45,6 +45,14 @@
     createhome: yes
     home: "{{ emqttb_options.home_dir }}"
 
+- name: Install system packages
+  become: yes
+  ansible.builtin.package:
+    name:
+      # This is needed so that the unarchive operation can succeed at setting permissions.
+      - acl
+    state: present
+
 - name: Unarchive emqttb
   become: yes
   become_user: emqttb
@@ -52,7 +60,7 @@
     src: "/tmp/emqttb.tar.gz"
     dest: "{{ emqttb_options.home_dir }}"
     copy: no
-      
+
 - name: Render emqttb systemd unit file
   become: yes
   ansible.builtin.template:
