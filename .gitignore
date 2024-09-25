@@ -6,7 +6,5 @@ terraform.tfstate*
 /ansible/roles/geerlingguy.pip/
 /ansible/group_vars/
 /ansible/host_vars/
-/ansible.cfg
-/ansible/inventory.ini
 __pycache__/
 /ansible/inventory.yml
