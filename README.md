@@ -182,6 +182,12 @@ ansible-playbook ansible/emqx_rolling_upgrade.yml
 
 Helpful function that you could add to your `.bashrc` or `.zshrc`.
 
+Alternatively, source `scripts/dev-helpers.sh`:
+
+```sh
+. scripts/dev-helpers.sh
+```
+
 "bm" in the function names stands for "BenchMark".
 
 ## start/stop emqtt-bench
