@@ -60,6 +60,7 @@
     src: "/tmp/emqttb.tar.gz"
     dest: "{{ emqttb_options.home_dir }}"
     copy: no
+    mode: '0755'
 
 - name: Render emqttb systemd unit file
   become: yes

@@ -51,7 +51,8 @@
     src: "/tmp/emqtt_bench.tar.gz"
     dest: "{{ emqtt_bench_options.home_dir }}"
     copy: no
-      
+    mode: '0755'
+
 - name: Render emqtt-bench systemd unit file
   become: yes
   ansible.builtin.template:
