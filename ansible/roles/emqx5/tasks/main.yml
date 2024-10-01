@@ -2,6 +2,9 @@
   when: emqx_install_source == 'git'
 - include_tasks: install-package.yml
   when: emqx_install_source == 'package'
+- include_tasks: perf.yml
+  when: emqx_enable_perf
+  tags: [perf]
 - include_tasks: configure.yml
 - include_tasks: service.yml
 - include_tasks: scripts.yml

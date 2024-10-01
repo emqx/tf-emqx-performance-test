@@ -182,6 +182,12 @@ ansible-playbook ansible/emqx_rolling_upgrade.yml
 
 Helpful function that you could add to your `.bashrc` or `.zshrc`.
 
+Alternatively, source `scripts/dev-helpers.sh`:
+
+```sh
+. scripts/dev-helpers.sh
+```
+
 "bm" in the function names stands for "BenchMark".
 
 ## start/stop emqtt-bench
@@ -230,4 +236,56 @@ function bm-urls() {
     echo "dashboard: $(terraform output -raw emqx_dashboard_url)"
     echo "grafana: $(terraform output -raw grafana_url)"
 }
+```
+
+# Running `perf_events` tests
+
+If you want to use [`perf_events`](https://www.brendangregg.com/perf.html) tests and analysis, add `emqx.enable_perf = true` to your test spec.  This will install a few tools on the EMQX machines, such as [`perf-archive`](https://github.com/torvalds/linux/blob/684a64bf32b6e488004e0ad7f0d7e922798f65b6/tools/perf/perf-archive.sh), which current doesn't work by default with pre-installed `perf`, [`hotspot`](https://github.com/KDAB/hotspot) and [flamegraph.pl](https://github.com/brendangregg/FlameGraph).
+
+```yaml
+emqx:
+  enable_perf: true
+  # ...
+```
+
+Then, when you want to record events, SSH into an EMQX box and run:
+
+```sh
+## this will record data for 30 seconds
+perf record --call-graph=fp --pid $(pgrep beam.smp) -- sleep 30
+```
+
+## Hotspot
+
+To analyze recorded data, one option is hotspot.  You can run it directly on the EMQX machine so that it may find as many symbols and libraries used as possible.
+
+```sh
+## assuming we ran the test on the first emqx box
+function first_core() {
+  terraform output -json | jq -r 'to_entries[] | select(.key | endswith("_nodes")) | .value.value[] | "\(.ip)\t\(.fqdn)"' | sort -k2 | uniq | rg core | head -n 1 | cut -d $'\t' -f 1
+}
+
+## SSH with X11 forwarding
+ssh -X -l ubuntu -i $(terraform output -raw ssh_key_path) $(first_core) /tmp/hotspot.AppImage
+```
+
+Hotspot supports exporting `perf_events` data in a portable way (though only it can open the archive), which doesn't require a GUI:
+
+```sh
+ssh -X -l ubuntu -i $(terraform output -raw ssh_key_path) $(first_core) /tmp/hotspot.AppImage /home/ubuntu/perf.data --exportTo /tmp/perf.data.perfparser
+
+# or
+ansible 'emqx[0]' -i ansible/inventory.yml -m command -a "/tmp/hotspot.AppImage /home/ubuntu/perf.data --exportTo /tmp/perf.data.perfparser"
+```
+
+## FlameGraph
+
+To use [flamegraph.pl](https://github.com/brendangregg/FlameGraph), we just follow the instructions on its repo:
+
+```sh
+## ssh into the emqx box, and...
+
+perf script > out.perf
+/opt/flamegraph/stackcollapse-perf.pl out.perf > out.folded
+/opt/flamegraph/flamegraph.pl out.folded > out.svg
 ```

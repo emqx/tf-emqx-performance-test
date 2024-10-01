@@ -38,6 +38,7 @@
     src: vm.args.j2
     dest: /etc/emqx/vm.args
     mode: '0644'
+  register: _emqx_vm_args
 
 - name: Render boostrap api keys file
   become: yes

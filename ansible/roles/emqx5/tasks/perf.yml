@@ -1,0 +1,85 @@
+---
+
+# Currently, although `perf` reports `perf archive` is a subcommand, it is not...
+- name: Copy perf-archive.sh
+  become: yes
+  ansible.builtin.copy:
+    src: perf-archive.sh
+    dest: /usr/bin/perf-archive.sh
+    mode: '0755'
+  tags: [perf]
+
+- name: Set perf capabilities
+  become: yes
+  ansible.builtin.shell: |
+    setcap "cap_sys_admin,cap_perfmon,cap_sys_ptrace,cap_syslog=ep" "$(realpath /usr/lib/linux-tools/$(uname -r)/perf)"
+  tags: [perf]
+
+- name: Install system packages for hotspot
+  become: yes
+  ansible.builtin.package:
+    name:
+      # libfuse2t64 for ubuntu 24.04+
+      - libfuse2
+      # for graphical UI
+      - kio
+      - libc6
+      - libdw1
+      - libelf1
+      - libgcc-s1
+      - libkf5completion5
+      - libkf5configcore5
+      - libkf5configwidgets5
+      - libkf5coreaddons5
+      - libkf5i18n5
+      - libkf5kiowidgets5
+      - libkf5solid5
+      - libkf5threadweaver5
+      - libkf5widgetsaddons5
+      - libkf5windowsystem5
+      - libqt5core5a
+      # - libqt5gui5
+      - libqt5gui5-gles
+      - libqt5network5
+      - libqt5svg5
+      - libqt5widgets5
+      - libstdc++6
+      - linux-tools-common
+      - policykit-1
+    state: present
+  tags: [perf]
+
+- name: Get latest hospot release
+  uri:
+    url: https://api.github.com/repos/KDAB/hotspot/releases/latest
+    body_format: json
+    return_content: yes
+  register: github_response
+  tags: [perf]
+
+- name: Parse JSON response to get the latest version tag
+  set_fact:
+    hotspot_version: "{{ github_response.json.tag_name }}"
+  tags: [perf]
+
+- name: Download hotspot appimage
+  ansible.builtin.get_url:
+    url: "https://github.com/KDAB/hotspot/releases/download/{{ hotspot_version }}/hotspot-{{ hotspot_version }}-{{ ansible_architecture }}.AppImage"
+    dest: "/tmp/hotspot.AppImage"
+    mode: '0755'
+  tags: [perf]
+
+- name: Prepare FlameGraph dir
+  become: yes
+  ansible.builtin.file:
+    path: /opt/flamegraph
+    state: directory
+    mode: '0755'
+
+- name: Clone FlameGraph repo
+  become: yes
+  ansible.builtin.git:
+    repo: "https://github.com/brendangregg/FlameGraph.git"
+    dest: /opt/flamegraph
+
+...
