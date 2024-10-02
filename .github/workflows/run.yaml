@@ -70,12 +70,7 @@ jobs:
         ansible loadgen -m command -a 'systemctl start loadgen' --become
         sleep $((${{ github.event.inputs.duration }} * 60))
         ansible loadgen -m command -a 'systemctl stop loadgen' --become
-        echo "# Scenario: ${{ github.event.inputs.scenario }}" >> $GITHUB_STEP_SUMMARY
-        echo "## Benchmark metrics" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        scripts/fetch-metrics.sh >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        scripts/summary.sh >> $GITHUB_STEP_SUMMARY
     - name: terraform destroy
       if: always()
       run: |
