@@ -19,7 +19,7 @@ curl -gs "$PROMETHEUS_URL/api/v1/query?query=100-((avg_over_time(node_memory_Mem
 # disk
 curl -gs "$PROMETHEUS_URL/api/v1/query?query=irate(node_disk_writes_completed_total[$PERIOD])" | jq '.data.result[] | {"host": .metric.instance|split(".")[0], "disk": (.value[1]|tonumber|.*100|round/100)}' | jq -rs > "$TMPDIR/disk.json"
 
-node_data=$(jq -s 'add | group_by(.host) | map(add)' "$TMPDIR/cpu.json" "$TMPDIR/mem.json" "$TMPDIR/disk.json" | jq -r '["Host","Avg_CPU","Avg_Mem","Disk_Write_IOPS"], ["----","-------","-------","---------------"], (.[] | [.host, .cpu, .mem, .disk]) | @tsv' | column -t)
+node_data=$(jq -s 'add | group_by(.host) | map(add)' "$TMPDIR/cpu.json" "$TMPDIR/mem.json" "$TMPDIR/disk.json" | jq -r '(["Host", "Avg CPU%", "Avg RAM%", "Disk Write IOPS"], ["----", "-------", "-------", "---------------"], (.[] | [.host, .cpu, .mem, .disk] | map(tostring))) | @tsv' | sed 's/\t/ | /g' | sed 's/^/| /' | sed 's/$/ |/')
 
 # emqx metrics
 emqx_connections=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_live_connections_count)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
@@ -46,40 +46,40 @@ $node_data
 
 ## EMQX /monitor_current
 
-Metric                        Value
-------                        -------
-connections                   $(cat "$TMPDIR/monitor_current.json" | jq -r '.connections')
-topics                        $(cat "$TMPDIR/monitor_current.json" | jq -r '.topics')
-subscriptions                 $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions')
-live_connections              $(cat "$TMPDIR/monitor_current.json" | jq -r '.live_connections')
-subscriptions_durable         $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions_durable')
-disconnected_durable_sessions $(cat "$TMPDIR/monitor_current.json" | jq -r '.disconnected_durable_sessions')
-subscriptions_ram             $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions_ram')
-retained_msg_count            $(cat "$TMPDIR/monitor_current.json" | jq -r '.retained_msg_count')
-shared_subscriptions          $(cat "$TMPDIR/monitor_current.json" | jq -r '.shared_subscriptions')
-dropped_msg_rate              $(cat "$TMPDIR/monitor_current.json" | jq -r '.dropped_msg_rate')
-persisted_rate                $(cat "$TMPDIR/monitor_current.json" | jq -r '.persisted_rate')
-received_msg_rate             $(cat "$TMPDIR/monitor_current.json" | jq -r '.received_msg_rate')
-sent_msg_rate                 $(cat "$TMPDIR/monitor_current.json" | jq -r '.sent_msg_rate')
-transformation_failed_rate    $(cat "$TMPDIR/monitor_current.json" | jq -r '.transformation_failed_rate')
-transformation_succeeded_rate $(cat "$TMPDIR/monitor_current.json" | jq -r '.transformation_succeeded_rate')
-validation_failed_rate        $(cat "$TMPDIR/monitor_current.json" | jq -r '.validation_failed_rate')
-validation_succeeded_rate     $(cat "$TMPDIR/monitor_current.json" | jq -r '.validation_succeeded_rate')
+| Metric                        | Value |
+| ------                        | ----- |
+| connections                   | $(cat "$TMPDIR/monitor_current.json" | jq -r '.connections') |
+| topics                        | $(cat "$TMPDIR/monitor_current.json" | jq -r '.topics') |
+| subscriptions                 | $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions') |
+| live_connections              | $(cat "$TMPDIR/monitor_current.json" | jq -r '.live_connections') |
+| subscriptions_durable         | $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions_durable') |
+| disconnected_durable_sessions | $(cat "$TMPDIR/monitor_current.json" | jq -r '.disconnected_durable_sessions') |
+| subscriptions_ram             | $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions_ram') |
+| retained_msg_count            | $(cat "$TMPDIR/monitor_current.json" | jq -r '.retained_msg_count') |
+| shared_subscriptions          | $(cat "$TMPDIR/monitor_current.json" | jq -r '.shared_subscriptions') |
+| dropped_msg_rate              | $(cat "$TMPDIR/monitor_current.json" | jq -r '.dropped_msg_rate') |
+| persisted_rate                | $(cat "$TMPDIR/monitor_current.json" | jq -r '.persisted_rate') |
+| received_msg_rate             | $(cat "$TMPDIR/monitor_current.json" | jq -r '.received_msg_rate') |
+| sent_msg_rate                 | $(cat "$TMPDIR/monitor_current.json" | jq -r '.sent_msg_rate') |
+| transformation_failed_rate    | $(cat "$TMPDIR/monitor_current.json" | jq -r '.transformation_failed_rate') |
+| transformation_succeeded_rate | $(cat "$TMPDIR/monitor_current.json" | jq -r '.transformation_succeeded_rate') |
+| validation_failed_rate        | $(cat "$TMPDIR/monitor_current.json" | jq -r '.validation_failed_rate') |
+| validation_succeeded_rate     | $(cat "$TMPDIR/monitor_current.json" | jq -r '.validation_succeeded_rate') |
 
 ## EMQX Exporter
 
-Metric                        Value
-------                        -------
-messages_input_period_second  $emqx_messages_input_period_second
-messages_output_period_second $emqx_messages_output_period_second
-cluster_cpu_load              $emqx_cluster_cpu_load
-connections                   $emqx_connections
-messages_received             $emqx_messages_received
-messages_sent                 $emqx_messages_sent
-messages_acked                $emqx_messages_acked
-messages_publish              $emqx_messages_publish
-messages_delivered            $emqx_messages_delivered
-messages_dropped              $emqx_messages_dropped
+| Metric                        | Value |
+| ------                        | ----- |
+| messages_input_period_second  | $emqx_messages_input_period_second |
+| messages_output_period_second | $emqx_messages_output_period_second |
+| cluster_cpu_load              | $emqx_cluster_cpu_load |
+| connections                   | $emqx_connections |
+| messages_received             | $emqx_messages_received |
+| messages_sent                 | $emqx_messages_sent |
+| messages_acked                | $emqx_messages_acked |
+| messages_publish              | $emqx_messages_publish |
+| messages_delivered            | $emqx_messages_delivered |
+| messages_dropped              | $emqx_messages_dropped |
 EOF
 
 if [ $(terraform output -json emqtt_bench_nodes | jq length) -ge 1 ]; then
@@ -89,10 +89,10 @@ if [ $(terraform output -json emqtt_bench_nodes | jq length) -ge 1 ]; then
 
 ## Loadgen metrics
 
-Metric               Value
-------               -------
-e2e_latency_ms_95th  $e2e_latency_ms_95th
-e2e_latency_ms_99th  $e2e_latency_ms_99th
+| Metric               | Value |
+| ------               | ----- |
+| e2e_latency_ms_95th  | $e2e_latency_ms_95th |
+| e2e_latency_ms_99th  | $e2e_latency_ms_99th |
 EOF
 fi
 
@@ -116,22 +116,22 @@ if [ $(terraform output -json emqttb_nodes | jq length) -ge 1 ]; then
 
 ## Loadgen metrics
 
-Metric                                     Value
-------                                     -------
-e2e_latency{persistent_session/sub}        $e2e_latency_persistent_session_sub
-e2e_latency{pubsub_fwd/sub}                $e2e_latency_pubsub_fwd_sub
-e2e_latency{sub/sub}                       $e2e_latency_sub_sub
-e2e_latency{sub_flapping/sub}              $e2e_latency_sub_flapping_sub
+| Metric                                     | Value |
+| ------                                     | ----- |
+| e2e_latency{persistent_session/sub}        | $e2e_latency_persistent_session_sub |
+| e2e_latency{pubsub_fwd/sub}                | $e2e_latency_pubsub_fwd_sub |
+| e2e_latency{sub/sub}                       | $e2e_latency_sub_sub |
+| e2e_latency{sub_flapping/sub}              | $e2e_latency_sub_flapping_sub |
 
-published_messages{persistent_session/pub} $published_messages_persistent_session_pub
-published_messages{pub/pub}                $published_messages_pub_pub
-published_messages{pubsub_fwd}             $published_messages_pubsub_fwd
-published_messages{pubsub_fwd/pub}         $published_messages_pubsub_fwd_pub
+| published_messages{persistent_session/pub} | $published_messages_persistent_session_pub |
+| published_messages{pub/pub}                | $published_messages_pub_pub |
+| published_messages{pubsub_fwd}             | $published_messages_pubsub_fwd |
+| published_messages{pubsub_fwd/pub}         | $published_messages_pubsub_fwd_pub |
 
-received_messages{persistent_session/sub}  $received_messages_persistent_session_sub
-received_messages{sub/sub}                 $received_messages_sub_sub
-received_messages{pubsub_fwd/sub}          $published_messages_pubsub_fwd_sub
-received_messages{sub_flapping/sub}        $published_messages_sub_flapping_sub
+| received_messages{persistent_session/sub}  | $received_messages_persistent_session_sub |
+| received_messages{sub/sub}                 | $received_messages_sub_sub |
+| received_messages{pubsub_fwd/sub}          | $published_messages_pubsub_fwd_sub |
+| received_messages{sub_flapping/sub}        | $published_messages_sub_flapping_sub |
 EOF
 fi
 
