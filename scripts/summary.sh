@@ -122,12 +122,10 @@ if [ $(terraform output -json emqttb_nodes | jq length) -ge 1 ]; then
 | e2e_latency{pubsub_fwd/sub}                | $e2e_latency_pubsub_fwd_sub |
 | e2e_latency{sub/sub}                       | $e2e_latency_sub_sub |
 | e2e_latency{sub_flapping/sub}              | $e2e_latency_sub_flapping_sub |
-
 | published_messages{persistent_session/pub} | $published_messages_persistent_session_pub |
 | published_messages{pub/pub}                | $published_messages_pub_pub |
 | published_messages{pubsub_fwd}             | $published_messages_pubsub_fwd |
 | published_messages{pubsub_fwd/pub}         | $published_messages_pubsub_fwd_pub |
-
 | received_messages{persistent_session/sub}  | $received_messages_persistent_session_sub |
 | received_messages{sub/sub}                 | $received_messages_sub_sub |
 | received_messages{pubsub_fwd/sub}          | $published_messages_pubsub_fwd_sub |
