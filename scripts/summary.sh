@@ -3,8 +3,7 @@
 set -euo pipefail
 #set -x
 
-TMPDIR=$(mktemp -d)
-
+TMPDIR=${TMPDIR:-$(mktemp -d)}
 EMQX_API_URL=${EMQX_API_URL:-$(terraform output -raw emqx_dashboard_url)}
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/monitor_current.json"
 
