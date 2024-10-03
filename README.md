@@ -25,6 +25,8 @@ env no_proxy='*' ansible-playbook ansible/emqttb.yml
 # start emqttb benchmark
 ansible emqttb -m command -a 'systemctl start emqttb' --become
 # (optionally) open emqx dashboard and/or grafana to watch metrics
+# or use this helper script to produce a markdown with selected metrics
+./scripts/summary.sh
 # cleanup when done
 terraform destroy
 ```

@@ -3,6 +3,11 @@ output "bench_id" {
   value       = local.bench_id
 }
 
+output "spec_file" {
+  description = "Benchmark spec file"
+  value       = var.spec_file
+}
+
 output "emqx_dashboard_url" {
   description = "EMQX Dashboard URL"
   value       = "http://${module.public_nlb.dns_name}:18083"
