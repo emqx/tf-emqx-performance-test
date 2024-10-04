@@ -6,6 +6,8 @@ set -euo pipefail
 TMPDIR=${TMPDIR:-$(mktemp -d)}
 EMQX_API_URL=${EMQX_API_URL:-$(terraform output -raw emqx_dashboard_url)}
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/monitor_current.json"
+curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/metrics" > "$TMPDIR/metrics.json"
+curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/stats" > "$TMPDIR/stats.json"
 
 PROMETHEUS_URL=${PROMETHEUS_URL:-$(terraform output -raw prometheus_url)}
 PERIOD=${PERIOD:-5m}
