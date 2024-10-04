@@ -83,9 +83,25 @@ $node_data
 | messages_dropped              | $emqx_messages_dropped |
 EOF
 
+cat << EOF > "$TMPDIR/emqx_exporter_metrics.json"
+{
+  "messages_input_period_second": $emqx_messages_input_period_second,
+  "messages_output_period_second": $emqx_messages_output_period_second,
+  "cluster_cpu_load": $emqx_cluster_cpu_load,
+  "connections": $emqx_connections,
+  "messages_received": $emqx_messages_received,
+  "messages_sent": $emqx_messages_sent,
+  "messages_acked": $emqx_messages_acked,
+  "messages_publish": $emqx_messages_publish,
+  "messages_delivered": $emqx_messages_delivered,
+  "messages_dropped": $emqx_messages_dropped
+}
+EOF
+
 if [ $(terraform output -json emqtt_bench_nodes | jq length) -ge 1 ]; then
     e2e_latency_ms_95th=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.95%2C%20sum(rate(e2e_latency_bucket%5B$PERIOD%5D))%20by%20(le))" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
     e2e_latency_ms_99th=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.99%2C%20sum(rate(e2e_latency_bucket%5B$PERIOD%5D))%20by%20(le))" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+
     cat << EOF >> summary.md
 
 ## Loadgen metrics
@@ -94,6 +110,13 @@ if [ $(terraform output -json emqtt_bench_nodes | jq length) -ge 1 ]; then
 | ------               | ----- |
 | e2e_latency_ms_95th  | $e2e_latency_ms_95th |
 | e2e_latency_ms_99th  | $e2e_latency_ms_99th |
+EOF
+
+    cat << EOF > "$TMPDIR/loadgen_metrics.json"
+    {
+      "e2e_latency_ms_95th": $e2e_latency_ms_95th,
+      "e2e_latency_ms_99th": $e2e_latency_ms_99th
+    }
 EOF
 fi
 
