@@ -1,0 +1,25 @@
+id: pubsub
+region: us-west-2
+use_spot_instances: false
+emqx:
+  instance_type: c7i.large
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  package_file_path: emqx-enterprise-ubuntu22.04-amd64.deb
+  license_file: emqx5.lic
+  nodes:
+    - role: core
+      az: 0
+      instance_count: 1
+    - role: core
+      az: 1
+      instance_count: 1
+
+loadgens:
+  nodes:
+    - type: emqtt_bench
+      scenario: "sub --prefix sub_ --shortids --topic t/%%i --qos 2 --count 10000 --connrate 1000 --payload-hdrs=ts --prometheus --restapi 9090"
+      instance_type: c7i.large
+    - type: emqtt_bench
+      scenario: "pub --prefix pub_ --shortids --wait-before-publishing --topic t/%%i --qos 2 --size 1024 --interval_of_msg 1000 --count 10000 --connrate 1000 --payload-hdrs=ts --prometheus --restapi 9090"
+      instance_type: c7i.large
