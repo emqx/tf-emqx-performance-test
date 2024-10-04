@@ -1,0 +1,99 @@
+---
+
+## todo: when/if we upload snapshots to S3
+# - name: Install awscli
+#   become: yes
+#   ansible.builtin.package:
+#     name:
+#       - awscli
+
+- name: Take snapshot
+  ansible.builtin.uri:
+    url: http://localhost:9090/api/v1/admin/tsdb/snapshot
+    method: POST
+    status_code: 200
+  register: _snapshot_res
+
+- name: Snapshot name
+  debug:
+    var: _snapshot_res.json.data.name
+
+- name: Create temporary dir for staging archive
+  ansible.builtin.tempfile:
+    state: directory
+  register: _tmp_archive
+
+- name: Set tmp dir var
+  set_fact:
+    stage_dir: "{{ _tmp_archive.path }}/{{ _snapshot_res.json.data.name }}"
+
+- debug:
+    var: stage_dir
+
+- name: Create data dir in temporary dir
+  ansible.builtin.file:
+    state: directory
+    path: "{{ stage_dir }}/data"
+
+- name: Copy files to stage
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ stage_dir }}/{{ item | basename }}"
+    remote_src: yes
+  loop:
+    - /opt/monitoring/datasource.yaml
+    - /opt/monitoring/dashboards.yaml
+    - /opt/monitoring/dashboards
+
+- name: Get snapshot contents
+  ansible.builtin.find:
+    path: "/opt/monitoring/data/snapshots/{{ _snapshot_res.json.data.name }}"
+    file_type: directory
+  register: _snapshot_contents
+
+- name: Copy files to stage (snapshot)
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ stage_dir }}/data/"
+    remote_src: yes
+    mode: '0777'
+  loop: "{{ _snapshot_contents.files }}"
+
+- name: Add docker-compose manifest for visualization
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ stage_dir }}/{{ item }}"
+  loop:
+    - docker-compose.yaml
+    - prometheus.yml
+
+- name: Set archive permissions
+  ansible.builtin.file:
+    path: "{{ stage_dir }}"
+    mode: "0777"
+    recurse: yes
+
+- name: Archive snapshot
+  community.general.archive:
+    path: "{{ stage_dir }}"
+    dest: "/opt/monitoring/{{ _snapshot_res.json.data.name }}.tar.bz2"
+    format: bz2
+
+- name: Create local snapshot dir
+  ansible.builtin.file:
+    path: "../prometheus_snapshots/"
+    state: directory
+  delegate_to: localhost
+
+- name: Fetch snapshot
+  ansible.builtin.fetch:
+    src: "/opt/monitoring/{{ _snapshot_res.json.data.name }}.tar.bz2"
+    dest: "../prometheus_snapshots/{{ _snapshot_res.json.data.name }}.tar.bz2"
+    flat: true
+
+- name: Remove temporary stage
+  ansible.builtin.file:
+    path: "{{ _tmp_archive.path }}"
+    state: absent
+
+...

@@ -240,6 +240,34 @@ function bm-urls() {
 }
 ```
 
+# Capturing Prometheus data snapshots
+
+```sh
+ansible-playbook ansible/prometheus-snapshot.yml
+```
+
+This will create a directory `prometheus_snapshots` in the root of this project and
+download a tarball containing the snapshot there.  The tarball then must be extracted
+preserving permissions:
+
+```sh
+cd prometheus_snapshots
+tar -xvpf 20241007T164452Z-11cc51d6d14856dd.tar.bz2
+```
+
+It contains a docker compose manifest that spins up grafana and prometheus to serve
+snapshot data.
+
+> [!TIP]
+> Currenlty, annotations are not captured in this tarball.  They live in Grafana's DB.
+
+```sh
+cd 20241007T164452Z-11cc51d6d14856dd
+docker compose up ; docker compose down
+```
+
+Then access `http://localhost:3000` (username/password is `admin`/`grafana`).
+
 # Running `perf_events` tests
 
 If you want to use [`perf_events`](https://www.brendangregg.com/perf.html) tests and analysis, add `emqx.enable_perf = true` to your test spec.  This will install a few tools on the EMQX machines, such as [`perf-archive`](https://github.com/torvalds/linux/blob/684a64bf32b6e488004e0ad7f0d7e922798f65b6/tools/perf/perf-archive.sh), which current doesn't work by default with pre-installed `perf`, [`hotspot`](https://github.com/KDAB/hotspot) and [flamegraph.pl](https://github.com/brendangregg/FlameGraph).

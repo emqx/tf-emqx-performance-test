@@ -1,0 +1,42 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    # container_name: prometheus
+    command:
+      - '--storage.tsdb.path=/data'
+      - '--web.enable-admin-api'
+      - '--storage.tsdb.retention.time=10y'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - ./data:/data
+      - ./prometheus.yml:/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    # container_name: grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/overview.json
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_AUTH_ANONYMOUS_ORG_NAME=EMQX
+    volumes:
+      - ./datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+      - ./dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./dashboards:/var/lib/grafana/dashboards
