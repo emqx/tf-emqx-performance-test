@@ -12,6 +12,13 @@
     group: "{{ ansible_user }}"
     recurse: yes
 
+- name: Add user to docker group
+  become: yes
+  ansible.builtin.user:
+    append: true
+    name: "{{ ansible_user }}"
+    groups: docker
+
 - name: Copy files
   ansible.builtin.copy:
     src: "{{ item }}"
@@ -23,6 +30,15 @@
     - loki.yaml
   tags:
     - loki
+
+- name: Ensure data dir
+  become: yes
+  ansible.builtin.file:
+    path: "{{ home_dir }}/data"
+    state: directory
+    mode: '0777'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
 
 - name: Render prometheus.yml
   ansible.builtin.template:
