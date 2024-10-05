@@ -7,7 +7,7 @@ PROMETHEUS_URL=${PROMETHEUS_URL:-$(terraform output -raw prometheus_url)}
 EMQX_API_URL=${EMQX_API_URL:-$(terraform output -raw emqx_dashboard_url)}
 PERIOD=${PERIOD:-5m}
 
-# emqx metrics
+# save emqx metrics
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/monitor_current.json"
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/metrics" > "$TMPDIR/metrics.json"
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/stats" > "$TMPDIR/stats.json"
@@ -36,6 +36,7 @@ curl -s "$PROMETHEUS_URL/api/v1/query" \
 
 node_data=$(jq -s 'add | group_by(.host) | map(add)' "$TMPDIR/cpu.json" "$TMPDIR/mem.json" "$TMPDIR/disk.json" | jq -r '(["Host", "Avg CPU%", "Avg RAM%", "Disk Write IOPS"], ["----", "-------", "-------", "---------------"], (.[] | [.host, .cpu, .mem, .disk] | map(tostring))) | @tsv' | sed 's/\t/ | /g' | sed 's/^/| /' | sed 's/$/ |/')
 
+# emqx metrics
 emqx_connections=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "query=sum(emqx_live_connections_count)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
@@ -90,23 +91,23 @@ $node_data
 
 | Metric                        | Value |
 | ------                        | ----- |
-| connections                   | $(cat "$TMPDIR/monitor_current.json" | jq -r '.connections') |
-| topics                        | $(cat "$TMPDIR/monitor_current.json" | jq -r '.topics') |
-| subscriptions                 | $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions') |
-| live_connections              | $(cat "$TMPDIR/monitor_current.json" | jq -r '.live_connections') |
-| subscriptions_durable         | $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions_durable') |
-| disconnected_durable_sessions | $(cat "$TMPDIR/monitor_current.json" | jq -r '.disconnected_durable_sessions') |
-| subscriptions_ram             | $(cat "$TMPDIR/monitor_current.json" | jq -r '.subscriptions_ram') |
-| retained_msg_count            | $(cat "$TMPDIR/monitor_current.json" | jq -r '.retained_msg_count') |
-| shared_subscriptions          | $(cat "$TMPDIR/monitor_current.json" | jq -r '.shared_subscriptions') |
-| dropped_msg_rate              | $(cat "$TMPDIR/monitor_current.json" | jq -r '.dropped_msg_rate') |
-| persisted_rate                | $(cat "$TMPDIR/monitor_current.json" | jq -r '.persisted_rate') |
-| received_msg_rate             | $(cat "$TMPDIR/monitor_current.json" | jq -r '.received_msg_rate') |
-| sent_msg_rate                 | $(cat "$TMPDIR/monitor_current.json" | jq -r '.sent_msg_rate') |
-| transformation_failed_rate    | $(cat "$TMPDIR/monitor_current.json" | jq -r '.transformation_failed_rate') |
-| transformation_succeeded_rate | $(cat "$TMPDIR/monitor_current.json" | jq -r '.transformation_succeeded_rate') |
-| validation_failed_rate        | $(cat "$TMPDIR/monitor_current.json" | jq -r '.validation_failed_rate') |
-| validation_succeeded_rate     | $(cat "$TMPDIR/monitor_current.json" | jq -r '.validation_succeeded_rate') |
+| connections                   | $(jq -r '.connections' "$TMPDIR/monitor_current.json") |
+| topics                        | $(jq -r '.topics' "$TMPDIR/monitor_current.json") |
+| subscriptions                 | $(jq -r '.subscriptions' "$TMPDIR/monitor_current.json") |
+| live_connections              | $(jq -r '.live_connections' "$TMPDIR/monitor_current.json") |
+| subscriptions_durable         | $(jq -r '.subscriptions_durable' "$TMPDIR/monitor_current.json") |
+| disconnected_durable_sessions | $(jq -r '.disconnected_durable_sessions' "$TMPDIR/monitor_current.json") |
+| subscriptions_ram             | $(jq -r '.subscriptions_ram' "$TMPDIR/monitor_current.json") |
+| retained_msg_count            | $(jq -r '.retained_msg_count' "$TMPDIR/monitor_current.json") |
+| shared_subscriptions          | $(jq -r '.shared_subscriptions' "$TMPDIR/monitor_current.json") |
+| dropped_msg_rate              | $(jq -r '.dropped_msg_rate' "$TMPDIR/monitor_current.json") |
+| persisted_rate                | $(jq -r '.persisted_rate' "$TMPDIR/monitor_current.json") |
+| received_msg_rate             | $(jq -r '.received_msg_rate' "$TMPDIR/monitor_current.json") |
+| sent_msg_rate                 | $(jq -r '.sent_msg_rate' "$TMPDIR/monitor_current.json") |
+| transformation_failed_rate    | $(jq -r '.transformation_failed_rate' "$TMPDIR/monitor_current.json") |
+| transformation_succeeded_rate | $(jq -r '.transformation_succeeded_rate' "$TMPDIR/monitor_current.json") |
+| validation_failed_rate        | $(jq -r '.validation_failed_rate' "$TMPDIR/monitor_current.json") |
+| validation_succeeded_rate     | $(jq -r '.validation_succeeded_rate' "$TMPDIR/monitor_current.json") |
 
 ## EMQX Exporter
 
