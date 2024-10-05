@@ -1,40 +1,81 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-#set -x
 
 TMPDIR=${TMPDIR:-$(mktemp -d)}
+PROMETHEUS_URL=${PROMETHEUS_URL:-$(terraform output -raw prometheus_url)}
 EMQX_API_URL=${EMQX_API_URL:-$(terraform output -raw emqx_dashboard_url)}
+PERIOD=${PERIOD:-5m}
+
+# emqx metrics
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/monitor_current.json"
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/metrics" > "$TMPDIR/metrics.json"
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/stats" > "$TMPDIR/stats.json"
 
-PROMETHEUS_URL=${PROMETHEUS_URL:-$(terraform output -raw prometheus_url)}
-PERIOD=${PERIOD:-5m}
 
 # cpu
-curl -gs "$PROMETHEUS_URL/api/v1/query?query=(sum%20by(instance)%20(irate(node_cpu_seconds_total{mode!=\"idle\"}[$PERIOD]))/on(instance)%20group_left%20sum%20by%20(instance)((irate(node_cpu_seconds_total[$PERIOD]))))*100" | jq '.data.result[] | {"host": (.metric.instance|split(".")[0]), "cpu": (.value[1]|tonumber|.*100|round/100)}' | jq -rs > "$TMPDIR/cpu.json"
+curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=(sum by(instance) (irate(node_cpu_seconds_total{mode!='idle'}[$PERIOD])) / on(instance) group_left sum by (instance)(irate(node_cpu_seconds_total[$PERIOD])))*100" | \
+  jq '.data.result[] | {"host": (.metric.instance|split(".")[0]), "cpu": (.value[1]|tonumber|.*100|round/100)}' | \
+  jq -rs > "$TMPDIR/cpu.json"
+
 # memory
-curl -gs "$PROMETHEUS_URL/api/v1/query?query=100-((avg_over_time(node_memory_MemAvailable_bytes[$PERIOD])*100)/avg_over_time(node_memory_MemTotal_bytes[$PERIOD]))" | jq '.data.result[] | {"host": .metric.instance|split(".")[0], "mem": (.value[1]|tonumber|.*100|round/100)}' | jq -rs > "$TMPDIR/mem.json"
+curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=100-((avg_over_time(node_memory_MemAvailable_bytes[$PERIOD])*100)/avg_over_time(node_memory_MemTotal_bytes[$PERIOD]))" | \
+  jq '.data.result[] | {"host": .metric.instance|split(".")[0], "mem": (.value[1]|tonumber|.*100|round/100)}' | \
+  jq -rs > "$TMPDIR/mem.json"
 
 # disk
-curl -gs "$PROMETHEUS_URL/api/v1/query?query=irate(node_disk_writes_completed_total[$PERIOD])" | jq '.data.result[] | {"host": .metric.instance|split(".")[0], "disk": (.value[1]|tonumber|.*100|round/100)}' | jq -rs > "$TMPDIR/disk.json"
+curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=irate(node_disk_writes_completed_total[$PERIOD])" | \
+  jq '.data.result[] | {"host": .metric.instance|split(".")[0], "disk": (.value[1]|tonumber|.*100|round/100)}' | \
+  jq -rs > "$TMPDIR/disk.json"
 
 node_data=$(jq -s 'add | group_by(.host) | map(add)' "$TMPDIR/cpu.json" "$TMPDIR/mem.json" "$TMPDIR/disk.json" | jq -r '(["Host", "Avg CPU%", "Avg RAM%", "Disk Write IOPS"], ["----", "-------", "-------", "---------------"], (.[] | [.host, .cpu, .mem, .disk] | map(tostring))) | @tsv' | sed 's/\t/ | /g' | sed 's/^/| /' | sed 's/$/ |/')
 
-# emqx metrics
-emqx_connections=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_live_connections_count)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-emqx_messages_received=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_received)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-emqx_messages_sent=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_sent)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-emqx_messages_acked=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_acked)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-emqx_messages_publish=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_publish)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-emqx_messages_delivered=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_delivered)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-emqx_messages_dropped=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum(emqx_messages_dropped)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+emqx_connections=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum(emqx_live_connections_count)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_messages_received=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum(emqx_messages_received)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_messages_sent=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum(emqx_messages_sent)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_messages_acked=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum(emqx_messages_acked)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_messages_publish=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum(emqx_messages_publish)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_messages_delivered=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum(emqx_messages_delivered)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_messages_dropped=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum(emqx_messages_dropped)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
 
 # emqx exporter metrics
-emqx_messages_input_period_second=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqx_messages_input_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-emqx_messages_output_period_second=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqx_messages_output_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-emqx_cluster_cpu_load=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=sum%20by(node)%20(emqx_cluster_cpu_load{load=\"load15\"})" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+emqx_messages_input_period_second=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=emqx_messages_input_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_messages_output_period_second=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=emqx_messages_output_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_cluster_cpu_load=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum by(node) (emqx_cluster_cpu_load{load='load15'})" | jq -c '.data.result[0].value[1]? // empty|tonumber | .*100 | round/100')
 
 cat << EOF > summary.md
 # Benchmark '$(terraform output -raw bench_id)' summary
@@ -99,10 +140,15 @@ cat << EOF > "$TMPDIR/emqx_exporter_metrics.json"
 EOF
 
 if [ $(terraform output -json emqtt_bench_nodes | jq length) -ge 1 ]; then
-    e2e_latency_ms_95th=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.95%2C%20sum(rate(e2e_latency_bucket%5B$PERIOD%5D))%20by%20(le))" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
-    e2e_latency_ms_99th=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.99%2C%20sum(rate(e2e_latency_bucket%5B$PERIOD%5D))%20by%20(le))" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+  e2e_latency_ms_95th=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=histogram_quantile(0.95, sum(rate(e2e_latency_bucket[$PERIOD])) by (le))" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber | .*100 | round/100')
 
-    cat << EOF >> summary.md
+  e2e_latency_ms_99th=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=histogram_quantile(0.99, sum(rate(e2e_latency_bucket[$PERIOD])) by (le))" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber | .*100 | round/100')
+
+  cat << EOF >> summary.md
 
 ## Loadgen metrics
 
@@ -112,31 +158,67 @@ if [ $(terraform output -json emqtt_bench_nodes | jq length) -ge 1 ]; then
 | e2e_latency_ms_99th  | $e2e_latency_ms_99th |
 EOF
 
-    cat << EOF > "$TMPDIR/loadgen_metrics.json"
-    {
-      "e2e_latency_ms_95th": $e2e_latency_ms_95th,
-      "e2e_latency_ms_99th": $e2e_latency_ms_99th
-    }
+  cat << EOF > "$TMPDIR/loadgen_metrics.json"
+{
+  "e2e_latency_ms_95th": $e2e_latency_ms_95th,
+  "e2e_latency_ms_99th": $e2e_latency_ms_99th
+}
 EOF
 fi
 
 if [ $(terraform output -json emqttb_nodes | jq length) -ge 1 ]; then
-    e2e_latency_persistent_session_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_e2e_latency{group='persistent_session/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
-    e2e_latency_pubsub_fwd_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_e2e_latency{group='pubsub_fwd/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
-    e2e_latency_sub_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_e2e_latency{group='sub/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
-    e2e_latency_sub_flapping_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_e2e_latency{group='sub_flapping/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber|.*100|round/100')
+  # Latency queries
+  e2e_latency_persistent_session_sub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_e2e_latency{group='persistent_session/sub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber | .*100 | round/100')
 
-    published_messages_persistent_session_pub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_published_messages{group='persistent_session/pub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-    published_messages_pub_pub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_published_messages{group='pub/pub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-    published_messages_pubsub_fwd=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_published_messages{group='pubsub_fwd'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-    published_messages_pubsub_fwd_pub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_published_messages{group='pubsub_fwd/pub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+  e2e_latency_pubsub_fwd_sub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_e2e_latency{group='pubsub_fwd/sub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber | .*100 | round/100')
 
-    received_messages_persistent_session_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_received_messages{group='persistent_session/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-    received_messages_sub_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_received_messages{group='sub/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-    published_messages_pubsub_fwd_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_received_messages{group='pubsub_fwd/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-    published_messages_sub_flapping_sub=$(curl -gs "$PROMETHEUS_URL/api/v1/query?query=emqttb_received_messages{group='sub_flapping/sub'}" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+  e2e_latency_sub_sub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_e2e_latency{group='sub/sub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber | .*100 | round/100')
 
-    cat << EOF >> summary.md
+  e2e_latency_sub_flapping_sub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_e2e_latency{group='sub_flapping/sub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber | .*100 | round/100')
+
+  # Published messages queries
+  published_messages_persistent_session_pub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_published_messages{group='persistent_session/pub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber')
+
+  published_messages_pub_pub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_published_messages{group='pub/pub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber')
+
+  published_messages_pubsub_fwd=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_published_messages{group='pubsub_fwd'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber')
+
+  published_messages_pubsub_fwd_pub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_published_messages{group='pubsub_fwd/pub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber')
+
+  # Received messages queries
+  received_messages_persistent_session_sub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_received_messages{group='persistent_session/sub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber')
+
+  received_messages_sub_sub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_received_messages{group='sub/sub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber')
+
+  published_messages_pubsub_fwd_sub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_received_messages{group='pubsub_fwd/sub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber')
+
+  published_messages_sub_flapping_sub=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+    --data-urlencode "query=emqttb_received_messages{group='sub_flapping/sub'}" | \
+    jq -c '.data.result[0].value[1]? // empty | tonumber')
+
+  cat << EOF >> summary.md
 
 ## Loadgen metrics
 
