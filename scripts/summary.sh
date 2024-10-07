@@ -12,7 +12,6 @@ curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/m
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/metrics" > "$TMPDIR/metrics.json"
 curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/stats" > "$TMPDIR/stats.json"
 
-
 # cpu
 curl -s "$PROMETHEUS_URL/api/v1/query" \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -38,6 +37,10 @@ node_data=$(jq -s 'add | group_by(.host) | map(add)' "$TMPDIR/cpu.json" "$TMPDIR
 
 # emqx metrics
 emqx_connections=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "query=sum(emqx_connections_count)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+
+emqx_live_connections=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "query=sum(emqx_live_connections_count)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
 
@@ -65,18 +68,13 @@ emqx_messages_dropped=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "query=sum(emqx_messages_dropped)" | jq -c '.data.result[0].value[1]? // empty|tonumber')
 
-# emqx exporter metrics
-emqx_messages_input_period_second=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+received_msg_rate=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "query=emqx_messages_input_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
+  --data-urlencode "query=sum(rate(emqx_messages_received[$PERIOD]))" | jq -c '.data.result[0].value[1]? // empty | tonumber | .*100 | round/100')
 
-emqx_messages_output_period_second=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
+sent_msg_rate=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "query=emqx_messages_output_period_second" | jq -c '.data.result[0].value[1]? // empty|tonumber')
-
-emqx_cluster_cpu_load=$(curl -s "$PROMETHEUS_URL/api/v1/query" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "query=sum by(node) (emqx_cluster_cpu_load{load='load15'})" | jq -c '.data.result[0].value[1]? // empty|tonumber | .*100 | round/100')
+  --data-urlencode "query=sum(rate(emqx_messages_sent[$PERIOD]))" | jq -c '.data.result[0].value[1]? // empty | tonumber | .*100 | round/100')
 
 cat << EOF > summary.md
 # Benchmark '$(terraform output -raw bench_id)' summary
@@ -87,56 +85,39 @@ Using $(terraform output -raw spec_file)@$(git rev-parse --short HEAD) test spec
 
 $node_data
 
-## EMQX /monitor_current
+## EMQX metrics
 
 | Metric                        | Value |
 | ------                        | ----- |
-| connections                   | $(jq -r '.connections' "$TMPDIR/monitor_current.json") |
-| topics                        | $(jq -r '.topics' "$TMPDIR/monitor_current.json") |
-| subscriptions                 | $(jq -r '.subscriptions' "$TMPDIR/monitor_current.json") |
-| live_connections              | $(jq -r '.live_connections' "$TMPDIR/monitor_current.json") |
-| subscriptions_durable         | $(jq -r '.subscriptions_durable' "$TMPDIR/monitor_current.json") |
-| disconnected_durable_sessions | $(jq -r '.disconnected_durable_sessions' "$TMPDIR/monitor_current.json") |
-| subscriptions_ram             | $(jq -r '.subscriptions_ram' "$TMPDIR/monitor_current.json") |
-| retained_msg_count            | $(jq -r '.retained_msg_count' "$TMPDIR/monitor_current.json") |
-| shared_subscriptions          | $(jq -r '.shared_subscriptions' "$TMPDIR/monitor_current.json") |
-| dropped_msg_rate              | $(jq -r '.dropped_msg_rate' "$TMPDIR/monitor_current.json") |
-| persisted_rate                | $(jq -r '.persisted_rate' "$TMPDIR/monitor_current.json") |
-| received_msg_rate             | $(jq -r '.received_msg_rate' "$TMPDIR/monitor_current.json") |
-| sent_msg_rate                 | $(jq -r '.sent_msg_rate' "$TMPDIR/monitor_current.json") |
-| transformation_failed_rate    | $(jq -r '.transformation_failed_rate' "$TMPDIR/monitor_current.json") |
-| transformation_succeeded_rate | $(jq -r '.transformation_succeeded_rate' "$TMPDIR/monitor_current.json") |
-| validation_failed_rate        | $(jq -r '.validation_failed_rate' "$TMPDIR/monitor_current.json") |
-| validation_succeeded_rate     | $(jq -r '.validation_succeeded_rate' "$TMPDIR/monitor_current.json") |
-
-## EMQX Exporter
-
-| Metric                        | Value |
-| ------                        | ----- |
-| messages_input_period_second  | $emqx_messages_input_period_second |
-| messages_output_period_second | $emqx_messages_output_period_second |
-| cluster_cpu_load              | $emqx_cluster_cpu_load |
-| connections                   | $emqx_connections |
 | messages_received             | $emqx_messages_received |
 | messages_sent                 | $emqx_messages_sent |
 | messages_acked                | $emqx_messages_acked |
 | messages_publish              | $emqx_messages_publish |
 | messages_delivered            | $emqx_messages_delivered |
 | messages_dropped              | $emqx_messages_dropped |
+| connections                   | $emqx_connections |
+| live_connections              | $emqx_live_connections |
+
+## EMQX aggregated metrics
+
+| Metric                        | Value |
+| ------                        | ----- |
+| received_msg_rate             | $received_msg_rate |
+| sent_msg_rate                 | $sent_msg_rate |
 EOF
 
-cat << EOF > "$TMPDIR/emqx_exporter_metrics.json"
+cat << EOF > "$TMPDIR/emqx_metrics.json"
 {
-  "messages_input_period_second": $emqx_messages_input_period_second,
-  "messages_output_period_second": $emqx_messages_output_period_second,
-  "cluster_cpu_load": $emqx_cluster_cpu_load,
-  "connections": $emqx_connections,
   "messages_received": $emqx_messages_received,
   "messages_sent": $emqx_messages_sent,
   "messages_acked": $emqx_messages_acked,
   "messages_publish": $emqx_messages_publish,
   "messages_delivered": $emqx_messages_delivered,
-  "messages_dropped": $emqx_messages_dropped
+  "messages_dropped": $emqx_messages_dropped,
+  "connections": $emqx_connections,
+  "live_connections": $emqx_live_connections,
+  "received_msg_rate": $received_msg_rate,
+  "sent_msg_rate": $sent_msg_rate
 }
 EOF
 
