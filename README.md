@@ -252,7 +252,7 @@ preserving permissions:
 
 ```sh
 cd prometheus_snapshots
-tar -xvpf 20241007T164452Z-11cc51d6d14856dd.tar.bz2
+tar -xvpf 20241007T164452Z-11cc51d6d14856dd.tar.gz
 ```
 
 It contains a docker compose manifest that spins up grafana and prometheus to serve
