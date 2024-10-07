@@ -1,0 +1,7 @@
+---
+
+- hosts: monitoring[0]
+  roles:
+    - prometheus_snapshot
+
+...

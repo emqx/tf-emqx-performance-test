@@ -1,29 +1,11 @@
 services:
-  loki:
-    image: grafana/loki:3.0.0
-    user: 10001:10001
-    command:
-      - '-config.file=/etc/loki/config.yaml'
-      - '-target=all'
-    ports:
-      - 3100:3100
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3100/ready"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-    volumes:
-      - ./loki.yaml:/etc/loki/config.yaml
-      - ./loki-data:/loki
-
   prometheus:
     image: prom/prometheus:v2.47.0
-    container_name: prometheus
+    # container_name: prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/data'
       - '--web.enable-admin-api'
+      - '--storage.tsdb.retention.time=10y'
     ports:
       - 9090:9090
     restart: unless-stopped
@@ -33,24 +15,12 @@ services:
       timeout: 10s
       retries: 10
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./data:/data
-
-  pushgateway:
-    image: prom/pushgateway:v1.9.0
-    container_name: pushgateway
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9091/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-    ports:
-      - 9091:9091
-    restart: unless-stopped
+      - ./prometheus.yml:/prometheus/prometheus.yml:ro
 
   grafana:
     image: grafana/grafana:11.1.0
-    container_name: grafana
+    # container_name: grafana
     ports:
       - 3000:3000
     restart: unless-stopped
