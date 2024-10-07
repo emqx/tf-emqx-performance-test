@@ -76,8 +76,8 @@
 - name: Archive snapshot
   community.general.archive:
     path: "{{ stage_dir }}"
-    dest: "/opt/monitoring/{{ _snapshot_res.json.data.name }}.tar.bz2"
-    format: bz2
+    dest: "/opt/monitoring/{{ _snapshot_res.json.data.name }}.tar.gz"
+    format: gz
 
 - name: Create local snapshot dir
   ansible.builtin.file:
@@ -87,8 +87,8 @@
 
 - name: Fetch snapshot
   ansible.builtin.fetch:
-    src: "/opt/monitoring/{{ _snapshot_res.json.data.name }}.tar.bz2"
-    dest: "../prometheus_snapshots/{{ _snapshot_res.json.data.name }}.tar.bz2"
+    src: "/opt/monitoring/{{ _snapshot_res.json.data.name }}.tar.gz"
+    dest: "../prometheus_snapshots/{{ _snapshot_res.json.data.name }}.tar.gz"
     flat: true
 
 - name: Remove temporary stage
