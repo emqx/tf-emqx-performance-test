@@ -21,5 +21,5 @@ loadgens:
       scenario: "sub --prefix sub_ --shortids --topic t/%%i --qos 2 --count 10000 --connrate 1000 --payload-hdrs=ts --prometheus --restapi 9090"
       instance_type: c7i.large
     - type: emqtt_bench
-      scenario: "pub --prefix pub_ --shortids --wait-before-publishing --topic t/%%i --qos 2 --size 1024 --interval_of_msg 1000 --count 10000 --connrate 1000 --payload-hdrs=ts --prometheus --restapi 9090"
+      scenario: "pub --prefix pub_ --shortids --wait-before-publishing --topic t/%%i --qos 2 --size 1024 --interval_of_msg 1000 --count 10000 --limit 6000000 --connrate 1000 --payload-hdrs=ts --prometheus --restapi 9090"
       instance_type: c7i.large
