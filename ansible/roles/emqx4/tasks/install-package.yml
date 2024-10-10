@@ -103,10 +103,31 @@
   retries: 12
   delay: 5
 
+- name: Resolve license file path
+  when: emqx_license_file != ''
+  become: no
+  delegate_to: localhost
+  stat:
+    path: "{{ emqx_license_file }}"
+  register: _emqx_license_file
+
+- debug:
+    var: _emqx_license_file
+
+- name: Set license file fact (absolute)
+  when: emqx_license_file != '' and _emqx_license_file.stat.exists
+  set_fact:
+    emqx_license_file_resolved: "{{ emqx_license_file }}"
+
+- name: Set license file fact (absolute)
+  when: emqx_license_file != '' and not _emqx_license_file.stat.exists
+  set_fact:
+    emqx_license_file_resolved: "{{ playbook_dir }}/../{{ emqx_license_file }}"
+
 - name: Deploy license file
   when: emqx_license_file != ''
   ansible.builtin.copy:
-    src: "{{ emqx_license_file }}"
+    src: "{{ emqx_license_file_resolved }}"
     dest: /tmp/emqx.lic
     mode: '0644'
   
