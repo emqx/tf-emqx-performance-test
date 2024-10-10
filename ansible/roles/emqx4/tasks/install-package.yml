@@ -119,7 +119,7 @@
   set_fact:
     emqx_license_file_resolved: "{{ emqx_license_file }}"
 
-- name: Set license file fact (absolute)
+- name: Set license file fact (relative)
   when: emqx_license_file != '' and not _emqx_license_file.stat.exists
   set_fact:
     emqx_license_file_resolved: "{{ playbook_dir }}/../{{ emqx_license_file }}"
