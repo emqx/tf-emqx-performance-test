@@ -128,12 +128,12 @@ locals {
   ]...)
 
   # integrations
-  integration_region             = try(local.spec.integration.region, local.region)
-  integration_ami_filter         = try(local.spec.integration.ami_filter, local.ami_filter)
-  integration_ami_owner          = try(local.spec.integration.ami_owner, local.ami_owner)
-  integration_remote_user        = try(local.spec.integration.remote_user, local.remote_user)
-  integration_instance_type      = try(local.spec.integration.instance_type, local.instance_type)
-  integration_use_spot_instances = try(local.spec.integration.use_spot_instances, local.use_spot_instances)
+  integration_region             = try(local.spec.integrations.region, local.region)
+  integration_ami_filter         = try(local.spec.integrations.ami_filter, local.ami_filter)
+  integration_ami_owner          = try(local.spec.integrations.ami_owner, local.ami_owner)
+  integration_remote_user        = try(local.spec.integrations.remote_user, local.remote_user)
+  integration_instance_type      = try(local.spec.integrations.instance_type, local.instance_type)
+  integration_use_spot_instances = try(local.spec.integrations.use_spot_instances, local.use_spot_instances)
 
   integration_nodes_pre = flatten([
     for node in try(local.spec.integrations.nodes, []) : [
@@ -151,7 +151,7 @@ locals {
   ])
 
   integration_nodes_map = {
-    for integration in local.integration_nodes_pre : integration.type => integration...
+    for node in local.integration_nodes_pre : node.type => node...
   }
 
   integration_nodes = merge([
