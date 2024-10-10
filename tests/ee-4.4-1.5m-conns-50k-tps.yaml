@@ -1,0 +1,30 @@
+id: ee44
+region: eu-north-1
+use_spot_instances: false
+emqx:
+  instance_type: m6g.16xlarge 
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  version_family: 4
+  license_file: emqx-enterprise.lic
+  dashboard_default_password: admin
+  nodes:
+    - instance_count: 3
+
+loadgens:
+  instance_type: m7i.16xlarge
+  nodes:
+    - type: emqtt_bench
+      scenario: "pub --prefix pub_ --shortids --count 500000 --connrate 1000 --interval_of_msg 30000 --topic t/%%i --qos 1 --prometheus --restapi 9090 --wait-before-publishing --prefix a --startnumber 0"
+      ip_aliases: 9
+    - type: emqtt_bench
+      scenario: "pub --prefix pub_ --shortids --count 500000 --connrate 1000 --interval_of_msg 30000 --topic t/%%i --qos 1 --prometheus --restapi 9090 --wait-before-publishing --prefix a --startnumber 500000"
+      ip_aliases: 9
+    - type: emqtt_bench
+      scenario: "pub --prefix pub_ --shortids --count 500000 --connrate 1000 --interval_of_msg 30000 --topic t/%%i --qos 1 --prometheus --restapi 9090 --wait-before-publishing --prefix a --startnumber 1000000"
+      ip_aliases: 9
+
+integrations:
+  instance_type: m7i.xlarge
+  nodes:
+    - type: http
+      instance_count: 1
