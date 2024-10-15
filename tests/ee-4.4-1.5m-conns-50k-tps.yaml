@@ -2,7 +2,7 @@ id: ee44
 region: eu-north-1
 use_spot_instances: false
 emqx:
-  instance_type: m6g.16xlarge 
+  instance_type: m6g.16xlarge
   ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
   version_family: 4
   license_file: emqx-enterprise.lic
@@ -14,21 +14,21 @@ emqx:
     - EMQX_LISTENER__SSL__EXTERNAL__VERIFY: verify_peer
     - EMQX_LISTENER__SSL__EXTERNAL__FAIL_IF_NO_PEER_CERT: "true"
   nodes:
-    - instance_count: 4
+    - instance_count: 3
 
 loadgens:
   instance_type: m7i.4xlarge
   nodes:
     - type: emqtt_bench
-      scenario: "sub --prefix sub_ --shortids --count 150000 --connrate 1000 --topic t/%%i --qos 1 --ssl --certfile /etc/ssl/certs/emqx/client-bundle.pem --keyfile /etc/ssl/certs/emqx/client-key.pem --prometheus --restapi 9090 -p 8883 -V 4 --reconnect 1000"
+      scenario: "sub --prefix sub_ --shortids --count 125000 --connrate 1000 --topic t/%%i --qos 1 --ssl --certfile /etc/ssl/certs/emqx/client-bundle.pem --keyfile /etc/ssl/certs/emqx/client-key.pem --prometheus --restapi 9090 -p 8883 -V 4 --reconnect 1000"
       ip_aliases: 2
-      start_n_multiplier: 150000
-      instance_count: 5
+      start_n_multiplier: 125000
+      instance_count: 6
     - type: emqtt_bench
-      scenario: "pub --prefix pub_ --shortids --count 150000 --connrate 1000 --interval_of_msg 30000 --topic t/%%i --qos 1 --ssl --certfile /etc/ssl/certs/emqx/client-bundle.pem --keyfile /etc/ssl/certs/emqx/client-key.pem --prometheus --restapi 9090 --wait-before-publishing -p 8883 -V 4 --reconnect 1000"
+      scenario: "pub --prefix pub_ --shortids --count 125000 --connrate 1000 --interval_of_msg 15000 --topic t/%%i --qos 1 --ssl --certfile /etc/ssl/certs/emqx/client-bundle.pem --keyfile /etc/ssl/certs/emqx/client-key.pem --prometheus --restapi 9090 --wait-before-publishing -p 8883 -V 4 --reconnect 1000"
       ip_aliases: 2
-      start_n_multiplier: 150000
-      instance_count: 5
+      start_n_multiplier: 125000
+      instance_count: 6
 
 # integrations:
 #   instance_type: m7i.xlarge
