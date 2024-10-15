@@ -1,4 +1,5 @@
 emqx_version_family: "5"
+emqx_dashboard_default_password: "public"
 home_dir: /opt/monitoring
 
 prometheus_config_dir: /etc/prometheus
@@ -43,6 +44,9 @@ prometheus_scrape_configs:
         labels:
           cluster: perftest
           from: emqx
+    basic_auth:
+      username: admin
+      password: "{{ emqx_dashboard_default_password }}"
     relabel_configs:
       - source_labels: [ "__address__" ]
         target_label: "instance"
