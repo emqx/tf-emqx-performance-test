@@ -4,3 +4,4 @@ emqx_package_file_path: ''
 emqx_cluster_discovery: 'manual' # manual | static | dns | etcd | k8s
 emqx_prometheus_push_gateway_server: ''
 emqx_license_file: ''
+emqx_env_override: []
