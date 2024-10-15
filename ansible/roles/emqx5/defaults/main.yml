@@ -19,3 +19,4 @@ emqx_durable_sessions_enabled: false
 emqx_data_dir: /var/lib/emqx
 emqx_license: ''
 emqx_edition: emqx # emqx-enterprise
+emqx_env_override: []

@@ -82,8 +82,6 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_cluster_dns_record_type         = try(local.spec.emqx.cluster_dns_record_type, "srv")
     emqx_prometheus_enabled              = try(local.spec.emqx.prometheus_enabled, false)
     emqx_prometheus_push_gateway_server  = "http://${local.monitoring_hostname}:9091"
-    emqx_log_console_handler_level       = try(local.spec.emqx.log_console_handler_level, "info")
-    emqx_log_file_handlers_default_level = try(local.spec.emqx.log_file_handlers_default_level, "info")
     emqx_api_key                         = try(local.spec.emqx.api_key, "perftest")
     emqx_api_secret                      = try(local.spec.emqx.api_secret, "perftest")
     emqx_bootstrap_api_keys = [
@@ -99,23 +97,9 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_dashboard_default_password = local.emqx_dashboard_default_password
     emqx_env_override               = local.emqx_env_override
     emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
-    emqx_durable_sessions_enabled   = try(local.spec.emqx.durable_sessions_enabled, false)
     emqx_enable_perf                = try(local.spec.emqx.enable_perf, false)
     },
-    try({ emqx_durable_sessions_batch_size = local.spec.emqx.durable_sessions_batch_size }, {}),
-    try({ emqx_durable_sessions_idle_poll_interval = local.spec.emqx.durable_sessions_idle_poll_interval }, {}),
-    try({ emqx_durable_sessions_heartbeat_interval = local.spec.emqx.durable_sessions_heartbeat_interval }, {}),
-    try({ emqx_durable_sessions_renew_streams_interval = local.spec.emqx.durable_sessions_renew_streams_interval }, {}),
-    try({ emqx_durable_sessions_gc_interval = local.spec.emqx.durable_sessions_gc_interval }, {}),
-    try({ emqx_durable_sessions_gc_batch_size = local.spec.emqx.durable_sessions_gc_batch_size }, {}),
-    try({ emqx_durable_sessions_message_retention_period = local.spec.emqx.durable_sessions_message_retention_period }, {}),
-    try({ emqx_durable_sessions_force_persistence = local.spec.emqx.durable_sessions_force_persistence }, {}),
-    try({ emqx_durable_storage_backend = local.spec.emqx.durable_storage_backend }, {}),
-    try({ emqx_durable_storage_storage_layout = local.spec.emqx.durable_storage_storage_layout }, {}),
     try({ emqx_durable_storage_data_dir = local.spec.emqx.durable_storage_data_dir }, {}),
-    try({ emqx_durable_storage_n_shards = local.spec.emqx.durable_storage_n_shards }, {}),
-    try({ emqx_durable_storage_n_sites = local.spec.emqx.durable_storage_n_sites }, {}),
-    try({ emqx_durable_storage_replication_factor = local.spec.emqx.durable_storage_replication_factor }, {}),
     local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {}
   ))
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
