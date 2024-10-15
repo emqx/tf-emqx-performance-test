@@ -70,3 +70,17 @@
     dest: /etc/systemd/system/emqx.service.d/override.conf
     mode: '0644'
   register: _override
+
+- name: Copy certificates
+  become: yes
+  ansible.builtin.copy:
+    src: "/etc/ssl/certs/emqx/{{ item }}"
+    dest: "/etc/emqx/certs/"
+    remote_src: yes
+    mode: '0644'
+  with_items:
+    - "cacert.pem"
+    - "cert.pem"
+    - "key.pem"
+    - "client-cert.pem"
+    - "client-key.pem"

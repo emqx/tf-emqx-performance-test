@@ -45,6 +45,20 @@
     state: present
     update_cache: yes
 
+- name: Copy certificates
+  become: yes
+  ansible.builtin.copy:
+    src: "/etc/ssl/certs/emqx/{{ item }}"
+    dest: "/etc/emqx/certs/"
+    remote_src: yes
+    mode: '0644'
+  with_items:
+    - "cacert.pem"
+    - "cert.pem"
+    - "key.pem"
+    - "client-cert.pem"
+    - "client-key.pem"
+
 - name: Render environment overrides
   become: yes
   ansible.builtin.template:

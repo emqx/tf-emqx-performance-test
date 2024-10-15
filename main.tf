@@ -40,6 +40,7 @@ module "emqx" {
   prefix             = local.prefix
   region_aliases     = local.region_aliases
   route53_zone_id    = aws_route53_zone.vpc.zone_id
+  certs              = module.certs.certs
   providers = {
     aws.default = aws.default
     aws.region2 = aws.region2
@@ -126,6 +127,7 @@ module "loadgen" {
   prefix             = local.prefix
   region_aliases     = local.region_aliases
   route53_zone_id    = aws_route53_zone.vpc.zone_id
+  certs              = module.certs.certs
   providers = {
     aws.default = aws.default
     aws.region2 = aws.region2
@@ -163,6 +165,7 @@ module "integration" {
   prefix             = local.prefix
   region_aliases     = local.region_aliases
   route53_zone_id    = aws_route53_zone.vpc.zone_id
+  certs              = module.certs.certs
   providers = {
     aws.default = aws.default
     aws.region2 = aws.region2
@@ -205,6 +208,7 @@ module "monitoring" {
   prefix             = local.prefix
   region_aliases     = local.region_aliases
   route53_zone_id    = aws_route53_zone.vpc.zone_id
+  certs              = module.certs.certs
   providers = {
     aws.default = aws.default
     aws.region2 = aws.region2
@@ -233,5 +237,10 @@ resource "aws_lb_target_group_attachment" "prometheus" {
 }
 
 module "certs" {
+  source = "./modules/certs"
+  subject = {
+    cn = "emqx"
+    o  = "EMQ Technologies"
+    c  = "SE"
   }
 }
