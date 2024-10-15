@@ -25,7 +25,7 @@ loadgens:
       start_n_multiplier: 125000
       instance_count: 6
     - type: emqtt_bench
-      scenario: "pub --prefix pub_ --shortids --count 125000 --connrate 1000 --interval_of_msg 15000 --topic t/%%i --qos 1 --ssl --certfile /etc/ssl/certs/emqx/client-bundle.pem --keyfile /etc/ssl/certs/emqx/client-key.pem --prometheus --restapi 9090 --wait-before-publishing -p 8883 -V 4 --reconnect 1000"
+      scenario: "pub --prefix pub_ --shortids --count 125000 --connrate 1000 --interval_of_msg 15000 --topic t/%%i --qos 1 --size 1024 --ssl --certfile /etc/ssl/certs/emqx/client-bundle.pem --keyfile /etc/ssl/certs/emqx/client-key.pem --prometheus --restapi 9090 --wait-before-publishing -p 8883 -V 4 --reconnect 1000"
       ip_aliases: 2
       start_n_multiplier: 125000
       instance_count: 6
