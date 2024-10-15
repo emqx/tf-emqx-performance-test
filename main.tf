@@ -239,7 +239,7 @@ resource "aws_lb_target_group_attachment" "prometheus" {
 module "certs" {
   source = "./modules/certs"
   subject = {
-    cn = "emqx"
+    cn = "EMQX"
     o  = "EMQ Technologies"
     c  = "SE"
   }

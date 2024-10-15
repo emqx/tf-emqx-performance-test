@@ -82,3 +82,8 @@ output "ssh_key_path" {
   description = "SSH key path"
   value       = local.ssh_key_path
 }
+
+output "emqx_version_family" {
+  description = "EMQX version family, 4 or 5"
+  value       = local.emqx_version_family
+}
