@@ -121,3 +121,14 @@ variable "data_volume_device_list" {
     "/dev/sdu", "/dev/sdv", "/dev/sdw",
   "/dev/sdx", "/dev/sdy", "/dev/sdz"]
 }
+
+variable "certs" {
+  description = "Certificates"
+  type = object({
+    ca          = string
+    server_cert = string
+    server_key  = string
+    client_cert = string
+    client_key  = string
+  })
+}

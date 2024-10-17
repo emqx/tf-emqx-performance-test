@@ -2,29 +2,36 @@ id: ee44
 region: eu-north-1
 use_spot_instances: false
 emqx:
-  instance_type: m6g.16xlarge 
+  instance_type: m6g.16xlarge
   ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
   version_family: 4
   license_file: emqx-enterprise.lic
   dashboard_default_password: admin
+  env_override:
+    - EMQX_LISTENER__SSL__EXTERNAL__ACCEPTORS: 64
+    - EMQX_LISTENER__SSL__EXTERNAL__MAX_CONNECTIONS: 1000000
+    - EMQX_LISTENER__SSL__EXTERNAL__MAX_CONN_RATE: 5000
+    - EMQX_LISTENER__SSL__EXTERNAL__VERIFY: verify_peer
+    - EMQX_LISTENER__SSL__EXTERNAL__FAIL_IF_NO_PEER_CERT: "true"
   nodes:
     - instance_count: 3
 
 loadgens:
-  instance_type: m7i.16xlarge
+  instance_type: m7i.4xlarge
   nodes:
     - type: emqtt_bench
-      scenario: "pub --prefix pub_ --shortids --count 500000 --connrate 1000 --interval_of_msg 30000 --topic t/%%i --qos 1 --prometheus --restapi 9090 --wait-before-publishing --prefix a --startnumber 0"
-      ip_aliases: 9
+      scenario: "sub --prefix sub_ --shortids --count 125000 --connrate 1000 --topic t/%%i --qos 1 --ssl --certfile /etc/ssl/certs/emqx/client-bundle.pem --keyfile /etc/ssl/certs/emqx/client-key.pem --prometheus --restapi 9090 -p 8883 -V 4 --reconnect 1000"
+      ip_aliases: 2
+      start_n_multiplier: 125000
+      instance_count: 6
     - type: emqtt_bench
-      scenario: "pub --prefix pub_ --shortids --count 500000 --connrate 1000 --interval_of_msg 30000 --topic t/%%i --qos 1 --prometheus --restapi 9090 --wait-before-publishing --prefix a --startnumber 500000"
-      ip_aliases: 9
-    - type: emqtt_bench
-      scenario: "pub --prefix pub_ --shortids --count 500000 --connrate 1000 --interval_of_msg 30000 --topic t/%%i --qos 1 --prometheus --restapi 9090 --wait-before-publishing --prefix a --startnumber 1000000"
-      ip_aliases: 9
+      scenario: "pub --prefix pub_ --shortids --count 125000 --connrate 1000 --interval_of_msg 15000 --topic t/%%i --qos 1 --size 1024 --min-random-wait 1000 --max-random-wait 2000 --ssl --certfile /etc/ssl/certs/emqx/client-bundle.pem --keyfile /etc/ssl/certs/emqx/client-key.pem --prometheus --restapi 9090 --wait-before-publishing -p 8883 -V 4 --reconnect 1000"
+      ip_aliases: 2
+      start_n_multiplier: 125000
+      instance_count: 6
 
-integrations:
-  instance_type: m7i.xlarge
-  nodes:
-    - type: http
-      instance_count: 1
+# integrations:
+#   instance_type: m7i.xlarge
+#   nodes:
+#     - type: http
+#       instance_count: 1

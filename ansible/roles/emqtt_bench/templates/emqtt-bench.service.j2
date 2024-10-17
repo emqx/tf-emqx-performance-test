@@ -3,8 +3,10 @@ Description=EMQTT bench
 After=network.target
 
 [Service]
+User=loadgen
+Group=loadgen
 WorkingDirectory={{ emqtt_bench_options.home_dir }}
-ExecStart=:{{ emqtt_bench_options.home_dir }}/bin/emqtt_bench {{ loadgen_scenario }} -h {{ loadgen_targets | join(',') }} --ifaddr {{ available_ip_addresses | join(',') }}
+ExecStart=:{{ emqtt_bench_options.home_dir }}/bin/emqtt_bench {{ loadgen_scenario }} -h {{ loadgen_targets | join(',') }} --ifaddr {{ available_ip_addresses | join(',') }} --startnumber {{ loadgen_startnumber }}
 LimitNOFILE=2097152
 Restart=on-failure
 

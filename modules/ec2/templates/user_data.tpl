@@ -127,6 +127,16 @@ ulimit -n 2097152
 
 [ -n "${hostname}" ] && hostnamectl set-hostname ${hostname}
 
+mkdir -p /etc/ssl/certs/emqx
+echo "${certs.ca}" > /etc/ssl/certs/emqx/cacert.pem
+echo "${certs.server_cert}" > /etc/ssl/certs/emqx/cert.pem
+echo "${certs.server_key}" > /etc/ssl/certs/emqx/key.pem
+echo "${certs.client_cert}" > /etc/ssl/certs/emqx/client-cert.pem
+echo "${certs.client_key}" > /etc/ssl/certs/emqx/client-key.pem
+# create bundles
+cat /etc/ssl/certs/emqx/cert.pem /etc/ssl/certs/emqx/cacert.pem > /etc/ssl/certs/emqx/server-bundle.pem
+cat /etc/ssl/certs/emqx/client-cert.pem /etc/ssl/certs/emqx/cacert.pem > /etc/ssl/certs/emqx/client-bundle.pem
+
 ${extra}
 
 touch /opt/tf_init_done

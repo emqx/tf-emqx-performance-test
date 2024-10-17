@@ -97,6 +97,7 @@ resource "aws_instance" "default" {
       extra    = var.extra_user_data
       hostname = var.hostname
       volumes  = concat(var.instance_volumes, var.extra_volumes)
+      certs    = var.certs
   })
 
   tags = {
@@ -162,6 +163,7 @@ resource "aws_instance" "region2" {
       extra    = var.extra_user_data
       hostname = var.hostname
       volumes  = concat(var.instance_volumes, var.extra_volumes)
+      certs    = var.certs
   })
 
   tags = {
@@ -226,6 +228,7 @@ resource "aws_instance" "region3" {
       extra    = var.extra_user_data
       hostname = var.hostname
       volumes  = concat(var.instance_volumes, var.extra_volumes)
+      certs    = var.certs
   })
 
   tags = {

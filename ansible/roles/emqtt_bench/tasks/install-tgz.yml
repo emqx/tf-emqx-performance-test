@@ -39,7 +39,7 @@
 - name: Create emqtt-bench system user
   become: yes
   ansible.builtin.user:
-    name: emqtt-bench
+    name: loadgen
     shell: /bin/bash
     system: yes
     createhome: yes

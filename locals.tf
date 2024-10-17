@@ -46,6 +46,7 @@ locals {
   emqx_extra_volumes              = try(local.spec.emqx.extra_volumes, [])
   emqx_instance_volumes           = try(local.spec.emqx.instance_volumes, [])
   emqx_cluster_dns_name           = "emqx-cluster.${local.route53_zone_name}"
+  emqx_env_override               = try(local.spec.emqx.env_override, [])
 
   emqx_nodes_pre = flatten([
     for node in try(local.spec.emqx.nodes, []) : [
@@ -109,6 +110,7 @@ locals {
         version              = try(node.version, local.loadgen_version)
         package_download_url = try(node.package_download_url, local.loadgen_package_download_url)
         package_file_path    = try(node.package_file_path, local.loadgen_package_file_path)
+        startnumber          = i * try(node.start_n_multiplier, 0)
       }
     ]
   ])

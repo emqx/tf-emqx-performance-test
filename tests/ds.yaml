@@ -7,7 +7,8 @@ emqx:
   license_file: emqx5.lic
   dashboard_default_password: admin
   data_dir: /data/emqx
-  durable_sessions_enabled: true
+  env_override:
+    - EMQX_durable_sessions__enable: 'true'
   extra_volumes:
     - mount_point: /data
       volume_size: 30

@@ -6,11 +6,12 @@ emqx:
   edition: emqx-enterprise
   license_file: emqx5.lic
   dashboard_default_password: admin
-  durable_sessions_enabled: true
   durable_storage_data_dir: /data/emqx
-  durable_storage_n_sites: 3
-  durable_storage_replication_factor: 3
-  durable_storage_n_shards: 12
+  env_override:
+  - EMQX_durable_sessions__enable: true
+  - EMQX_durable_storage__n_sites: 3
+  - EMQX_durable_storage__replication_factor: 3
+  - EMQX_durable_storage__n_shards: 12
   extra_volumes:
     - mount_point: /data
       volume_size: 30

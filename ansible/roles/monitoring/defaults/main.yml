@@ -1,4 +1,5 @@
 emqx_version_family: "5"
+emqx_dashboard_default_password: "public"
 home_dir: /opt/monitoring
 
 prometheus_config_dir: /etc/prometheus
@@ -35,7 +36,9 @@ prometheus_scrape_configs:
       - targets:
         - "pushgateway:9091"
   - job_name: 'emqx'
-    metrics_path: "{{ (emqx_version_family == 5) | ternary('/api/v5/prometheus/stats', '/api/v4/emqx_prometheus?type=prometheus') }}"
+    metrics_path: "{{ (emqx_version_family == 5) | ternary('/api/v5/prometheus/stats', '/api/v4/emqx_prometheus') }}"
+    params:
+      type: ['prometheus']
     scrape_interval: 1s
     honor_labels: true
     static_configs:
@@ -43,6 +46,9 @@ prometheus_scrape_configs:
         labels:
           cluster: perftest
           from: emqx
+    basic_auth:
+      username: admin
+      password: "{{ emqx_dashboard_default_password }}"
     relabel_configs:
       - source_labels: [ "__address__" ]
         target_label: "instance"
