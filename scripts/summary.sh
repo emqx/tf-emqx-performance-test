@@ -6,12 +6,27 @@ TMPDIR=${TMPDIR:-$(mktemp -d)}
 PROMETHEUS_URL=${PROMETHEUS_URL:-$(terraform output -raw prometheus_url)}
 EMQX_API_URL=${EMQX_API_URL:-$(terraform output -raw emqx_dashboard_url)}
 EMQX_VERSION_FAMILY=${EMQX_VERSION_FAMILY:-$(terraform output -raw emqx_version_family)}
+EMQX_DASHBOARD_CREDENTIALS=${EMQX_DASHBOARD_CREDENTIALS:-$(terraform output -raw emqx_dashboard_credentials)}
 PERIOD=${PERIOD:-5m}
 
+DASHBOARD_USER=$(echo $EMQX_DASHBOARD_CREDENTIALS | cut -d: -f1)
+DASHBOARD_PASS=$(echo $EMQX_DASHBOARD_CREDENTIALS | cut -d: -f2)
+LOGIN_PAYLOAD=$(cat <<EOF
+{
+  "username": "$DASHBOARD_USER",
+  "password": "$DASHBOARD_PASS"
+}
+EOF
+)
+# call /login to get version
+curl -s -H 'content-type: application/json' -d "${LOGIN_PAYLOAD}" "$EMQX_API_URL/api/v5/login" > "$TMPDIR/login.json"
+EMQX_VERSION=$(jq -r '.version' "$TMPDIR/login.json")
+TOKEN=$(jq -r '.token' "$TMPDIR/login.json")
+
 # save emqx metrics
-curl -s -u perftest:perftest "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/monitor_current.json"
-curl -s -u perftest:perftest "$EMQX_API_URL/api/v${EMQX_VERSION_FAMILY}/metrics" > "$TMPDIR/metrics.json"
-curl -s -u perftest:perftest "$EMQX_API_URL/api/v${EMQX_VERSION_FAMILY}/stats" > "$TMPDIR/stats.json"
+curl -s -H "Authorization: Bearer $TOKEN" "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/monitor_current.json"
+curl -s -H "Authorization: Bearer $TOKEN" "$EMQX_API_URL/api/v${EMQX_VERSION_FAMILY}/metrics" > "$TMPDIR/metrics.json"
+curl -s -H "Authorization: Bearer $TOKEN" "$EMQX_API_URL/api/v${EMQX_VERSION_FAMILY}/stats" > "$TMPDIR/stats.json"
 
 # cpu
 curl -s "$PROMETHEUS_URL/api/v1/query" \
@@ -81,6 +96,8 @@ cat << EOF > summary.md
 # Benchmark '$(terraform output -raw bench_id)' summary
 
 Using $(terraform output -raw spec_file)@$(git rev-parse --short HEAD) test spec.
+
+EMQX version: $EMQX_VERSION
 
 ## Nodes
 
