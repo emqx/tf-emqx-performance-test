@@ -17,3 +17,8 @@ variable "public_key" {
 variable "provider_alias" {
   type = string
 }
+
+variable "enable_ipv6" {
+  type    = bool
+  default = false
+}

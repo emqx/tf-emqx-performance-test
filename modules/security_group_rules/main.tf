@@ -26,6 +26,7 @@ resource "aws_security_group_rule" "allow_all_ipv4" {
 }
 
 resource "aws_security_group_rule" "allow_all_ipv6" {
+  count             = var.enable_ipv6 ? 1 : 0
   type              = "ingress"
   security_group_id = var.security_group_id
   ipv6_cidr_blocks  = ["::/0"]
