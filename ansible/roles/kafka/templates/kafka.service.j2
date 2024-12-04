@@ -1,0 +1,13 @@
+[Unit]
+Description=Kafka
+After=network.target
+
+[Service]
+User=kafka
+Group=kafka
+Environment=CLASSPATH=.:/opt/kafka/libs/*
+ExecStart=/bin/java -cp $CLASSPATH -Dkafka.logs.dir=/var/log/kafka -Dlog4j.configuration=file:/etc/kafka/log4j.properties kafka.Kafka /etc/kafka/server.properties
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
