@@ -2,4 +2,5 @@
   pre_tasks:
     - include_tasks: common.yml
   roles:
+    - docker
     - monitoring

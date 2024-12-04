@@ -1,0 +1,122 @@
+- name: Install Java
+  become: yes
+  ansible.builtin.package:
+    name:
+      - openjdk-19-jre
+    state: present
+  tags: java
+
+- name: Create kafka system user
+  become: yes
+  ansible.builtin.user:
+    name: kafka
+    shell: /bin/bash
+    system: yes
+    createhome: yes
+    home: "{{ kafka_log_dirs }}"
+
+- name: Download kafka binaries
+  ansible.builtin.get_url:
+    url: "{{ kafka_download_url }}"
+    dest: /tmp/kafka.tgz
+    mode: '0644'
+
+- name: Unarchive kafka to /opt/
+  become: yes
+  ansible.builtin.unarchive:
+    src: /tmp/kafka.tgz
+    dest: /opt/
+    copy: no
+    mode: '0755'
+  register: kafka_unarchive
+
+- name: Create symlink to kafka
+  become: yes
+  ansible.builtin.file:
+    src: "/opt/kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
+    dest: "/opt/kafka"
+    state: link
+    force: yes
+
+- name: Ensure /etc/kafka directory exists
+  become: yes
+  ansible.builtin.file:
+    path: /etc/kafka
+    state: directory
+    mode: '0755'
+
+- name: Ensure /var/log/kafka
+  become: yes
+  ansible.builtin.file:
+    path: /var/log/kafka
+    state: directory
+    mode: '0755'
+    owner: kafka
+    group: kafka
+    
+- name: Render /etc/kafka/server.properties
+  become: yes
+  ansible.builtin.template:
+    src: server.properties.j2
+    dest: /etc/kafka/server.properties
+    mode: '0644'
+
+- name: Copy log4j.properties
+  become: yes
+  ansible.builtin.copy:
+    src: log4j.properties
+    dest: /etc/kafka/log4j.properties
+    mode: '0644'
+
+- name: Check if {{ kafka_log_dirs }}/meta.properties exists
+  become: yes
+  ansible.builtin.stat:
+    path: "{{ kafka_log_dirs }}/meta.properties"
+  register: meta_properties
+
+- name: Format log directories
+  when: meta_properties.stat.exists == false
+  become: yes
+  become_user: kafka
+  args:
+    chdir: /opt/kafka
+  ansible.builtin.shell: |
+    export KAFKA_CLUSTER_ID="$(bin/kafka-storage.sh random-uuid)"
+    bin/kafka-storage.sh format --standalone -t $KAFKA_CLUSTER_ID -c /etc/kafka/server.properties
+
+- name: Render kafka systemd unit file
+  become: yes
+  ansible.builtin.template:
+    src: kafka.service.j2
+    dest: /etc/systemd/system/kafka.service
+    mode: '0644'
+
+- name: Make sure there is no {{ kafka_log_dirs }}/.ansible
+  become: yes
+  ansible.builtin.file:
+    path: "{{ kafka_log_dirs }}/.ansible"
+    state: absent
+
+- name: Start kafka service
+  become: yes
+  ansible.builtin.systemd:
+    name: kafka
+    state: started
+    enabled: yes
+
+- name: Wait for kafka to start
+  become: yes
+  ansible.builtin.wait_for:
+    port: 9092
+    delay: 5
+    timeout: 60
+    state: started
+  ignore_errors: yes
+
+- name: Create kafka topics
+  become: yes
+  become_user: kafka
+  args:
+    chdir: /opt/kafka
+  ansible.builtin.command: bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic {{ item.name }} --partitions {{ item.partitions }} --replication-factor 1 --if-not-exists
+  loop: "{{ kafka_topics }}"

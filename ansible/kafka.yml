@@ -1,0 +1,5 @@
+- hosts: kafka
+  vars:
+    ansible_remote_tmp: /tmp
+  roles:
+    - kafka

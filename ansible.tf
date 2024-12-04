@@ -117,7 +117,7 @@ resource "local_file" "ansible_emqx_host_vars" {
 resource "local_file" "ansible_loadgen_group_vars" {
   count = length(module.loadgen) > 0 ? 1 : 0
   content = yamlencode(merge({
-    loadgen_targets = local.loadgen_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn]
+    loadgen_targets = local.loadgen_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn if node.attach_to_nlb ]
     },
     local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "${module.monitoring[0].fqdn}:3100" } : {},
     try({ emqttb_options = local.spec.loadgens.emqttb_options }, {}),
@@ -217,16 +217,6 @@ resource "terraform_data" "ansible_playbook_loadgen" {
     environment = {
       no_proxy = "*"
     }
-  }
-}
-
-resource "terraform_data" "ansible_playbook_tuning" {
-  depends_on = [
-    terraform_data.ansible_init,
-    local_file.ansible_common_group_vars
-  ]
-  provisioner "local-exec" {
-    command = "ansible-playbook ansible/tuning.yml"
   }
 }
 

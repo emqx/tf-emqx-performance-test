@@ -13,7 +13,7 @@ ExecStart=/bin/bash /usr/bin/emqx foreground
 ExecStop=/bin/bash -c '/usr/bin/emqx; exit 0'
 TimeoutStopSec=120s
 RestartSec=120s
-LimitNOFILE=1048576
+LimitNOFILE=20971520
 Restart=on-failure
 EnvironmentFile=-/etc/emqx/env
 

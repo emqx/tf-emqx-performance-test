@@ -43,6 +43,7 @@ module "vpc-default" {
   cidr           = local.vpc_subnets[local.region]["public"]["cidr"]
   prefix         = local.prefix
   public_key     = tls_private_key.pk.public_key_openssh
+  enable_ipv6    = local.enable_ipv6
   providers = {
     aws = aws.default
   }
@@ -56,6 +57,7 @@ module "vpc-region2" {
   cidr           = local.vpc_subnets[local.region2]["public"]["cidr"]
   prefix         = local.prefix
   public_key     = tls_private_key.pk.public_key_openssh
+  enable_ipv6    = local.enable_ipv6
   providers = {
     aws = aws.region2
   }
@@ -69,6 +71,7 @@ module "vpc-region3" {
   cidr           = local.vpc_subnets[local.region3]["public"]["cidr"]
   prefix         = local.prefix
   public_key     = tls_private_key.pk.public_key_openssh
+  enable_ipv6    = local.enable_ipv6
   providers = {
     aws = aws.region3
   }

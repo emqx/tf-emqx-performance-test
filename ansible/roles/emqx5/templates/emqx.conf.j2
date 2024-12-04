@@ -3,8 +3,8 @@ node {
   cookie = "{{ emqx_node_cookie | default('emqxperformancetest') }}"
   role = "{{ emqx_node_role | default('core') }}"
   data_dir = "{{ emqx_data_dir | default('/var/lib/emqx') }}"
-  process_limit = 2097152
-  max_ports = 2097152
+  process_limit = 2097152000
+  max_ports = 20971520
 }
 
 cluster {
@@ -41,11 +41,11 @@ listeners {
 
 log {
   console_handler {
-    level = "info"
+    level = "warning"
   }
   file_handlers {
     default {
-      level = "info"
+      level = "warning"
     }
   }
 }

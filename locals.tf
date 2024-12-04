@@ -12,6 +12,7 @@ locals {
   ami_owner          = try(local.spec.ami_owner, "amazon")
   remote_user        = try(local.spec.remote_user, "ubuntu")
   use_spot_instances = try(local.spec.use_spot_instances, true)
+  enable_ipv6        = try(local.spec.enable_ipv6, false)
 
   # collect all regions from spec
   regions = distinct(concat(

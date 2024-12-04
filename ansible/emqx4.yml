@@ -3,4 +3,3 @@
     - include_tasks: common.yml
   roles:
     - emqx4
-    - emqx_exporter
