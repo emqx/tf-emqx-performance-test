@@ -1,9 +1,0 @@
-- hosts: all:!monitoring
-  tasks:
-    - name: wait for /etc/sysctl.d/perftest.conf
-      wait_for:
-        path: /etc/sysctl.d/perftest.conf
-        timeout: 180
-    - name: load /etc/sysctl.d/perftest.conf
-      become: yes
-      command: sysctl --load /etc/sysctl.d/perftest.conf

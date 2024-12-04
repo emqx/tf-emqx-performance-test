@@ -220,16 +220,6 @@ resource "terraform_data" "ansible_playbook_loadgen" {
   }
 }
 
-resource "terraform_data" "ansible_playbook_tuning" {
-  depends_on = [
-    terraform_data.ansible_init,
-    local_file.ansible_common_group_vars
-  ]
-  provisioner "local-exec" {
-    command = "ansible-playbook ansible/tuning.yml"
-  }
-}
-
 resource "terraform_data" "ansible_playbook_monitoring" {
   depends_on = [
     terraform_data.ansible_init,

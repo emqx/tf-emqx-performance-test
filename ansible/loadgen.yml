@@ -1,3 +1,18 @@
+- hosts: loadgen
+  gather_facts: yes
+  tasks:
+  - name: Copy sysctl-loadgen.conf to /etc/sysctl.d/99-loadgen.conf
+    become: yes
+    ansible.builtin.copy:
+      src: sysctl-loadgen.conf
+      dest: /etc/sysctl.d/99-loadgen.conf
+      owner: root
+      group: root
+      mode: '0644'
+  - name: Load sysctl settings
+    become: yes
+    ansible.builtin.command: sysctl --system
+
 - import_playbook: emqttb.yml
 - import_playbook: emqtt_bench.yml
 - import_playbook: locust.yml

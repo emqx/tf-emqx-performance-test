@@ -1,2 +1,19 @@
+- hosts: emqx
+  gather_facts: yes
+  roles:
+    - { role: docker, when: emqx_install_source == 'git' }
+  tasks:
+  - name: Copy sysctl-emqx.conf to /etc/sysctl.d/99-emqx.conf
+    become: yes
+    ansible.builtin.copy:
+      src: sysctl-emqx.conf
+      dest: /etc/sysctl.d/99-emqx.conf
+      owner: root
+      group: root
+      mode: '0644'
+  - name: Load sysctl settings
+    become: yes
+    ansible.builtin.command: sysctl --system
+
 - import_playbook: emqx4.yml
 - import_playbook: emqx5.yml
