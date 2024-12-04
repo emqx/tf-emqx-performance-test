@@ -57,12 +57,7 @@ elif which yum >/dev/null 2>&1; then
     yum install -y curl wget zip unzip net-tools bind-utils ca-certificates gnupg jq git python3
 fi
 
-curl -fsSL https://get.docker.com -o get-docker.sh
-sh ./get-docker.sh
-
-# install docker packages for python
 python3 -m ensurepip --upgrade
-python3 -m pip install docker==6.1.3 docker-compose
 
 case $(uname -m) in
     x86_64)
