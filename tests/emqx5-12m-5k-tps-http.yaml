@@ -1,0 +1,79 @@
+id: koa
+region: eu-north-1
+use_spot_instances: false
+emqx:
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  license_file: emqx-enterprise.lic
+  nodes:
+    - role: core
+      instance_type: c7g.xlarge
+      instance_count: 3
+      attach_to_nlb: false
+    - role: replicant
+      instance_type: c7g.16xlarge
+      instance_count: 6
+      attach_to_nlb: true
+  scripts:
+    - scripts/create-http-server-integration.sh
+loadgens:
+  instance_type: m7i.4xlarge
+  use_nlb: false
+  nodes:
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 0 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 800000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 1600000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 2400000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 3200000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 4000000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 4800000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 5600000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 6400000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 7200000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 8000000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 8800000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 9600000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 10400000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+  - type: emqttb
+    scenario: "@pub --topic t/%%n --conninterval 250us --pubinterval 40min --num-clients 800000 --size 2048 -q 1 --random true --start-n 11200000 @a -a pub/pubinterval -M 100000000000"
+    ip_aliases: 12
+
+integrations:
+  instance_type: c7g.2xlarge
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  nodes:
+    - type: http
+      instance_count: 1
+
+monitoring:
+  instance_type: t4g.large
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
