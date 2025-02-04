@@ -5,6 +5,9 @@ emqx:
   instance_type: m7g.2xlarge
   ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
   dashboard_default_password: admin
+  extra_config: |
+    node.process_limit = 4194304
+    node.max_ports     = 2097152
   nodes:
     - role: core
       instance_count: 3
