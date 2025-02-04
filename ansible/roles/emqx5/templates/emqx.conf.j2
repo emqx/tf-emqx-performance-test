@@ -57,10 +57,10 @@ prometheus {
   collectors {
     mnesia = disabled
     vm_dist = disabled
-    vm_memory = disabled
+    vm_memory = enabled
     vm_msacc = disabled
-    vm_statistics = disabled
-    vm_system_info = disabled
+    vm_statistics = enabled
+    vm_system_info = enabled
   }
 {% if emqx_prometheus_push_gateway_server | length > 0 %}
   push_gateway {
