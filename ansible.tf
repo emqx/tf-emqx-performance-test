@@ -98,6 +98,7 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_env_override               = local.emqx_env_override
     emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
     emqx_enable_perf                = try(local.spec.emqx.enable_perf, false)
+    emqx_extra_config               = local.emqx_version_family == 5 ? try(local.spec.emqx.extra_config, "") : ""
     },
     try({ emqx_durable_storage_data_dir = local.spec.emqx.durable_storage_data_dir }, {}),
     local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {}

@@ -126,3 +126,7 @@ sysmon {
 mqtt {
   max_mqueue_len = infinity
 }
+
+{% if emqx_extra_config is defined %}
+{{ emqx_extra_config }}
+{% endif -%}
