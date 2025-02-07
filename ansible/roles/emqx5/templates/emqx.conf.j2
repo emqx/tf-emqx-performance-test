@@ -48,19 +48,19 @@ log {
   }
 }
 
-{% if emqx_prometheus_enabled %}
 prometheus {
-  enable = true
   enable_basic_auth = false
   collectors {
     mnesia = disabled
-    vm_dist = disabled
-    vm_memory = enabled
     vm_msacc = disabled
+{% if emqx_prometheus_collectors_enabled %}
+    vm_dist = enabled
+    vm_memory = enabled
     vm_statistics = enabled
     vm_system_info = enabled
+{% endif -%}
   }
-{% if emqx_prometheus_push_gateway_server | length > 0 %}
+{% if emqx_prometheus_push_gateway_enabled %}
   push_gateway {
     enable = true
     headers {}
@@ -70,7 +70,6 @@ prometheus {
   }
 {% endif -%}
 }
-{% endif -%}
 
 dashboard {
   listeners.http {

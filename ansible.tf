@@ -80,7 +80,8 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_cluster_static_seeds            = try(local.spec.emqx.cluster_static_seeds, local.emqx_static_seeds)
     emqx_cluster_dns_name                = local.emqx_cluster_dns_name
     emqx_cluster_dns_record_type         = try(local.spec.emqx.cluster_dns_record_type, "srv")
-    emqx_prometheus_enabled              = try(local.spec.emqx.prometheus_enabled, false)
+    emqx_prometheus_collectors_enabled   = try(local.spec.emqx.prometheus.enable_collectors, true)
+    emqx_prometheus_push_gateway_enabled = try(local.spec.emqx.prometheus.enable_push_gateway, false)
     emqx_prometheus_push_gateway_server  = "http://${local.monitoring_hostname}:9091"
     emqx_api_key                         = try(local.spec.emqx.api_key, "perftest")
     emqx_api_secret                      = try(local.spec.emqx.api_secret, "perftest")

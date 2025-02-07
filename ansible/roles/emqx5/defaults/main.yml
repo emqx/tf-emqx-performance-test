@@ -7,7 +7,8 @@ emqx_git_ref: master
 emqx_github_pat_file: ''
 emqx_builder_image: ghcr.io/emqx/emqx-builder/5.3-9:1.15.7-26.2.5-3-ubuntu22.04
 emqx_cluster_discovery_strategy: 'manual' # manual | static | dns | etcd | k8s
-emqx_prometheus_enabled: true
+emqx_prometheus_collectors_enabled: true
+emqx_prometheus_push_gateway_enabled: false
 emqx_prometheus_push_gateway_server: ''
 emqx_scripts: []
 emqx_api_key_bootstrap_file: '/etc/emqx/bootstrap-api'
