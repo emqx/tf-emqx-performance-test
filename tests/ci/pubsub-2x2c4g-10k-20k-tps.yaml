@@ -31,6 +31,5 @@ loadgens:
         --wait-before-publishing
         --size 1024 --interval_of_msg 1000 --max-random-wait 1000
         --count 10000 --connrate 1000 --payload-hdrs=ts
-        --limit 6000000
         --prometheus --restapi 9090
       instance_type: c7i.large
