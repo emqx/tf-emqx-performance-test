@@ -3,8 +3,6 @@ node {
   cookie = "{{ emqx_node_cookie | default('emqxperformancetest') }}"
   role = "{{ emqx_node_role | default('core') }}"
   data_dir = "{{ emqx_data_dir | default('/var/lib/emqx') }}"
-  process_limit = 2097152000
-  max_ports = 20971520
 }
 
 cluster {
@@ -50,19 +48,19 @@ log {
   }
 }
 
-{% if emqx_prometheus_enabled %}
 prometheus {
-  enable = true
   enable_basic_auth = false
   collectors {
     mnesia = disabled
-    vm_dist = disabled
-    vm_memory = disabled
     vm_msacc = disabled
-    vm_statistics = disabled
-    vm_system_info = disabled
+{% if emqx_prometheus_collectors_enabled %}
+    vm_dist = enabled
+    vm_memory = enabled
+    vm_statistics = enabled
+    vm_system_info = enabled
+{% endif -%}
   }
-{% if emqx_prometheus_push_gateway_server | length > 0 %}
+{% if emqx_prometheus_push_gateway_enabled %}
   push_gateway {
     enable = true
     headers {}
@@ -72,7 +70,6 @@ prometheus {
   }
 {% endif -%}
 }
-{% endif -%}
 
 dashboard {
   listeners.http {
@@ -126,3 +123,7 @@ sysmon {
 mqtt {
   max_mqueue_len = infinity
 }
+
+{% if emqx_extra_config is defined %}
+{{ emqx_extra_config }}
+{% endif -%}

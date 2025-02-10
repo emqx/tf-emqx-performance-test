@@ -5,6 +5,9 @@ emqx:
   dashboard_default_password: admin
   edition: emqx-enterprise
   license_file: emqx5.lic
+  extra_config: |
+    node.process_limit = 16777216
+    node.max_ports     = 8388608
   nodes:
     - role: core
       instance_type: c7i.xlarge
