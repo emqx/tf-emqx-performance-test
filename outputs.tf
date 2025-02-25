@@ -68,6 +68,11 @@ output "http_nodes" {
   value       = [for node in module.integration : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "http"]
 }
 
+output "kafka_nodes" {
+  description = "kafka nodes"
+  value       = [for node in module.integration : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "kafka"]
+}
+
 output "rabbitmq_nodes" {
   description = "rabbitmq nodes"
   value       = [for node in module.integration : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "rabbitmq"]

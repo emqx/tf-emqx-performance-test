@@ -1,0 +1,38 @@
+id: emqx5kafka
+region: sa-east-1
+use_spot_instances: false
+
+emqx:
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  dashboard_default_password: admin
+  env_override:
+    - EMQX_DASHBOARD__DEFAULT_PASSWORD: admin
+  # instance_type: m7i.xlarge
+  instance_type: c7g.large
+  edition: emqx-enterprise
+  version: 5.8.5
+  nodes:
+    - instance_count: 1
+      role: core
+
+loadgens:
+  nodes:
+    - type: emqttb
+      instance_type: m7i.large
+      scenario: "@pub --topic t/kafka --conninterval 1ms --pubinterval 1s --num-clients 2000 --size 10000 -q 1"
+
+integrations:
+  # instance_type: c7g.2xlarge
+  instance_type: c7g.xlarge
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  kafka:
+    topics:
+      - name: emqx
+        partitions: 1
+      - name: emqx2
+        partitions: 2
+      - name: emqx3
+        partitions: 3
+  nodes:
+    - type: kafka
+      instance_count: 1
