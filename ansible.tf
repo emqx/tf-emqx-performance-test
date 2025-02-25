@@ -1,5 +1,6 @@
 locals {
   http_nodes       = [for node in module.integration : node if node.type == "http"]
+  kafka_nodes      = [for node in module.integration : node if node.type == "kafka"]
   rabbitmq_nodes   = [for node in module.integration : node if node.type == "rabbitmq"]
   oracle_rds_nodes = [for _, node in module.oracle-rds : node]
 }
@@ -38,8 +39,9 @@ resource "local_file" "ansible_inventory" {
     locust      = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "locust" } }
     loadgen     = { children = { emqttb = {}, emqtt_bench = {}, locust = {} } }
     http        = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "http" } }
+    kafka       = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "kafka" } }
     rabbitmq    = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "rabbitmq" } }
-    integration = { children = { http = {}, rabbitmq = {} } }
+    integration = { children = { http = {}, kafka = {}, rabbitmq = {} } }
     monitoring  = { hosts = { for node in module.monitoring : node.fqdn => {} } }
   })
   filename = "${path.module}/ansible/inventory.yml"
@@ -56,6 +58,7 @@ resource "local_file" "ansible_common_group_vars" {
     emqx_script_env = {
       EMQX_ADMIN_PASSWORD = local.emqx_dashboard_default_password
       HTTP_SERVER_URL     = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
+      KAFKA_SERVER        = length(local.kafka_nodes) > 0 ? "${[for x in local.kafka_nodes : x.fqdn][0]}" : ""
       RABBITMQ_SERVER     = length(local.rabbitmq_nodes) > 0 ? "${[for x in local.rabbitmq_nodes : x.fqdn][0]}" : ""
       ORACLE_SERVER       = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].fqdn : ""
       ORACLE_PORT         = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].port : ""
@@ -141,6 +144,13 @@ resource "local_file" "ansible_loadgen_host_vars" {
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
 
+resource "local_file" "ansible_kafka_group_vars" {
+  content = yamlencode(merge(
+    try({ kafka_topics = local.spec.integrations.kafka.topics }, {})
+  ))
+  filename = "${path.module}/ansible/group_vars/kafka.yml"
+}
+
 resource "local_file" "ansible_locust_group_vars" {
   count = length([for n in module.loadgen : n if n.type == "locust"]) > 0 ? 1 : 0
   content = yamlencode({
@@ -171,6 +181,24 @@ resource "terraform_data" "ansible_playbook_http" {
   ]
   provisioner "local-exec" {
     command = "ansible-playbook ansible/http.yml"
+    environment = {
+      no_proxy = "*"
+    }
+  }
+}
+
+resource "terraform_data" "ansible_playbook_kafka" {
+  depends_on = [
+    module.integration,
+    terraform_data.ansible_init,
+    local_file.ansible_common_group_vars,
+    local_file.ansible_kafka_group_vars
+  ]
+  triggers_replace = [
+    local_file.ansible_kafka_group_vars
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/kafka.yml"
     environment = {
       no_proxy = "*"
     }
