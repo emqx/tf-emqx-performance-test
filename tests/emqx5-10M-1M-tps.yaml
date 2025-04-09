@@ -1,0 +1,90 @@
+id: 10m-1m-tps
+region: eu-north-1
+use_spot_instances: false
+emqx:
+  ami_owner: "099720109477"
+  ami_filter: "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-arm64-server*"
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  install_source: package
+  package_file_path: emqx-enterprise-5.9.0-beta.3-ubuntu22.04-arm64.deb
+  license_file: emqx-enterprise.lic
+  nodes:
+    - role: core
+      instance_type: c7g.4xlarge
+      instance_count: 3
+      attach_to_nlb: false
+    - role: replicant
+      instance_type: c7g.4xlarge
+      instance_count: 30
+      attach_to_nlb: true
+loadgens:
+  instance_type: m7i.4xlarge
+  use_nlb: false
+  nodes:
+    # List of load generator nodes and their scenarios
+    # Total Sub Clients: 9 * 555556 = 5,000,004
+    # Total Pub Clients: 9 * 555556 = 5,000,004
+    # Max IPs per interface for 4xlarge is 30
+    # https://docs.aws.amazon.com/ec2/latest/instancetypes/gp.html
+
+    # Subscriber nodes (sub) - 9 nodes, 555556 clients each
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_a --startnumber 0"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_b --startnumber 555556"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_c --startnumber 1111112"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_d --startnumber 1666668"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_e --startnumber 2222224"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_f --startnumber 2777780"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_g --startnumber 3333336"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_h --startnumber 3888892"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "sub -c 555556 --connrate 5000 -t bench/%%i -q 0 --shortids --prefix sub_i --startnumber 4444448"
+      ip_aliases: 8
+
+    # Publisher nodes (pub) - 9 nodes, 555556 clients each
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_a --startnumber 0"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_b --startnumber 555556"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_c --startnumber 1111112"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_d --startnumber 1666668"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_e --startnumber 2222224"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_f --startnumber 2777780"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_g --startnumber 3333336"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_h --startnumber 3888892"
+      ip_aliases: 8
+    - type: emqtt_bench
+      scenario: "pub -c 555556 --connrate 5000 --interval_of_msg 5000 --min-random-wait 10000 --max-random-wait 60000 -t bench/%%i -q 0 -s 256 --shortids -w --prefix pub_i --startnumber 4444448"
+      ip_aliases: 8
+
+monitoring:
+  instance_type: c7i.large
