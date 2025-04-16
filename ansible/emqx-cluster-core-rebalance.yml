@@ -1,0 +1,31 @@
+- hosts: emqx5
+  run_once: true
+  become: true
+  tasks:
+  - name: ensure cluster is healthy
+    ansible.builtin.shell: |
+      emqx ctl cluster status --json
+    register: cluster_status
+
+  - name: ensure stopped_nodes array is empty
+    assert:
+      that: cluster_status.stdout | from_json | json_query('stopped_nodes') == []
+
+  - name: ensure core rebalance is not running
+    ansible.builtin.shell: |
+      emqx ctl cluster core rebalance status
+    register: rebalance_status_init
+    failed_when: '"not_started" not in rebalance_status_init.stdout'
+
+  - name: start rebalance
+    ansible.builtin.shell: |
+      emqx ctl cluster core rebalance plan
+      emqx ctl cluster core rebalance confirm
+
+  - name: wait for rebalance to complete
+    ansible.builtin.shell: |
+      emqx ctl cluster core rebalance status
+    register: rebalance_status
+    until: rebalance_status.stdout == '{complete,[]}'
+    retries: 360
+    delay: 5
