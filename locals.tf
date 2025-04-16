@@ -9,7 +9,7 @@ locals {
   region             = try(local.spec.region, "eu-north-1")
   instance_type      = try(local.spec.instance_type, "t3.large")
   ami_filter         = try(local.spec.ami_filter, "*ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*")
-  ami_owner          = try(local.spec.ami_owner, "amazon")
+  ami_owner          = try(local.spec.ami_owner, "099720109477")
   remote_user        = try(local.spec.remote_user, "ubuntu")
   use_spot_instances = try(local.spec.use_spot_instances, true)
   enable_ipv6        = try(local.spec.enable_ipv6, false)
