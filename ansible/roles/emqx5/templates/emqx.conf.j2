@@ -53,8 +53,8 @@ prometheus {
   collectors {
     mnesia = disabled
     vm_msacc = disabled
+    vm_dist = disabled
 {% if emqx_prometheus_collectors_enabled %}
-    vm_dist = enabled
     vm_memory = enabled
     vm_statistics = enabled
     vm_system_info = enabled
