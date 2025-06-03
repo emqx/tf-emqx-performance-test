@@ -1,6 +1,6 @@
 services:
   loki:
-    image: grafana/loki:3.0.0
+    image: grafana/loki:3.5.1
     user: 10001:10001
     command:
       - '-config.file=/etc/loki/config.yaml'
@@ -18,12 +18,8 @@ services:
       - ./loki-data:/loki
 
   prometheus:
-    image: prom/prometheus:v2.47.0
+    image: prom/prometheus:v3.4.0
     container_name: prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/data'
-      - '--web.enable-admin-api'
     ports:
       - 9090:9090
     restart: unless-stopped
@@ -37,7 +33,7 @@ services:
       - ./data:/data
 
   pushgateway:
-    image: prom/pushgateway:v1.9.0
+    image: prom/pushgateway:v1.11.1
     container_name: pushgateway
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/metrics"]
@@ -49,7 +45,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:11.1.0
+    image: grafana/grafana:12.0.1
     container_name: grafana
     ports:
       - 3000:3000
@@ -63,9 +59,10 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=grafana
       - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
-      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/overview.json
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/node-exporter-multi-server.json
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
       - GF_AUTH_ANONYMOUS_ORG_NAME=EMQX
+      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app
     volumes:
       - ./datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
       - ./dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml

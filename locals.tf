@@ -111,7 +111,6 @@ locals {
         version              = try(node.version, local.loadgen_version)
         package_download_url = try(node.package_download_url, local.loadgen_package_download_url)
         package_file_path    = try(node.package_file_path, local.loadgen_package_file_path)
-        startnumber          = i * try(node.start_n_multiplier, 0)
       }
     ]
   ])

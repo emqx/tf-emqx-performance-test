@@ -103,6 +103,7 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
     emqx_enable_perf                = try(local.spec.emqx.enable_perf, false)
     emqx_extra_config               = local.emqx_version_family == 5 ? try(local.spec.emqx.extra_config, "") : ""
+    emqx_vm_args_override           = try(local.spec.emqx.vm_args_override, "")
     },
     try({ emqx_durable_storage_data_dir = local.spec.emqx.durable_storage_data_dir }, {}),
     local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {}
@@ -124,7 +125,7 @@ resource "local_file" "ansible_loadgen_group_vars" {
   content = yamlencode(merge({
     loadgen_targets = local.loadgen_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn if node.attach_to_nlb ]
     },
-    local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "${module.monitoring[0].fqdn}:3100" } : {},
+    local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {},
     try({ emqttb_options = local.spec.loadgens.emqttb_options }, {}),
     try({ emqtt_bench_options = local.spec.loadgens.emqtt_bench_options }, {}),
     try({ locust_options = local.spec.loadgens.locust_options }, {})
@@ -139,7 +140,6 @@ resource "local_file" "ansible_loadgen_host_vars" {
     loadgen_scenario           = local.loadgen_nodes[each.value.fqdn].scenario
     loadgen_payload_template   = local.loadgen_nodes[each.value.fqdn].payload_template
     loadgen_role               = local.loadgen_nodes[each.value.fqdn].role
-    loadgen_startnumber        = local.loadgen_nodes[each.value.fqdn].startnumber
   })
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }

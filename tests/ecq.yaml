@@ -1,0 +1,41 @@
+# ansible emqx -m command -a 'emqx ctl plugins allow emqx_ecq-0.1.1' --become --limit 'emqx-core-1.*'
+# ansible-playbook ansible/emqx-cluster-core-rebalance.yml
+id: ecq
+region: eu-west-1
+emqx:
+  use_spot_instances: false
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  license_file: emqx-enterprise.lic
+  vm_args_override: |
+    -mnesia dump_log_write_threshold 20000
+  nodes:
+    - role: core
+      instance_type: c8g.2xlarge
+      instance_count: 3
+      attach_to_nlb: true
+loadgens:
+  use_spot_instances: false
+  ami_filter: "*/ubuntu-jammy-22.04-amd64-server-*"
+  use_nlb: false
+  nodes:
+    - type: emqtt_bench
+      instance_type: c7i.large
+      scenario: "pub -c 50000 -I 500000 --connrate 500 -t '$ECQ/w/%%rand_1000000/%%rand_10' -q 1 -s 1024 --min-random-wait 0 --max-random-wait 500000 --keepalive 600 --shortids -w --prefix pub_ --startnumber 0"
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      scenario: "pub -c 250000 -I 500000 --connrate 5000 -t 'normal/%%rand_1000000/%%rand_10' -q 1 -s 1024 --min-random-wait 0 --max-random-wait 500000 --keepalive 600 --shortids -w --prefix pub_ --startnumber 50000"
+      ip_aliases: 4
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      scenario: "pub -c 200000 -I 500000 --connrate 5000 -t 'normal/%%rand_1000000/%%rand_10' -q 1 -s 1024 --min-random-wait 0 --max-random-wait 500000 --keepalive 600 --shortids -w --prefix pub_ --startnumber 300000"
+      ip_aliases: 4
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      scenario: "sub -c 250000 --connrate 5000 -t '$ECQ/%%i/#' -t 'normal/%%i/#' -q 1 --keepalive 600 --shortids --startnumber 0"
+      ip_aliases: 4
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      scenario: "sub -c 250000 --connrate 5000 -t '$ECQ/%%i/#' -t 'normal/%%i/#' -q 1 --keepalive 600 --shortids --startnumber 250000"
+      ip_aliases: 4
