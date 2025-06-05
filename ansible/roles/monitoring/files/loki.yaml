@@ -25,5 +25,8 @@ storage_config:
   filesystem:
     directory: /loki/chunks
 
+limits_config:
+  volume_enabled: true
+
 analytics:
   reporting_enabled: false

@@ -50,12 +50,19 @@
     path: "{{ home_dir }}/dashboards"
     state: directory
 
-- name: Copy dashboards
+- name: Copy download-dashboards.sh script
   ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: "{{ home_dir }}/dashboards/{{ item | basename }}"
-  with_fileglob:
-    - "*.json"
+    src: download-dashboards.sh
+    dest: "{{ home_dir }}/dashboards/download-dashboards.sh"
+    mode: '0755'
+
+- name: Run download-dashboards.sh
+  ansible.builtin.command:
+    cmd: "{{ home_dir }}/dashboards/download-dashboards.sh"
+  args:
+    chdir: "{{ home_dir }}/dashboards"
+  tags:
+    - grafana
 
 - name: Ensure loki-data dir
   become: yes

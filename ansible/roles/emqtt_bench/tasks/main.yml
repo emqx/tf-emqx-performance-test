@@ -1,2 +1,4 @@
 - include_tasks: install-tgz.yml
   when: emqtt_bench_options.install_source == 'tgz'
+- include_tasks: alloy.yml
+  when: loki_url is defined and loki_url != ''

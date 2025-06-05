@@ -143,6 +143,19 @@ loadgens:                            # load generators section
       instance_count: 3
 ```
 
+## Monitoring
+
+You can use `xdg-open` instead of `open` on Linux to open URLs in browser.
+
+```
+open "$(terraform output -raw emqx_dashboard_url)" # EMQX Dashboard
+open "$(terraform output -raw grafana_url)/?orgId=1&from=now-15m&to=now&refresh=auto" # Grafana Home page
+open "$(terraform output -raw grafana_url)/a/grafana-lokiexplore-app/explore?from=now-15m&to=now&refresh=auto" # Logs (Grafana Loki)
+open "$(terraform output -raw grafana_url)/a/grafana-metricsdrilldown-app/drilldown" # Explore all metrics
+```
+
+See [download-dashboards.sh](ansible/roles/monitoring/files/download-dashboards.sh) for the list of pre-provisioned dashboards. Add more if necessary.
+
 ## Testing rolling upgrades
 
 For example, here is how to test rolling upgrade of emqx-enterprise from 5.3.2 to 5.4.1.

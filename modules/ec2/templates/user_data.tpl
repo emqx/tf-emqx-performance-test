@@ -99,6 +99,8 @@ fs.nr_open=20971520
 net.ipv4.ip_local_port_range=1025 65535
 EOF
 
+sysctl --system
+
 cat >> /etc/security/limits.conf << EOF
 *      soft   nofile      20971520
 *      hard   nofile      20971520
