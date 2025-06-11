@@ -27,6 +27,14 @@ locals {
 resource "tls_private_key" "pk" {
   algorithm = "RSA"
   rsa_bits  = 4096
+  # fail early if the license has expired
+  lifecycle {
+    postcondition {
+      condition = (local.emqx_license_issue_date == 0 && local.emqx_license_valid_days == 0) ? true : (
+      (local.emqx_license_issue_date + local.emqx_license_valid_days) > parseint(formatdate("YYYYMMDD", timestamp()), 10))
+      error_message = "EMQX license is expired or invalid. Issue date: ${local.emqx_license_issue_date}, valid days: ${local.emqx_license_valid_days}."
+    }
+  }
 }
 
 resource "local_sensitive_file" "pem_file" {
