@@ -44,7 +44,7 @@ echo "Fetching Node metrics from Prometheus at $PROMETHEUS_URL..."
 echo "Fetching CPU metrics..."
 curl -s "$PROMETHEUS_URL/api/v1/query" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "query=(sum by(instance) (irate(node_cpu_seconds_total{mode!='idle'}[$PERIOD])) / on(instance) group_left sum by (instance)(irate(node_cpu_seconds_total[$PERIOD])))*100" | \
+  --data-urlencode "query=100-(avg by(instance) (rate(node_cpu_seconds_total{mode='idle'}[$PERIOD]))*100)" | \
   jq '.data.result[] | {"host": (.metric.instance|split(".")[0]), "cpu": (.value[1]|tonumber|.*100|round/100)}' | \
   jq -rs > "$TMPDIR/cpu.json"
 
