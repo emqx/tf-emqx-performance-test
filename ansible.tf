@@ -123,7 +123,7 @@ resource "local_file" "ansible_emqx_host_vars" {
 resource "local_file" "ansible_loadgen_group_vars" {
   count = length(module.loadgen) > 0 ? 1 : 0
   content = yamlencode(merge({
-    loadgen_targets = local.loadgen_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn if node.attach_to_nlb ]
+    loadgen_targets = local.loadgen_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn if node.attach_to_nlb]
     },
     local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {},
     try({ emqttb_options = local.spec.loadgens.emqttb_options }, {}),
@@ -137,9 +137,9 @@ resource "local_file" "ansible_loadgen_group_vars" {
 resource "local_file" "ansible_loadgen_host_vars" {
   for_each = { for i, node in module.loadgen : i => node }
   content = yamlencode({
-    loadgen_scenario           = local.loadgen_nodes[each.value.fqdn].scenario
-    loadgen_payload_template   = local.loadgen_nodes[each.value.fqdn].payload_template
-    loadgen_role               = local.loadgen_nodes[each.value.fqdn].role
+    loadgen_scenario         = local.loadgen_nodes[each.value.fqdn].scenario
+    loadgen_payload_template = local.loadgen_nodes[each.value.fqdn].payload_template
+    loadgen_role             = local.loadgen_nodes[each.value.fqdn].role
   })
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
