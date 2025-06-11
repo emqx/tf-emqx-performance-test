@@ -94,8 +94,8 @@ resource "local_file" "ansible_emqx_group_vars" {
         secret = try(local.spec.emqx.api_secret, "perftest")
       }
     ]
-    emqx_license_file               = try(local.spec.emqx.license_file, "") == "" ? "" : pathexpand(local.spec.emqx.license_file)
-    emqx_license                    = try(local.spec.emqx.license_file, "") == "" ? "" : file(pathexpand(local.spec.emqx.license_file))
+    emqx_license_file               = local.emqx_license_file
+    emqx_license                    = local.emqx_license
     emqx_scripts                    = try(local.spec.emqx.scripts, [])
     emqx_version                    = local.emqx_version
     emqx_dashboard_default_password = local.emqx_dashboard_default_password
