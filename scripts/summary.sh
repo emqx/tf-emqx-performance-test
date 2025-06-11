@@ -15,38 +15,25 @@ PROMETHEUS_URL=${PROMETHEUS_URL:-$(terraform output -raw prometheus_url)}
 EMQX_API_URL=${EMQX_API_URL:-$(terraform output -raw emqx_dashboard_url)}
 # EMQX Version Family (e.g., 5). Defaults to the value obtained from terraform output.
 EMQX_VERSION_FAMILY=${EMQX_VERSION_FAMILY:-$(terraform output -raw emqx_version_family)}
-# EMQX Dashboard Credentials (user:pass). Defaults to the value obtained from terraform output.
-EMQX_DASHBOARD_CREDENTIALS=${EMQX_DASHBOARD_CREDENTIALS:-$(terraform output -raw emqx_dashboard_credentials)}
+EMQX_API_KEY=${EMQX_API_KEY:-$(terraform output -raw emqx_api_key)}
+EMQX_API_SECRET=${EMQX_API_SECRET:-$(terraform output -raw emqx_api_secret)}
 # Time period for rate calculations in Prometheus queries. Defaults to 5 minutes.
 PERIOD=${PERIOD:-5m}
 
-# --- EMQX Authentication and Setup ---
-# Extract username and password from credentials string.
-DASHBOARD_USER=$(echo $EMQX_DASHBOARD_CREDENTIALS | cut -d: -f1)
-DASHBOARD_PASS=$(echo $EMQX_DASHBOARD_CREDENTIALS | cut -d: -f2)
-
-# Prepare login payload for EMQX API.
-LOGIN_PAYLOAD=$(cat <<EOF
-{
-  "username": "$DASHBOARD_USER",
-  "password": "$DASHBOARD_PASS"
-}
-EOF
-)
-
-# Call EMQX /login endpoint to get the version and authentication token.
-echo "Logging into EMQX API at $EMQX_API_URL..."
-curl -s -H 'content-type: application/json' -d "${LOGIN_PAYLOAD}" "$EMQX_API_URL/api/v5/login" > "$TMPDIR/login.json"
-EMQX_VERSION=$(jq -r '.version' "$TMPDIR/login.json")
-TOKEN=$(jq -r '.token' "$TMPDIR/login.json")
-echo "Logged in successfully. EMQX Version: $EMQX_VERSION"
+# Call EMQX /nodes endpoint to get the version
+curl -s -u "${EMQX_API_KEY}:${EMQX_API_SECRET}" "$EMQX_API_URL/api/v5/nodes" > "$TMPDIR/nodes.json"
+EMQX_VERSION=$(jq -r '.[0].version' "$TMPDIR/nodes.json")
+echo "EMQX Version: $EMQX_VERSION"
 
 # --- Fetch EMQX Data ---
 echo "Fetching EMQX monitoring data..."
 # Save current monitor data, metrics, and stats from EMQX API.
-curl -s -H "Authorization: Bearer $TOKEN" "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/monitor_current.json"
-curl -s -H "Authorization: Bearer $TOKEN" "$EMQX_API_URL/api/v${EMQX_VERSION_FAMILY}/metrics" > "$TMPDIR/metrics.json"
-curl -s -H "Authorization: Bearer $TOKEN" "$EMQX_API_URL/api/v${EMQX_VERSION_FAMILY}/stats" > "$TMPDIR/stats.json"
+curl -s -u "${EMQX_API_KEY}:${EMQX_API_SECRET}" \
+     "$EMQX_API_URL/api/v5/monitor_current" > "$TMPDIR/monitor_current.json"
+curl -s -u "${EMQX_API_KEY}:${EMQX_API_SECRET}" \
+     "$EMQX_API_URL/api/v${EMQX_VERSION_FAMILY}/metrics" > "$TMPDIR/metrics.json"
+curl -s -u "${EMQX_API_KEY}:${EMQX_API_SECRET}" \
+     "$EMQX_API_URL/api/v${EMQX_VERSION_FAMILY}/stats" > "$TMPDIR/stats.json"
 echo "EMQX data fetched."
 
 # --- Fetch Node Exporter Metrics from Prometheus ---
@@ -348,4 +335,5 @@ cat summary.md
 # --- Cleanup ---
 # Optionally remove the temporary directory
 # rm -rf "$TMPDIR"
-echo "Script finished. Temporary files are in $TMPDIR. Report is saved in summary.md."
+echo "Script finished. Temporary files are in $TMPDIR."
+echo "Report is saved in summary.md."

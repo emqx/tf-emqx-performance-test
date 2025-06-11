@@ -48,6 +48,8 @@ locals {
   emqx_instance_volumes           = try(local.spec.emqx.instance_volumes, [])
   emqx_cluster_dns_name           = "emqx-cluster.${local.route53_zone_name}"
   emqx_env_override               = try(local.spec.emqx.env_override, [])
+  emqx_api_key                    = try(local.spec.emqx.api_key, "perftest")
+  emqx_api_secret                 = try(local.spec.emqx.api_secret, "perftest")
   emqx_license_file               = try(local.spec.emqx.license_file, "") == "" ? "" : pathexpand(local.spec.emqx.license_file)
   emqx_license                    = try(local.spec.emqx.license_file, "") == "" ? "" : file(pathexpand(local.spec.emqx.license_file))
   emqx_license_issue_date         = local.emqx_license == "" ? 0 : parseint(split("\n", base64decode(split(".", local.emqx_license)[0]))[6], 10)

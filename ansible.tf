@@ -90,8 +90,8 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_api_secret                      = try(local.spec.emqx.api_secret, "perftest")
     emqx_bootstrap_api_keys = [
       {
-        key    = try(local.spec.emqx.api_key, "perftest")
-        secret = try(local.spec.emqx.api_secret, "perftest")
+        key    = local.emqx_api_key
+        secret = local.emqx_api_secret
       }
     ]
     emqx_license_file               = local.emqx_license_file

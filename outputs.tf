@@ -92,3 +92,13 @@ output "emqx_version_family" {
   description = "EMQX version family, 4 or 5"
   value       = local.emqx_version_family
 }
+
+output "emqx_api_key" {
+  description = "EMQX API key for authentication"
+  value       = local.emqx_api_key
+}
+
+output "emqx_api_secret" {
+  description = "EMQX API secret for authentication"
+  value       = local.emqx_api_secret
+}
