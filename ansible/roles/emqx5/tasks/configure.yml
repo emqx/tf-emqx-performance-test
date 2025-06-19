@@ -17,6 +17,29 @@
     owner: emqx
     group: emqx
 
+- name: Ensure linked directory sources
+  when: emqx_link_dirs is defined
+  become: yes
+  ansible.builtin.file:
+    path: "{{ item.src }}"
+    state: directory
+    mode: 0755
+    owner: emqx
+    group: emqx
+  with_items: "{{ emqx_link_dirs }}"
+
+- name: Ensure linked directory targets
+  when: emqx_link_dirs is defined
+  become: yes
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: link
+    src: "{{ item.src }}"
+    mode: 0755
+    owner: emqx
+    group: emqx
+  with_items: "{{ emqx_link_dirs }}"
+
 - name: Render /etc/emqx/emqx.conf
   become: yes
   ansible.builtin.template:

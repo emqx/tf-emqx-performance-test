@@ -101,6 +101,7 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_dashboard_default_password = local.emqx_dashboard_default_password
     emqx_env_override               = local.emqx_env_override
     emqx_data_dir                   = try(local.spec.emqx.data_dir, "/var/lib/emqx")
+    emqx_link_dirs                  = try(local.spec.emqx.link_dirs, [])
     emqx_enable_perf                = try(local.spec.emqx.enable_perf, false)
     emqx_extra_config               = local.emqx_version_family == 5 ? try(local.spec.emqx.extra_config, "") : ""
     emqx_vm_args_override           = try(local.spec.emqx.vm_args_override, "")
