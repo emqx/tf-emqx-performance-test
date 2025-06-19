@@ -45,6 +45,7 @@ locals {
   emqx_use_spot_instances         = try(local.spec.emqx.use_spot_instances, local.use_spot_instances)
   emqx_dashboard_default_password = try(local.spec.emqx.dashboard_default_password, "public")
   emqx_extra_volumes              = try(local.spec.emqx.extra_volumes, [])
+  emqx_link_dirs                  = try(local.spec.emqx.link_dirs, [])
   emqx_instance_volumes           = try(local.spec.emqx.instance_volumes, [])
   emqx_cluster_dns_name           = "emqx-cluster.${local.route53_zone_name}"
   emqx_env_override               = try(local.spec.emqx.env_override, [])
@@ -66,6 +67,7 @@ locals {
         ami_owner        = try(node.ami_owner, local.emqx_ami_owner)
         remote_user      = try(node.remote_user, local.emqx_remote_user)
         extra_volumes    = try(node.extra_volumes, local.emqx_extra_volumes)
+        link_dirs        = try(node.link_dirs, local.emqx_link_dirs)
         instance_volumes = try(node.instance_volumes, local.emqx_instance_volumes)
         attach_to_nlb    = try(node.attach_to_nlb, true)
       }
