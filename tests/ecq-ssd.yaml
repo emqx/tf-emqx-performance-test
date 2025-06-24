@@ -1,0 +1,59 @@
+# ansible emqx -m command -a 'emqx ctl plugins allow emqx_ecq-0.1.2' --become --limit 'emqx-core-1.*'
+# ansible-playbook ansible/emqx-cluster-core-rebalance.yml
+id: ecq-ssd
+region: eu-west-1
+emqx:
+  use_spot_instances: false
+  ami_filter: "*/ubuntu-jammy-22.04-arm64-server-*"
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  install_source: git
+  git_repo: https://github.com/savonarola/emqx.git
+  git_ref: 250618-ecq-tunes
+  builder_image: ghcr.io/emqx/emqx-builder/5.5-2:1.18.3-27.2-3-ubuntu22.04
+  license_file: emqx-enterprise.lic
+  data_dir: /data/emqx
+  instance_volumes:
+    - mount_point: /data
+      mount_options: defaults,noatime,discard
+  extra_config: |
+    durable_sessions {
+      enable = true
+    }
+    durable_storage {
+      messages {
+        backend = builtin_raft
+        data_dir = "/data/emqx/ds/messages"
+      }
+    }
+  nodes:
+    - role: core
+      instance_type: i8g.2xlarge
+      instance_count: 3
+      attach_to_nlb: true
+loadgens:
+  use_spot_instances: false
+  ami_filter: "*/ubuntu-jammy-22.04-amd64-server-*"
+  use_nlb: false
+  nodes:
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      # with -c X -I Y, rate is X * 1000 / Y
+      scenario: "pub -c 50000 -I 10000 --connrate 500 -t '$ECQ/w/%%rand_500000/%%rand_10' -q 1 -s 1024 --min-random-wait 0 --max-random-wait 50000 --keepalive 600 --shortids -w --prefix pub_ --startnumber 0"
+      ip_aliases: 4
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      scenario: "pub -c 250000 -I 500000 --connrate 1000 -t 'normal/%%rand_1000000/%%rand_10' -q 1 -s 1024 --min-random-wait 0 --max-random-wait 500000 --keepalive 600 --shortids -w --prefix pub_ --startnumber 50000"
+      ip_aliases: 4
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      scenario: "pub -c 200000 -I 500000 --connrate 1000 -t 'normal/%%rand_1000000/%%rand_10' -q 1 -s 1024 --min-random-wait 0 --max-random-wait 500000 --keepalive 600 --shortids -w --prefix pub_ --startnumber 300000"
+      ip_aliases: 4
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      scenario: "sub -c 250000 --connrate 5000 -t '$ECQ/%%i/#' -t 'normal/%%i/#' -q 1 --keepalive 600 --shortids --startnumber 0"
+      ip_aliases: 4
+    - type: emqtt_bench
+      instance_type: c7i.2xlarge
+      scenario: "sub -c 250000 --connrate 5000 -t '$ECQ/%%i/#' -t 'normal/%%i/#' -q 1 --keepalive 600 --shortids --startnumber 250000"
+      ip_aliases: 4

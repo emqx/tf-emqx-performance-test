@@ -27,6 +27,8 @@
     owner: emqx
     group: emqx
   with_items: "{{ emqx_link_dirs }}"
+  tags:
+    - config
 
 - name: Ensure linked directory targets
   when: emqx_link_dirs is defined
@@ -39,6 +41,8 @@
     owner: emqx
     group: emqx
   with_items: "{{ emqx_link_dirs }}"
+  tags:
+    - config
 
 - name: Render /etc/emqx/emqx.conf
   become: yes
@@ -47,6 +51,8 @@
     dest: /etc/emqx/emqx.conf
     mode: '0644'
   register: _emqx_conf
+  tags:
+    - config
 
 - name: Render acl.conf
   become: yes

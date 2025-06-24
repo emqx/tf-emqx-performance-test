@@ -6,6 +6,7 @@
   when: emqx_enable_perf
   tags: [perf]
 - include_tasks: configure.yml
+  tags: [config]
 - include_tasks: service.yml
 - include_tasks: scripts.yml
 - include_tasks: alloy.yml
