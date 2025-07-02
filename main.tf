@@ -92,6 +92,14 @@ resource "aws_lb_target_group_attachment" "int-mqtts" {
   provider         = aws.default
 }
 
+resource "aws_lb_target_group_attachment" "int-ws" {
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.region && node.attach_to_nlb }
+  target_group_arn = module.internal_nlb.ws_target_group_arn
+  target_id        = each.value.instance_ids[0]
+  port             = 8083
+  provider         = aws.default
+}
+
 resource "aws_lb_target_group_attachment" "int-httpapi" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.region }
   target_group_arn = module.internal_nlb.httpapi_target_group_arn
