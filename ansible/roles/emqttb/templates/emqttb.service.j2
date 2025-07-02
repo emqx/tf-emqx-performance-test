@@ -7,7 +7,7 @@ Environment="HOME={{ emqttb_options.home_dir }}"
 WorkingDirectory={{ emqttb_options.home_dir }}
 User=emqttb
 Group=emqttb
-ExecStart=:{{ emqttb_options.home_dir }}/bin/emqttb --grafana  --restapi --pushgw --pushgw-url {{ prometheus_push_gw_url }} {{ loadgen_scenario }} @g --host {{ loadgen_targets | join(',') }} --ifaddr {{ available_ip_addresses | join(',') }} --keepalive 1h
+ExecStart=:{{ emqttb_options.home_dir }}/bin/emqttb --grafana --restapi --pushgw --pushgw-url '{{ prometheus_push_gw_url }}' {{ loadgen_scenario }} @g --host '{{ loadgen_targets | join(',') }}' --ifaddr {{ available_ip_addresses | join(',') }} --keepalive 1h
 LimitNOFILE=2097152
 Restart=on-failure
 EnvironmentFile=-/etc/emqttb/env
