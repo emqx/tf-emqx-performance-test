@@ -91,6 +91,15 @@ variable "extra_volumes" {
   default = []
 }
 
+variable "link_dirs" {
+  description = "Link directories"
+  type = list(object({
+    src = string
+    path = string
+  }))
+  default = []
+}
+
 variable "attach_to_nlb" {
   description = "Whether to attach the instance to the NLB"
   type        = bool
