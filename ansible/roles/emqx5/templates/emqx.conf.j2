@@ -35,6 +35,13 @@ listeners {
       max_connections = infinity
     }
   }
+  ws {
+    default {
+      bind = ":::8083"
+      acceptors = 64
+      max_connections = infinity
+    }
+  }
 }
 
 log {

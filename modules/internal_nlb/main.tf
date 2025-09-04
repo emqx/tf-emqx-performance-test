@@ -36,6 +36,16 @@ resource "aws_lb_listener" "mqtts" {
   }
 }
 
+resource "aws_lb_listener" "ws" {
+  load_balancer_arn = aws_lb.nlb.arn
+  port              = 8083
+  protocol          = "TCP"
+  default_action {
+    target_group_arn = aws_lb_target_group.ws.arn
+    type             = "forward"
+  }
+}
+
 resource "aws_lb_listener" "httpapi" {
   load_balancer_arn = aws_lb.nlb.arn
   port              = var.http_api_port
@@ -99,6 +109,22 @@ resource "aws_lb_target_group" "mqtts" {
   }
 }
 
+resource "aws_lb_target_group" "ws" {
+  name                              = "${var.prefix}-ws"
+  port                              = 8083
+  protocol                          = "TCP"
+  vpc_id                            = var.vpc_id
+  target_type                       = "instance"
+  load_balancing_cross_zone_enabled = true
+  health_check {
+    interval            = 30
+    port                = 8083
+    protocol            = "TCP"
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+  }
+}
+
 resource "aws_lb_target_group" "httpapi" {
   name                              = "${var.prefix}-httpapi"
   port                              = var.http_api_port
@@ -137,7 +163,7 @@ resource "aws_security_group" "nlb_sg" {
   vpc_id      = var.vpc_id
 
   dynamic "ingress" {
-    for_each = [1883, 8883, var.http_api_port, 18083]
+    for_each = [1883, 8883, 8083, var.http_api_port, 18083]
     content {
       from_port        = ingress.value
       to_port          = ingress.value

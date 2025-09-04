@@ -15,6 +15,10 @@ output "mqtts_target_group_arn" {
   value = aws_lb_target_group.mqtts.arn
 }
 
+output "ws_target_group_arn" {
+  value = aws_lb_target_group.ws.arn
+}
+
 output "httpapi_target_group_arn" {
   value = aws_lb_target_group.httpapi.arn
 }
