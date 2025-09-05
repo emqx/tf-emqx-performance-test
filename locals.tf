@@ -53,8 +53,9 @@ locals {
   emqx_api_secret                 = try(local.spec.emqx.api_secret, "perftest")
   emqx_license_file               = try(local.spec.emqx.license_file, "") == "" ? "" : pathexpand(local.spec.emqx.license_file)
   emqx_license                    = try(local.spec.emqx.license_file, "") == "" ? "" : file(pathexpand(local.spec.emqx.license_file))
-  emqx_license_issue_date         = local.emqx_license == "" ? 0 : parseint(split("\n", base64decode(split(".", local.emqx_license)[0]))[6], 10)
-  emqx_license_valid_days         = local.emqx_license == "" ? 0 : parseint(split("\n", base64decode(split(".", local.emqx_license)[0]))[7], 10)
+  emqx_license_issue_date         = local.emqx_license == "" ? "" : split("\n", base64decode(split(".", local.emqx_license)[0]))[6]
+  emqx_license_valid_days         = local.emqx_license == "" ? "" : split("\n", base64decode(split(".", local.emqx_license)[0]))[7]
+  emqx_license_expiry_date        = local.emqx_license_issue_date == "" ? "" : timeadd(format("%s-%s-%sT00:00:00Z", substr(local.emqx_license_issue_date, 0, 4), substr(local.emqx_license_issue_date, 4, 2), substr(local.emqx_license_issue_date, 6, 2)), format("%dh", tonumber(local.emqx_license_valid_days) * 24))
 
   emqx_nodes_pre = flatten([
     for node in try(local.spec.emqx.nodes, []) : [
