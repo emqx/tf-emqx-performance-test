@@ -9,6 +9,17 @@ terraform {
 
 provider "aws" {
   region = local.region
+  default_tags {
+    tags = {
+      Name        = local.prefix
+      BenchmarkId = local.bench_id
+      Environment = "perftest"
+    }
+  }
+}
+
+provider "aws" {
+  region = local.region
   alias  = "default"
   default_tags {
     tags = {
