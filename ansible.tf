@@ -141,6 +141,7 @@ resource "local_file" "ansible_loadgen_host_vars" {
     loadgen_scenario         = local.loadgen_nodes[each.value.fqdn].scenario
     loadgen_payload_template = local.loadgen_nodes[each.value.fqdn].payload_template
     loadgen_role             = local.loadgen_nodes[each.value.fqdn].role
+    loadgen_keepalive        = try(local.loadgen_nodes[each.value.fqdn].keepalive, "1h")
   })
   filename = "${path.module}/ansible/host_vars/${each.value.fqdn}.yml"
 }
