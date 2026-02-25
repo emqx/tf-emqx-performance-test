@@ -28,15 +28,15 @@
     src: "{{ emqx_package_file_path_resolved }}"
     dest: "/tmp/emqx.{{ (ansible_os_family == 'Debian') | ternary('deb', 'rpm') }}"
 
-- name: Install emqx
+- name: Install emqx (debian, package url)
   become: yes
   when: ansible_os_family == 'Debian' and emqx_package_download_url != ''
   ansible.builtin.apt:
-    deb: emqx_package_download_url
+    deb: "{{ emqx_package_download_url }}"
     state: present
     update_cache: yes
 
-- name: Install emqx
+- name: Install emqx (debian, package file)
   become: yes
   when: ansible_os_family == 'Debian' and emqx_package_file_path != ''
   ansible.builtin.apt:
@@ -44,14 +44,14 @@
     state: present
     update_cache: yes
 
-- name: Install emqx
+- name: Install emqx (redhat, package url)
   become: yes
   when: ansible_os_family == 'RedHat' and emqx_package_download_url != ''
   ansible.builtin.yum:
-    name: emqx_package_download_url
+    name: "{{ emqx_package_download_url }}"
     state: present
 
-- name: Install emqx
+- name: Install emqx (redhat, package file)
   become: yes
   when: ansible_os_family == 'RedHat' and emqx_package_file_path != ''
   ansible.builtin.yum:
