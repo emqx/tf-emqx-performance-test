@@ -10,22 +10,22 @@ output "spec_file" {
 
 output "emqx_dashboard_url" {
   description = "EMQX Dashboard URL"
-  value       = "http://${module.public_nlb.dns_name}:18083"
+  value       = "http://${local.emqx_dashboard_host}:18083"
 }
 
 output "grafana_url" {
   description = "Grafana URL"
-  value       = local.monitoring_enabled ? "http://${module.public_nlb.dns_name}:3000" : null
+  value       = local.monitoring_enabled ? "http://${local.monitoring_host}:3000" : null
 }
 
 output "prometheus_url" {
   description = "Prometheus URL"
-  value       = local.monitoring_enabled ? "http://${module.public_nlb.dns_name}:9090" : null
+  value       = local.monitoring_enabled ? "http://${local.monitoring_host}:9090" : null
 }
 
 output "locust_url" {
   description = "Locust URL"
-  value       = length([for node in module.loadgen : node if node.type == "locust"]) > 0 ? "${module.public_nlb.dns_name}:8080" : null
+  value       = length([for node in local.loadgen : node if node.type == "locust"]) > 0 ? "${local.locust_host}:8080" : null
 }
 
 output "emqx_dashboard_credentials" {
@@ -40,27 +40,27 @@ output "grafana_credentials" {
 
 output "emqx_nodes" {
   description = "EMQX nodes"
-  value       = [for node in module.emqx : { ip : node.public_ips[0], fqdn : node.fqdn }]
+  value       = [for node in local.emqx : { ip : node.public_ips[0], fqdn : node.fqdn }]
 }
 
 output "loadgen_nodes" {
   description = "loadgen nodes"
-  value       = [for node in module.loadgen : { ip : node.public_ips[0], fqdn : node.fqdn }]
+  value       = [for node in local.loadgen : { ip : node.public_ips[0], fqdn : node.fqdn }]
 }
 
 output "emqttb_nodes" {
   description = "emqttb nodes"
-  value       = [for node in module.loadgen : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "emqttb"]
+  value       = [for node in local.loadgen : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "emqttb"]
 }
 
 output "emqtt_bench_nodes" {
   description = "emqtt bench nodes"
-  value       = [for node in module.loadgen : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "emqtt_bench"]
+  value       = [for node in local.loadgen : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "emqtt_bench"]
 }
 
 output "locust_nodes" {
   description = "locust nodes"
-  value       = [for node in module.loadgen : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "locust"]
+  value       = [for node in local.loadgen : { ip : node.public_ips[0], fqdn : node.fqdn } if node.type == "locust"]
 }
 
 output "http_nodes" {
@@ -80,7 +80,7 @@ output "rabbitmq_nodes" {
 
 output "monitoring_nodes" {
   description = "monitoring nodes"
-  value       = [for node in module.monitoring : { ip : node.public_ips[0], fqdn : node.fqdn }]
+  value       = [for node in local.monitoring : { ip : node.public_ips[0], fqdn : node.fqdn }]
 }
 
 output "ssh_key_path" {
@@ -101,4 +101,8 @@ output "emqx_api_key" {
 output "emqx_api_secret" {
   description = "EMQX API secret for authentication"
   value       = local.emqx_api_secret
+}
+
+output "emqx_nodes_debug" {
+  value = local.emqx_nodes
 }

@@ -1,13 +1,34 @@
 locals {
-  spec              = yamldecode(file(var.spec_file))
-  bench_id          = local.spec.id
-  prefix            = local.bench_id
-  route53_zone_name = replace("${local.prefix}.emqx.io", "/", "-")
-  ssh_key_name      = local.prefix
-  ssh_key_path      = pathexpand(format("./%s.pem", replace(local.ssh_key_name, "/", "-")))
+  spec     = yamldecode(file(var.spec_file))
+  bench_id = local.spec.id
+  prefix   = local.bench_id
+
+  # cloud selection: whole test runs on one cloud per run
+  cloud        = try(local.spec.cloud, "aws")
+  cloud_is_aws = local.cloud == "aws"
+  cloud_is_gcp = local.cloud == "gcp"
+
+  # GCP settings (only used when cloud == "gcp")
+  gcp_project_spec = try(local.spec.gcp.project, "")
+  # Fall back to the active gcloud project when not set in the spec.
+  gcp_project       = local.gcp_project_spec != "" ? local.gcp_project_spec : one(data.external.gcp_project[*].result.project)
+  gcp_region        = try(local.spec.gcp.region, local.region)
+  gcp_zone          = try(local.spec.gcp.zone, "b")
+  gcp_image_family  = try(local.spec.gcp.image_family, "ubuntu-2204-lts")
+  gcp_image_project = try(local.spec.gcp.image_project, "ubuntu-os-cloud")
+  gcp_network_cidr  = try(local.spec.gcp.network_cidr, "10.0.0.0/16")
+
+  # On a GCP run, local.region holds a GCP region; fall back to a valid AWS
+  # region so the (unused) AWS providers configure cleanly without credentials.
+  aws_provider_region  = local.cloud_is_aws ? local.region : "us-east-1"
+  aws_provider_region2 = local.cloud_is_aws ? (local.region2 == "region2-stub" ? local.region : local.region2) : "us-east-1"
+  aws_provider_region3 = local.cloud_is_aws ? (local.region3 == "region3-stub" ? local.region : local.region3) : "us-east-1"
+  route53_zone_name    = replace("${local.prefix}.emqx.io", "/", "-")
+  ssh_key_name         = local.prefix
+  ssh_key_path         = pathexpand(format("./%s.pem", replace(local.ssh_key_name, "/", "-")))
 
   region             = try(local.spec.region, "eu-north-1")
-  instance_type      = try(local.spec.instance_type, "t3.large")
+  instance_type      = try(local.spec.instance_type, local.cloud_is_gcp ? "e2-standard-2" : "t3.large")
   ami_filter         = try(local.spec.ami_filter, "*ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*")
   ami_owner          = try(local.spec.ami_owner, "099720109477")
   remote_user        = try(local.spec.remote_user, "ubuntu")

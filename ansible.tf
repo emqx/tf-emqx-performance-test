@@ -9,40 +9,40 @@ resource "local_file" "ansible_inventory" {
   content = yamlencode({
     all = {
       hosts = merge(
-        { for node in module.emqx : node.fqdn => {
+        { for node in local.emqx : node.fqdn => {
           ansible_host = node.public_ips[0]
           private_ip   = node.private_ips[0]
-          ansible_user = local.emqx_remote_user
+          ansible_user = node.remote_user
         } },
-        { for node in module.loadgen : node.fqdn => {
+        { for node in local.loadgen : node.fqdn => {
           ansible_host = node.public_ips[0]
           private_ip   = node.private_ips[0]
-          ansible_user = local.loadgen_remote_user
+          ansible_user = node.remote_user
         } },
         { for node in module.integration : node.fqdn => {
           ansible_host = node.public_ips[0]
           private_ip   = node.private_ips[0]
-          ansible_user = local.integration_remote_user
+          ansible_user = node.remote_user
         } },
-        { for node in module.monitoring : node.fqdn => {
+        { for node in local.monitoring : node.fqdn => {
           ansible_host = node.public_ips[0]
           private_ip   = node.private_ips[0]
-          ansible_user = local.monitoring_remote_user
+          ansible_user = node.remote_user
         } }
       )
     }
-    emqx4       = { hosts = { for node in module.emqx : node.fqdn => {} if local.emqx_version_family == 4 } }
-    emqx5       = { hosts = { for node in module.emqx : node.fqdn => {} if local.emqx_version_family == 5 } }
+    emqx4       = { hosts = { for node in local.emqx : node.fqdn => {} if local.emqx_version_family == 4 } }
+    emqx5       = { hosts = { for node in local.emqx : node.fqdn => {} if local.emqx_version_family == 5 } }
     emqx        = { children = { emqx4 = {}, emqx5 = {} } }
-    emqttb      = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "emqttb" } }
-    emqtt_bench = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "emqtt_bench" } }
-    locust      = { hosts = { for node in module.loadgen : node.fqdn => {} if node.type == "locust" } }
+    emqttb      = { hosts = { for node in local.loadgen : node.fqdn => {} if node.type == "emqttb" } }
+    emqtt_bench = { hosts = { for node in local.loadgen : node.fqdn => {} if node.type == "emqtt_bench" } }
+    locust      = { hosts = { for node in local.loadgen : node.fqdn => {} if node.type == "locust" } }
     loadgen     = { children = { emqttb = {}, emqtt_bench = {}, locust = {} } }
     http        = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "http" } }
     kafka       = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "kafka" } }
     rabbitmq    = { hosts = { for node in module.integration : node.fqdn => {} if node.type == "rabbitmq" } }
     integration = { children = { http = {}, kafka = {}, rabbitmq = {} } }
-    monitoring  = { hosts = { for node in module.monitoring : node.fqdn => {} } }
+    monitoring  = { hosts = { for node in local.monitoring : node.fqdn => {} } }
   })
   filename = "${path.module}/ansible/inventory.yml"
 }
@@ -50,21 +50,24 @@ resource "local_file" "ansible_inventory" {
 resource "local_file" "ansible_common_group_vars" {
   content = yamlencode({
     emqx_version_family              = local.emqx_version_family
-    emqx_dashboard_url               = "http://${module.public_nlb.dns_name}:18083"
+    emqx_dashboard_url               = "http://${local.emqx_dashboard_host}:18083"
     emqx_dashboard_default_password  = local.emqx_dashboard_default_password
     node_exporter_enabled_collectors = var.node_exporter_enabled_collectors
     deb_architecture_map             = var.deb_architecture_map
     ansible_ssh_private_key_file     = local.ssh_key_path
     emqx_script_env = {
-      EMQX_ADMIN_PASSWORD = local.emqx_dashboard_default_password
-      HTTP_SERVER_URL     = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
-      KAFKA_SERVER        = length(local.kafka_nodes) > 0 ? "${[for x in local.kafka_nodes : x.fqdn][0]}" : ""
-      RABBITMQ_SERVER     = length(local.rabbitmq_nodes) > 0 ? "${[for x in local.rabbitmq_nodes : x.fqdn][0]}" : ""
-      ORACLE_SERVER       = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].fqdn : ""
-      ORACLE_PORT         = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].port : ""
-      ORACLE_TLS_PORT     = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].tls_port : ""
-      ORACLE_DB_USERNAME  = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].username : ""
-      ORACLE_DB_PASSWORD  = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].password : ""
+      EMQX_ADMIN_PASSWORD         = local.emqx_dashboard_default_password
+      HTTP_SERVER_URL             = length(local.http_nodes) > 0 ? "http://${[for x in local.http_nodes : x.fqdn][0]}" : ""
+      KAFKA_SERVER                = length(local.kafka_nodes) > 0 ? "${[for x in local.kafka_nodes : x.fqdn][0]}" : ""
+      RABBITMQ_SERVER             = length(local.rabbitmq_nodes) > 0 ? "${[for x in local.rabbitmq_nodes : x.fqdn][0]}" : ""
+      ORACLE_SERVER               = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].fqdn : ""
+      ORACLE_PORT                 = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].port : ""
+      ORACLE_TLS_PORT             = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].tls_port : ""
+      ORACLE_DB_USERNAME          = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].username : ""
+      ORACLE_DB_PASSWORD          = length(local.oracle_rds_nodes) > 0 ? local.oracle_rds_nodes[0].password : ""
+      PUBSUB_TOPIC                = local.pubsub_enabled ? google_pubsub_topic.bench[0].name : ""
+      PUBSUB_SERVICE_ACCOUNT_JSON = local.pubsub_sa_key_json
+      PUBSUB_RULE_SQL             = local.pubsub_rule_sql
     }
   })
   filename = "${path.module}/ansible/group_vars/all.yml"
@@ -107,13 +110,13 @@ resource "local_file" "ansible_emqx_group_vars" {
     emqx_vm_args_override           = try(local.spec.emqx.vm_args_override, "")
     },
     try({ emqx_durable_storage_data_dir = local.spec.emqx.durable_storage_data_dir }, {}),
-    local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {}
+    local.monitoring_enabled ? { grafana_url = "http://${local.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${local.monitoring[0].fqdn}:9091", loki_url = "http://${local.monitoring[0].fqdn}:3100" } : {}
   ))
   filename = "${path.module}/ansible/group_vars/emqx${local.emqx_version_family}.yml"
 }
 
 resource "local_file" "ansible_emqx_host_vars" {
-  for_each = { for i, node in module.emqx : i => node }
+  for_each = { for i, node in local.emqx : i => node }
   content = yamlencode({
     emqx_node_name = "emqx@${each.value.fqdn}"
     emqx_node_role = local.emqx_nodes[each.value.fqdn].role
@@ -122,11 +125,11 @@ resource "local_file" "ansible_emqx_host_vars" {
 }
 
 resource "local_file" "ansible_loadgen_group_vars" {
-  count = length(module.loadgen) > 0 ? 1 : 0
+  count = length(local.loadgen) > 0 ? 1 : 0
   content = yamlencode(merge({
-    loadgen_targets = local.loadgen_use_nlb ? [module.internal_nlb.dns_name] : [for node in module.emqx : node.fqdn if node.attach_to_nlb]
+    loadgen_targets = local.loadgen_use_nlb ? [local.internal_lb_dns] : [for node in local.emqx : node.fqdn if node.attach_to_nlb]
     },
-    local.monitoring_enabled ? { grafana_url = "http://${module.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${module.monitoring[0].fqdn}:9091", loki_url = "http://${module.monitoring[0].fqdn}:3100" } : {},
+    local.monitoring_enabled ? { grafana_url = "http://${local.monitoring[0].fqdn}:3000", prometheus_push_gw_url = "http://${local.monitoring[0].fqdn}:9091", loki_url = "http://${local.monitoring[0].fqdn}:3100" } : {},
     try({ emqttb_options = local.spec.loadgens.emqttb_options }, {}),
     try({ emqtt_bench_options = local.spec.loadgens.emqtt_bench_options }, {}),
     try({ locust_options = local.spec.loadgens.locust_options }, {})
@@ -136,7 +139,7 @@ resource "local_file" "ansible_loadgen_group_vars" {
 }
 
 resource "local_file" "ansible_loadgen_host_vars" {
-  for_each = { for i, node in module.loadgen : i => node }
+  for_each = { for i, node in local.loadgen : i => node }
   content = yamlencode({
     loadgen_scenario         = local.loadgen_nodes[each.value.fqdn].scenario
     loadgen_payload_template = local.loadgen_nodes[each.value.fqdn].payload_template
@@ -154,10 +157,10 @@ resource "local_file" "ansible_kafka_group_vars" {
 }
 
 resource "local_file" "ansible_locust_group_vars" {
-  count = length([for n in module.loadgen : n if n.type == "locust"]) > 0 ? 1 : 0
+  count = length([for n in local.loadgen : n if n.type == "locust"]) > 0 ? 1 : 0
   content = yamlencode({
-    locust_leader_ip = [for n in module.loadgen : n.private_ips[0] if n.type == "locust" && local.loadgen_nodes[n.fqdn].role == "leader"][0]
-    locust_base_url  = "http://${module.internal_nlb.dns_name}:${local.emqx_http_api_port}/api/${local.emqx_api_version}"
+    locust_leader_ip = [for n in local.loadgen : n.private_ips[0] if n.type == "locust" && local.loadgen_nodes[n.fqdn].role == "leader"][0]
+    locust_base_url  = "http://${local.internal_lb_dns}:${local.emqx_http_api_port}/api/${local.emqx_api_version}"
   })
   filename = "${path.module}/ansible/group_vars/locust.yml"
 }

@@ -17,11 +17,11 @@ locals {
     }
   }
 
-  vpcs = {
-    (local.region)  = module.vpc-default
+  vpcs = local.cloud_is_aws ? {
+    (local.region)  = module.vpc-default[0]
     (local.region2) = local.region2 == "region2-stub" ? null : module.vpc-region2[0]
     (local.region3) = local.region3 == "region3-stub" ? null : module.vpc-region3[0]
-  }
+  } : {}
 }
 
 resource "tls_private_key" "pk" {
@@ -45,6 +45,7 @@ resource "local_sensitive_file" "pem_file" {
 
 module "vpc-default" {
   source         = "./modules/vpc"
+  count          = local.cloud_is_aws ? 1 : 0
   vpc_region     = local.region
   provider_alias = "default"
   cidr           = local.vpc_subnets[local.region]["public"]["cidr"]
@@ -58,7 +59,7 @@ module "vpc-default" {
 
 module "vpc-region2" {
   source         = "./modules/vpc"
-  count          = local.region2 != "region2-stub" ? 1 : 0
+  count          = local.cloud_is_aws && local.region2 != "region2-stub" ? 1 : 0
   vpc_region     = local.region2
   provider_alias = "region2"
   cidr           = local.vpc_subnets[local.region2]["public"]["cidr"]
@@ -72,7 +73,7 @@ module "vpc-region2" {
 
 module "vpc-region3" {
   source         = "./modules/vpc"
-  count          = local.region3 != "region3-stub" ? 1 : 0
+  count          = local.cloud_is_aws && local.region3 != "region3-stub" ? 1 : 0
   vpc_region     = local.region3
   provider_alias = "region3"
   cidr           = local.vpc_subnets[local.region3]["public"]["cidr"]
@@ -86,9 +87,9 @@ module "vpc-region3" {
 
 module "vpc-peering-default-to-region2" {
   source              = "./modules/vpc_peering"
-  count               = local.region2 != "region2-stub" ? 1 : 0
-  vpc_id              = module.vpc-default.vpc_id
-  route_table_id      = module.vpc-default.main_route_table_id
+  count               = local.cloud_is_aws && local.region2 != "region2-stub" ? 1 : 0
+  vpc_id              = module.vpc-default[0].vpc_id
+  route_table_id      = module.vpc-default[0].main_route_table_id
   cidr_block          = local.vpc_subnets[local.region]["public"]["cidr"]
   peer_vpc_id         = module.vpc-region2[0].vpc_id
   peer_route_table_id = module.vpc-region2[0].main_route_table_id
@@ -102,9 +103,9 @@ module "vpc-peering-default-to-region2" {
 
 module "vpc-peering-default-to-region3" {
   source              = "./modules/vpc_peering"
-  count               = local.region3 != "region3-stub" ? 1 : 0
-  vpc_id              = module.vpc-default.vpc_id
-  route_table_id      = module.vpc-default.main_route_table_id
+  count               = local.cloud_is_aws && local.region3 != "region3-stub" ? 1 : 0
+  vpc_id              = module.vpc-default[0].vpc_id
+  route_table_id      = module.vpc-default[0].main_route_table_id
   cidr_block          = local.vpc_subnets[local.region]["public"]["cidr"]
   peer_vpc_id         = module.vpc-region3[0].vpc_id
   peer_route_table_id = module.vpc-region3[0].main_route_table_id
@@ -118,7 +119,7 @@ module "vpc-peering-default-to-region3" {
 
 module "vpc-peering-region2-to-region3" {
   source              = "./modules/vpc_peering"
-  count               = local.region2 != "region2-stub" && local.region3 != "region3-stub" ? 1 : 0
+  count               = local.cloud_is_aws && local.region2 != "region2-stub" && local.region3 != "region3-stub" ? 1 : 0
   vpc_id              = module.vpc-region2[0].vpc_id
   route_table_id      = module.vpc-region2[0].main_route_table_id
   cidr_block          = local.vpc_subnets[local.region2]["public"]["cidr"]
@@ -133,12 +134,22 @@ module "vpc-peering-region2-to-region3" {
 }
 
 resource "aws_security_group_rule" "allow_access_from_public_nlb" {
+  count                    = local.cloud_is_aws ? 1 : 0
   type                     = "ingress"
-  security_group_id        = module.vpc-default.security_group_id
-  source_security_group_id = module.public_nlb.security_group_id
+  security_group_id        = module.vpc-default[0].security_group_id
+  source_security_group_id = module.public_nlb[0].security_group_id
   protocol                 = "-1"
   from_port                = 0
   to_port                  = 0
   provider                 = aws.default
+}
+
+module "vpc_gcp" {
+  source      = "./modules/vpc_gcp"
+  count       = local.cloud_is_gcp ? 1 : 0
+  prefix      = local.prefix
+  region      = local.gcp_region
+  cidr        = local.gcp_network_cidr
+  network_tag = local.prefix
 }
 

@@ -1,0 +1,23 @@
+id: gcp-test
+cloud: gcp
+region: us-east1
+monitoring_enabled: true
+gcp:
+  project: my-gcp-project   # set to your GCP project id
+  region: us-east1
+  zone: b                   # forms zone us-east1-b
+  image_family: ubuntu-2204-lts
+  image_project: ubuntu-os-cloud
+  network_cidr: 10.0.0.0/16
+emqx:
+  instance_type: n2-standard-2
+  nodes:
+    - role: core
+      instance_count: 1
+loadgens:
+  # No GCP load balancer in the MVP: target EMQX nodes directly.
+  use_nlb: false
+  instance_type: n2-standard-2
+  scenario: "pub -c 100 -I 10 -t bench/%%i -s 256"
+  nodes:
+    - instance_count: 1

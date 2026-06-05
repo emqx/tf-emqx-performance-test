@@ -1,5 +1,6 @@
 module "public_nlb" {
   source     = "./modules/public_nlb"
+  count      = local.cloud_is_aws ? 1 : 0
   prefix     = local.prefix
   vpc_id     = local.vpcs[local.region].vpc_id
   subnet_ids = local.vpcs[local.region].public_subnet_ids
@@ -10,6 +11,7 @@ module "public_nlb" {
 
 module "internal_nlb" {
   source        = "./modules/internal_nlb"
+  count         = local.cloud_is_aws ? 1 : 0
   prefix        = local.prefix
   vpc_id        = local.vpcs[local.region].vpc_id
   subnet_ids    = local.vpcs[local.region].public_subnet_ids
@@ -20,7 +22,7 @@ module "internal_nlb" {
 }
 
 module "emqx" {
-  for_each           = local.emqx_nodes
+  for_each           = local.cloud_is_aws ? local.emqx_nodes : {}
   source             = "./modules/ec2"
   region             = each.value.region
   instance_name      = each.value.name
@@ -39,7 +41,7 @@ module "emqx" {
   root_volume_size   = local.emqx_root_volume_size
   prefix             = local.prefix
   region_aliases     = local.region_aliases
-  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  route53_zone_id    = aws_route53_zone.vpc[0].zone_id
   certs              = module.certs.certs
   providers = {
     aws.default = aws.default
@@ -54,15 +56,23 @@ module "emqx" {
 
 resource "aws_lb_target_group_attachment" "emqx" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.region }
-  target_group_arn = module.public_nlb.emqx_target_group_arn
+  target_group_arn = module.public_nlb[0].emqx_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 18083
   provider         = aws.default
 }
 
+resource "aws_lb_target_group_attachment" "emqx-https" {
+  for_each         = { for i, node in module.emqx : i => node if node.region == local.region }
+  target_group_arn = module.public_nlb[0].emqx_https_target_group_arn
+  target_id        = each.value.instance_ids[0]
+  port             = 18084
+  provider         = aws.default
+}
+
 resource "aws_lb_target_group_attachment" "emqx-ws" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.region && node.attach_to_nlb }
-  target_group_arn = module.public_nlb.emqx_ws_target_group_arn
+  target_group_arn = module.public_nlb[0].emqx_ws_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 8083
   provider         = aws.default
@@ -70,7 +80,7 @@ resource "aws_lb_target_group_attachment" "emqx-ws" {
 
 resource "aws_lb_target_group_attachment" "emqx-api" {
   for_each         = local.emqx_version_family == 4 ? { for i, node in module.emqx : i => node if node.region == local.region } : {}
-  target_group_arn = module.public_nlb.emqx_api_target_group_arn
+  target_group_arn = module.public_nlb[0].emqx_api_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 8081
   provider         = aws.default
@@ -78,7 +88,7 @@ resource "aws_lb_target_group_attachment" "emqx-api" {
 
 resource "aws_lb_target_group_attachment" "int-mqtt" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.region && node.attach_to_nlb }
-  target_group_arn = module.internal_nlb.mqtt_target_group_arn
+  target_group_arn = module.internal_nlb[0].mqtt_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 1883
   provider         = aws.default
@@ -86,7 +96,7 @@ resource "aws_lb_target_group_attachment" "int-mqtt" {
 
 resource "aws_lb_target_group_attachment" "int-mqtts" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.region && node.attach_to_nlb }
-  target_group_arn = module.internal_nlb.mqtts_target_group_arn
+  target_group_arn = module.internal_nlb[0].mqtts_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 8883
   provider         = aws.default
@@ -94,7 +104,7 @@ resource "aws_lb_target_group_attachment" "int-mqtts" {
 
 resource "aws_lb_target_group_attachment" "int-ws" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.region && node.attach_to_nlb }
-  target_group_arn = module.internal_nlb.ws_target_group_arn
+  target_group_arn = module.internal_nlb[0].ws_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 8083
   provider         = aws.default
@@ -102,7 +112,7 @@ resource "aws_lb_target_group_attachment" "int-ws" {
 
 resource "aws_lb_target_group_attachment" "int-httpapi" {
   for_each         = { for i, node in module.emqx : i => node if node.region == local.region }
-  target_group_arn = module.internal_nlb.httpapi_target_group_arn
+  target_group_arn = module.internal_nlb[0].httpapi_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = local.emqx_http_api_port
   provider         = aws.default
@@ -110,14 +120,14 @@ resource "aws_lb_target_group_attachment" "int-httpapi" {
 
 resource "aws_lb_target_group_attachment" "int-mgmt" {
   for_each         = local.emqx_version_family == 4 ? { for i, node in module.emqx : i => node if node.region == local.region } : {}
-  target_group_arn = module.internal_nlb.mgmt_target_group_arn
+  target_group_arn = module.internal_nlb[0].mgmt_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 18083
   provider         = aws.default
 }
 
 module "loadgen" {
-  for_each           = local.loadgen_nodes
+  for_each           = local.cloud_is_aws ? local.loadgen_nodes : {}
   source             = "./modules/ec2"
   region             = each.value.region
   type               = each.value.type
@@ -134,7 +144,7 @@ module "loadgen" {
   security_group_id  = local.vpcs[each.value.region].security_group_id
   prefix             = local.prefix
   region_aliases     = local.region_aliases
-  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  route53_zone_id    = aws_route53_zone.vpc[0].zone_id
   certs              = module.certs.certs
   providers = {
     aws.default = aws.default
@@ -149,14 +159,14 @@ module "loadgen" {
 
 resource "aws_lb_target_group_attachment" "locust" {
   for_each         = { for i, node in module.loadgen : i => node if node.region == local.region && node.type == "locust" }
-  target_group_arn = module.public_nlb.locust_target_group_arn
+  target_group_arn = module.public_nlb[0].locust_target_group_arn
   target_id        = each.value.instance_ids[0]
   port             = 8080
   provider         = aws.default
 }
 
 module "integration" {
-  for_each           = { for hostname, node in local.integration_nodes : hostname => node if node.type != "oracle-rds" }
+  for_each           = { for hostname, node in local.integration_nodes : hostname => node if local.cloud_is_aws && node.type != "oracle-rds" }
   source             = "./modules/ec2"
   region             = each.value.region
   type               = each.value.type
@@ -172,7 +182,7 @@ module "integration" {
   security_group_id  = local.vpcs[each.value.region].security_group_id
   prefix             = local.prefix
   region_aliases     = local.region_aliases
-  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  route53_zone_id    = aws_route53_zone.vpc[0].zone_id
   certs              = module.certs.certs
   providers = {
     aws.default = aws.default
@@ -186,21 +196,21 @@ module "integration" {
 }
 
 module "oracle-rds" {
-  for_each           = { for hostname, node in local.integration_nodes : hostname => node if node.type == "oracle-rds" }
+  for_each           = { for hostname, node in local.integration_nodes : hostname => node if local.cloud_is_aws && node.type == "oracle-rds" }
   source             = "./modules/oracle-rds"
   instance_class     = each.value.instance_type
   hostname           = each.value.hostname
   subnet_ids         = local.vpcs[each.value.region].public_subnet_ids
   security_group_ids = [local.vpcs[each.value.region].security_group_id]
   prefix             = local.prefix
-  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  route53_zone_id    = aws_route53_zone.vpc[0].zone_id
   providers = {
     aws = aws.default
   }
 }
 
 module "monitoring" {
-  count              = local.monitoring_enabled ? 1 : 0
+  count              = local.cloud_is_aws && local.monitoring_enabled ? 1 : 0
   source             = "./modules/ec2"
   region             = local.region
   instance_name      = "monitoring"
@@ -215,7 +225,7 @@ module "monitoring" {
   root_volume_size   = local.monitoring_root_volume_size
   prefix             = local.prefix
   region_aliases     = local.region_aliases
-  route53_zone_id    = aws_route53_zone.vpc.zone_id
+  route53_zone_id    = aws_route53_zone.vpc[0].zone_id
   certs              = module.certs.certs
   providers = {
     aws.default = aws.default
@@ -229,16 +239,16 @@ module "monitoring" {
 }
 
 resource "aws_lb_target_group_attachment" "grafana" {
-  count            = local.monitoring_enabled ? 1 : 0
-  target_group_arn = module.public_nlb.grafana_target_group_arn
+  count            = local.cloud_is_aws && local.monitoring_enabled ? 1 : 0
+  target_group_arn = module.public_nlb[0].grafana_target_group_arn
   target_id        = module.monitoring[0].instance_ids[0]
   port             = 3000
   provider         = aws.default
 }
 
 resource "aws_lb_target_group_attachment" "prometheus" {
-  count            = local.monitoring_enabled ? 1 : 0
-  target_group_arn = module.public_nlb.prometheus_target_group_arn
+  count            = local.cloud_is_aws && local.monitoring_enabled ? 1 : 0
+  target_group_arn = module.public_nlb[0].prometheus_target_group_arn
   target_id        = module.monitoring[0].instance_ids[0]
   port             = 9090
   provider         = aws.default
@@ -251,4 +261,75 @@ module "certs" {
     o  = "EMQ Technologies"
     c  = "SE"
   }
+}
+
+###############################################################################
+# GCP compute (alternative target — only one cloud is active per run)
+###############################################################################
+
+module "emqx_gcp" {
+  for_each              = local.cloud_is_gcp ? local.emqx_nodes : {}
+  source                = "./modules/gce"
+  region                = each.value.region
+  zone                  = local.gcp_zone
+  instance_name         = each.value.name
+  instance_type         = each.value.instance_type
+  hostname              = each.value.hostname
+  image_family          = local.gcp_image_family
+  image_project         = local.gcp_image_project
+  subnetwork            = module.vpc_gcp[0].subnetwork
+  network_tag           = module.vpc_gcp[0].network_tag
+  service_account_email = local.gcp_service_account_email
+  remote_user           = local.gcp_oslogin_user
+  dns_zone_name         = google_dns_managed_zone.private[0].name
+  root_volume_size      = local.emqx_root_volume_size
+  attach_to_nlb         = each.value.attach_to_nlb
+  certs                 = module.certs.certs
+  depends_on = [
+    google_project_iam_member.oslogin
+  ]
+}
+
+module "loadgen_gcp" {
+  for_each              = local.cloud_is_gcp ? local.loadgen_nodes : {}
+  source                = "./modules/gce"
+  region                = each.value.region
+  zone                  = local.gcp_zone
+  type                  = each.value.type
+  instance_name         = each.value.name
+  instance_type         = each.value.instance_type
+  hostname              = each.value.hostname
+  image_family          = local.gcp_image_family
+  image_project         = local.gcp_image_project
+  subnetwork            = module.vpc_gcp[0].subnetwork
+  network_tag           = module.vpc_gcp[0].network_tag
+  service_account_email = local.gcp_service_account_email
+  remote_user           = local.gcp_oslogin_user
+  dns_zone_name         = google_dns_managed_zone.private[0].name
+  certs                 = module.certs.certs
+  depends_on = [
+    google_project_iam_member.oslogin
+  ]
+}
+
+module "monitoring_gcp" {
+  count                 = local.cloud_is_gcp && local.monitoring_enabled ? 1 : 0
+  source                = "./modules/gce"
+  region                = local.gcp_region
+  zone                  = local.gcp_zone
+  instance_name         = "monitoring"
+  instance_type         = local.monitoring_instance_type
+  hostname              = local.monitoring_hostname
+  image_family          = local.gcp_image_family
+  image_project         = local.gcp_image_project
+  subnetwork            = module.vpc_gcp[0].subnetwork
+  network_tag           = module.vpc_gcp[0].network_tag
+  service_account_email = local.gcp_service_account_email
+  remote_user           = local.gcp_oslogin_user
+  dns_zone_name         = google_dns_managed_zone.private[0].name
+  root_volume_size      = local.monitoring_root_volume_size
+  certs                 = module.certs.certs
+  depends_on = [
+    google_project_iam_member.oslogin
+  ]
 }
