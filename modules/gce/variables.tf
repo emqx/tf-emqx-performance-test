@@ -1,3 +1,8 @@
+variable "prefix" {
+  description = "Cluster prefix; makes the GCE instance name unique per cluster in a project"
+  type        = string
+}
+
 variable "region" {
   description = "GCP region, e.g. us-east1"
   type        = string

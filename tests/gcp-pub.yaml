@@ -8,6 +8,11 @@ gcp:
   image_family: ubuntu-2204-lts
   image_project: ubuntu-os-cloud
   network_cidr: 10.0.0.0/16
+  # Reuse an existing network instead of creating one (e.g. a second cluster
+  # sharing this VPC for a private MQTT bridge). Both names are required.
+  # network: gcp-pub
+  # subnetwork: gcp-pub
+  # create_firewall: false   # skip firewall rules if the VPC already has them
   pubsub:
     enabled: true
     # topic: defaults to "<id>-bench"

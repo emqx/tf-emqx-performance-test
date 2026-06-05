@@ -270,6 +270,7 @@ module "certs" {
 module "emqx_gcp" {
   for_each              = local.cloud_is_gcp ? local.emqx_nodes : {}
   source                = "./modules/gce"
+  prefix                = local.prefix
   region                = each.value.region
   zone                  = local.gcp_zone
   instance_name         = each.value.name
@@ -293,6 +294,7 @@ module "emqx_gcp" {
 module "loadgen_gcp" {
   for_each              = local.cloud_is_gcp ? local.loadgen_nodes : {}
   source                = "./modules/gce"
+  prefix                = local.prefix
   region                = each.value.region
   zone                  = local.gcp_zone
   type                  = each.value.type
@@ -315,6 +317,7 @@ module "loadgen_gcp" {
 module "monitoring_gcp" {
   count                 = local.cloud_is_gcp && local.monitoring_enabled ? 1 : 0
   source                = "./modules/gce"
+  prefix                = local.prefix
   region                = local.gcp_region
   zone                  = local.gcp_zone
   instance_name         = "monitoring"

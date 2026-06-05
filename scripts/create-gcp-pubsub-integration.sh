@@ -19,6 +19,14 @@ PAYLOAD_TEMPLATE="${PUBSUB_PAYLOAD_TEMPLATE:-}"
 
 TYPE="gcp_pubsub_producer"
 
+# Wait for the dashboard API to be reachable — cluster formation can briefly
+# drop the listener after service.yml's status check passes.
+status_url="${EMQX_BASE_URL%/api/v5}/status"
+for _ in $(seq 1 60); do
+  curl -fsS -o /dev/null "$status_url" 2>/dev/null && break
+  sleep 2
+done
+
 EMQX_TOKEN=$(jq -n --arg u "$EMQX_ADMIN_USERNAME" --arg p "$EMQX_ADMIN_PASSWORD" '{username:$u,password:$p}' \
   | curl -fsSL -X POST "${EMQX_BASE_URL}/login" \
       -H 'Content-Type: application/json' -H 'Accept: application/json' -d @- \

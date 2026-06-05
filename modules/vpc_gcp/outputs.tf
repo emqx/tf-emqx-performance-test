@@ -1,13 +1,9 @@
 output "network" {
-  value = google_compute_network.vpc.self_link
-}
-
-output "network_id" {
-  value = google_compute_network.vpc.id
+  value = local.network
 }
 
 output "subnetwork" {
-  value = google_compute_subnetwork.public.self_link
+  value = local.subnetwork
 }
 
 output "network_tag" {

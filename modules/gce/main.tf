@@ -12,8 +12,9 @@ data "google_compute_image" "image" {
 }
 
 resource "google_compute_instance" "instance" {
-  # GCE instance names must match [a-z]([-a-z0-9]*[a-z0-9])? — no underscores.
-  name         = replace(var.instance_name, "_", "-")
+  # Prefix with the cluster id so two clusters in one project don't collide on
+  # instance name. GCE names must match [a-z]([-a-z0-9]*[a-z0-9])? — no underscores.
+  name         = replace("${var.prefix}-${var.instance_name}", "_", "-")
   machine_type = var.instance_type
   zone         = "${var.region}-${var.zone}"
   tags         = [var.network_tag]

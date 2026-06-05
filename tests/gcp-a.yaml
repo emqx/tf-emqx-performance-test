@@ -1,0 +1,35 @@
+# Cluster A (source): EMQX cluster + loadgens generating 20k msgs/sec @ 10 KiB.
+# Reuses cluster B's VPC ("gcp-b") for a private MQTT bridge A -> B.
+# Apply AFTER cluster B exists (B creates the shared network).
+id: gcp-a
+cloud: gcp
+region: europe-west1
+gcp:
+  region: europe-west1
+  zone: b
+  image_family: ubuntu-2204-lts
+  image_project: ubuntu-os-cloud
+  network: gcp-b      # reuse cluster B's shared VPC
+  subnetwork: gcp-b
+monitoring_enabled: true
+monitoring:
+  instance_type: e2-standard-4
+emqx:
+  instance_type: n2-standard-8
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  license_file: emqx-enterprise.lic
+  package_download_url: https://www.emqx.com/en/downloads/enterprise/6.2.0/emqx-enterprise-6.2.0-ubuntu22.04-amd64.deb
+  nodes:
+    - role: core
+      instance_count: 3
+loadgens:
+  use_nlb: false
+  nodes:
+    # 2 nodes x 1000 clients x 10 msg/s = 20,000 msgs/sec of 10 KiB (~200 MB/s).
+    - type: emqtt_bench
+      instance_type: n2-standard-4
+      scenario: "pub -c 1000 -I 100 -t 'bench/%%i' -q 1 -s 10240 --shortids --prefix a_"
+    - type: emqtt_bench
+      instance_type: n2-standard-4
+      scenario: "pub -c 1000 -I 100 -t 'bench/%%i' -q 1 -s 10240 --shortids --prefix b_"

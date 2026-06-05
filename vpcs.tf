@@ -145,11 +145,15 @@ resource "aws_security_group_rule" "allow_access_from_public_nlb" {
 }
 
 module "vpc_gcp" {
-  source      = "./modules/vpc_gcp"
-  count       = local.cloud_is_gcp ? 1 : 0
-  prefix      = local.prefix
-  region      = local.gcp_region
-  cidr        = local.gcp_network_cidr
-  network_tag = local.prefix
+  source          = "./modules/vpc_gcp"
+  count           = local.cloud_is_gcp ? 1 : 0
+  prefix          = local.prefix
+  region          = local.gcp_region
+  cidr            = local.gcp_network_cidr
+  network_tag     = local.prefix
+  create_network  = local.gcp_create_network
+  network_name    = local.gcp_network_name
+  subnetwork_name = local.gcp_subnetwork_name
+  create_firewall = local.gcp_create_firewall
 }
 

@@ -17,6 +17,11 @@ locals {
   gcp_image_family  = try(local.spec.gcp.image_family, "ubuntu-2204-lts")
   gcp_image_project = try(local.spec.gcp.image_project, "ubuntu-os-cloud")
   gcp_network_cidr  = try(local.spec.gcp.network_cidr, "10.0.0.0/16")
+  # Optionally reuse an existing network/subnetwork instead of creating one.
+  gcp_network_name    = try(local.spec.gcp.network, "")
+  gcp_subnetwork_name = try(local.spec.gcp.subnetwork, "")
+  gcp_create_network  = local.gcp_network_name == ""
+  gcp_create_firewall = try(local.spec.gcp.create_firewall, true)
 
   # On a GCP run, local.region holds a GCP region; fall back to a valid AWS
   # region so the (unused) AWS providers configure cleanly without credentials.
