@@ -1,0 +1,29 @@
+# Cluster B (sink): EMQX cluster + GCP Pub/Sub bridge, no loadgens.
+# Creates the shared VPC "gcp-b" that cluster A (tests/gcp-a.yaml) reuses.
+# Receives traffic from cluster A over an MQTT bridge (configured separately)
+# and forwards bench/# to Pub/Sub.
+id: gcp-b
+cloud: gcp
+region: europe-west1
+gcp:
+  region: europe-west1
+  zone: b
+  image_family: ubuntu-2204-lts
+  image_project: ubuntu-os-cloud
+  network_cidr: 10.0.0.0/16
+  pubsub:
+    enabled: true
+monitoring_enabled: true
+monitoring:
+  instance_type: e2-standard-4
+emqx:
+  instance_type: n2-standard-8
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  license_file: emqx-enterprise.lic
+  package_download_url: https://www.emqx.com/en/downloads/enterprise/6.2.0/emqx-enterprise-6.2.0-ubuntu22.04-amd64.deb
+  nodes:
+    - role: core
+      instance_count: 3
+  scripts:
+    - scripts/create-gcp-pubsub-integration.sh

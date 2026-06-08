@@ -1,0 +1,49 @@
+id: gcp-pub
+cloud: gcp
+region: europe-west1
+gcp:
+  # project: defaults to the active gcloud project (gcloud config get-value project)
+  region: europe-west1
+  zone: b                   # forms zone europe-west1-b
+  image_family: ubuntu-2204-lts
+  image_project: ubuntu-os-cloud
+  network_cidr: 10.0.0.0/16
+  # Reuse an existing network instead of creating one (e.g. a second cluster
+  # sharing this VPC for a private MQTT bridge). Both names are required.
+  # network: gcp-pub
+  # subnetwork: gcp-pub
+  # create_firewall: false   # skip firewall rules if the VPC already has them
+  pubsub:
+    enabled: true
+    # topic: defaults to "<id>-bench"
+    # rule_sql: defaults to forwarding the loadgen topic (SELECT * FROM "bench/#")
+monitoring_enabled: true
+monitoring:
+  instance_type: e2-standard-4
+emqx:
+  instance_type: n2-standard-8
+  dashboard_default_password: admin
+  edition: emqx-enterprise
+  # Enterprise license — the built-in trial license won't permit a multi-node cluster.
+  license_file: emqx-enterprise.lic
+  # EMQX Enterprise 6.2.0 via direct package (the apt repo only serves the v5 line).
+  package_download_url: https://www.emqx.com/en/downloads/enterprise/6.2.0/emqx-enterprise-6.2.0-ubuntu22.04-amd64.deb
+  nodes:
+    - role: core
+      instance_count: 3
+  scripts:
+    - scripts/create-gcp-pubsub-integration.sh
+loadgens:
+  # No GCP load balancer in the MVP: emqtt_bench targets the 3 EMQX nodes directly
+  # (round-robin over their FQDNs), spreading connections across the cluster.
+  use_nlb: false
+  nodes:
+    # Two publisher nodes with distinct client-id prefixes (identical scenarios
+    # would collide on client-id and get kicked). Together:
+    # 2 nodes x 1000 clients x 10 msg/s = 20,000 msg/s of 10 KiB payloads (~200 MB/s).
+    - type: emqtt_bench
+      instance_type: n2-standard-4
+      scenario: "pub -c 1000 -I 100 -t 'bench/%%i' -q 1 -s 10240 --shortids --prefix a_"
+    - type: emqtt_bench
+      instance_type: n2-standard-4
+      scenario: "pub -c 1000 -I 100 -t 'bench/%%i' -q 1 -s 10240 --shortids --prefix b_"

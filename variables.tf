@@ -36,6 +36,14 @@ variable "spec_file" {
   default = "tests/default.yaml"
 }
 
+# Per-user/per-environment override for the GCP OS Login POSIX username.
+# Leave empty to resolve it automatically from the active gcloud profile.
+# Pass via -var or TF_VAR_gcp_oslogin_user; do not commit it to a spec file.
+variable "gcp_oslogin_user" {
+  type    = string
+  default = ""
+}
+
 variable "node_exporter_enabled_collectors" {
   type    = list(string)
   default = ["buddyinfo", "cpu", "diskstats", "ethtool", "filefd", "filesystem", "loadavg", "meminfo", "netdev", "netstat", "processes", "sockstat", "stat", "systemd", "tcpstat", "time", "uname", "vmstat"]
