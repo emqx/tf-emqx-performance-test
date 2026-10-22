@@ -26,6 +26,17 @@ resource "aws_lb_listener" "emqx" {
   }
 }
 
+resource "aws_lb_listener" "emqx-https" {
+  load_balancer_arn = aws_lb.nlb.arn
+  port              = "8883"
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.emqx-https.arn
+  }
+}
+
 resource "aws_lb_listener" "emqx-ws" {
   load_balancer_arn = aws_lb.nlb.arn
   port              = "8083"
@@ -84,6 +95,14 @@ resource "aws_lb_listener" "locust" {
 resource "aws_lb_target_group" "emqx" {
   name        = "${var.prefix}-emqx"
   port        = 18083
+  protocol    = "TCP"
+  target_type = "instance"
+  vpc_id      = var.vpc_id
+}
+
+resource "aws_lb_target_group" "emqx-https" {
+  name        = "${var.prefix}-emqx-https"
+  port        = 8883
   protocol    = "TCP"
   target_type = "instance"
   vpc_id      = var.vpc_id

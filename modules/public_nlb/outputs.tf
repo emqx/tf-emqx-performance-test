@@ -12,6 +12,10 @@ output "emqx_target_group_arn" {
   value = aws_lb_target_group.emqx.arn
 }
 
+output "emqx_https_target_group_arn" {
+  value = aws_lb_target_group.emqx-https.arn
+}
+
 output "emqx_ws_target_group_arn" {
   value = aws_lb_target_group.emqx-ws.arn
 }

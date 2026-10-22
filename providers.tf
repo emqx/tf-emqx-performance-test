@@ -21,6 +21,9 @@ provider "google" {
   project = local.gcp_project
   region  = local.gcp_region
   zone    = "${local.gcp_region}-${local.gcp_zone}"
+  # even when deploying on aws, terraform insists that you must be logged in gcloud...
+  # to work around this issue, uncomment the following line when deploying to aws.
+  # access_token = "aaaaa"
 }
 
 provider "aws" {
